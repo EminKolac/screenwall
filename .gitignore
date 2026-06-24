@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime storage — NEVER commit documents or PII
+/data/**
+!/data/**/.gitkeep
+
+# Models / large artifacts (root-level only — must not match backend/app/models/)
+*.gguf
+/models/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# runtime storage created when running from backend/
+/backend/data/
