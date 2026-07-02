@@ -18,6 +18,12 @@ from pydantic import BaseModel, Field
 from app.models.document import FileKind, Language
 
 
+# Warning markers that force fail-closed routing to human review in `ingest` (never auto-approve
+# a document whose content was only partially captured).
+OCR_UNAVAILABLE = "ocr_unavailable"        # a page needed OCR but Tesseract was missing/failed
+WORKBOOK_TRUNCATED = "workbook truncated"  # XLSX exceeded the cell cap (see xlsx.py)
+
+
 class UploadRejected(ValueError):
     """Upload failed type/size/safety validation. `code` ∈ {invalid, unsupported, too_large}."""
 
