@@ -17,10 +17,11 @@ def test_docx_structure(docx_en):
 
 def test_xlsx_cells_with_addresses(xlsx_tr):
     c = XlsxExtractor().extract(xlsx_tr, "a.xlsx")
-    assert c.blocks and c.blocks[0].type == BlockType.table
-    cells = c.blocks[0].cells
+    tables = [b for b in c.blocks if b.type == BlockType.table]  # sheet-name heading precedes it
+    assert tables
+    cells = tables[0].cells
     assert any(cell.address == "A1" for cell in cells)
-    assert c.blocks[0].sheet
+    assert tables[0].sheet
     assert "Ahmet Yılmaz" in c.plain_text
 
 
