@@ -38,6 +38,29 @@ class OpenAIProvider:
         return resp.choices[0].message.content or ""
 
 
+class OllamaChatProvider:
+    """Fully local chat via Ollama — no external API or key. Requires Ollama running with the
+    model pulled (see scripts/setup_macos.sh)."""
+    name = "ollama"
+
+    def __init__(self, base_url: str, model: str) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+
+    def chat(self, system_prompt: str, messages: list[dict], model: str) -> str:
+        import httpx
+
+        payload = {
+            "model": self.model or model,
+            "stream": False,
+            "options": {"temperature": 0.2},
+            "messages": [{"role": "system", "content": system_prompt}, *messages],
+        }
+        r = httpx.post(f"{self.base_url}/api/chat", json=payload, timeout=180.0)
+        r.raise_for_status()
+        return r.json().get("message", {}).get("content", "")
+
+
 class AzureOpenAIProvider:
     name = "azure"
 

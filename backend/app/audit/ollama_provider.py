@@ -21,9 +21,10 @@ class OllamaProvider:
             r = httpx.get(f"{self.base_url}/api/tags", timeout=3.0)
             if r.status_code != 200:
                 return False
-            models = [m.get("name", "") for m in r.json().get("models", [])]
-            # available if the server is up; model presence is best-effort (pull may be pending)
-            return True if models is not None else False
+            names = [m.get("name", "") for m in r.json().get("models", [])]
+            # Available only if the configured model is actually pulled — otherwise the auditor
+            # falls back to the deterministic heuristic instead of erroring on a missing model.
+            return self.model in names or f"{self.model}:latest" in names
         except Exception:  # noqa: BLE001
             return False
 

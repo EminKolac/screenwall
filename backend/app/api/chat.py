@@ -31,5 +31,12 @@ def chat(doc_id: str, body: ChatRequest) -> dict:
     except ChatNotAllowed as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
     except Exception as e:  # noqa: BLE001 — never leak provider internals
-        raise HTTPException(status_code=502, detail=f"chat provider error: {type(e).__name__}") from e
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"chat provider unavailable ({type(e).__name__}). "
+                "Enable a local model — run scripts/setup_macos.sh for Ollama — "
+                "or set CHAT_PROVIDER + an API key in .env."
+            ),
+        ) from e
     return {"answer": answer}

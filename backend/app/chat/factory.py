@@ -1,7 +1,12 @@
 """Build the configured chat provider + a wired ChatService (post-approval, layer-5 only)."""
 from __future__ import annotations
 
-from app.chat.providers import AnthropicProvider, AzureOpenAIProvider, OpenAIProvider
+from app.chat.providers import (
+    AnthropicProvider,
+    AzureOpenAIProvider,
+    OllamaChatProvider,
+    OpenAIProvider,
+)
 from app.chat.service import ChatService
 from app.config import Settings
 from app.storage.local import LocalStorageBackend
@@ -9,6 +14,8 @@ from app.storage.local import LocalStorageBackend
 
 def build_chat_provider(settings: Settings):
     p = settings.chat_provider
+    if p == "ollama":
+        return OllamaChatProvider(settings.ollama_base_url, settings.chat_ollama_model)
     if p == "anthropic":
         return AnthropicProvider(settings.anthropic_api_key)
     if p == "openai":
