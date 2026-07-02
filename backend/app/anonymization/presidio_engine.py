@@ -8,6 +8,7 @@ Structure is preserved (paragraph text / table cells edited in place).
 """
 from __future__ import annotations
 
+import re
 import threading
 
 from app.anonymization.engine import (
@@ -70,7 +71,9 @@ class PresidioEngine(AnonymizationEngine):
                     text, n = self._anon_text(cell.text, mapper, deny, analyzer)
                     total += n
                     new_cells.append(cell.model_copy(update={"text": text}))
-                new_blocks.append(block.model_copy(update={"cells": new_cells}))
+                # Drop the raw sheet name from the anonymized (layer-3) copy — it is un-audited PII;
+                # the audited sheet name is carried separately as an anonymized heading block.
+                new_blocks.append(block.model_copy(update={"cells": new_cells, "sheet": None}))
             else:
                 text, n = self._anon_text(block.text, mapper, deny, analyzer)
                 total += n
@@ -95,11 +98,15 @@ class PresidioEngine(AnonymizationEngine):
                     spans.append(EntitySpan(start=r.start, end=r.end, entity_type=r.entity_type,
                                             score=r.score, source=lang))
         for term in deny:
-            i = text.find(term)
-            while i != -1:
-                spans.append(EntitySpan(start=i, end=i + len(term), entity_type="SENSITIVE",
+            # Case-insensitive + whitespace-flexible: a deny term "500 Startups" also masks
+            # "500 STARTUPS", "500  Startups", and the line-wrapped "500\nStartups" (\s matches \n).
+            parts = term.split()
+            if not parts:
+                continue
+            pattern = r"\s+".join(re.escape(p) for p in parts)
+            for m in re.finditer(pattern, text, re.IGNORECASE):
+                spans.append(EntitySpan(start=m.start(), end=m.end(), entity_type="SENSITIVE",
                                         score=1.0, source="deny"))
-                i = text.find(term, i + len(term))
         kept = resolve_spans(spans)
         if not kept:
             return text, 0

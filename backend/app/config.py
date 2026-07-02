@@ -38,16 +38,20 @@ class Settings(BaseSettings):
     # en_core_web_sm runs out of the box; en_core_web_lg is the production-accuracy upgrade.
     spacy_en_model: str = "en_core_web_sm"
     spacy_multilingual_model: str = "xx_ent_wiki_sm"  # Turkish/other NER baseline (no torch)
-    tr_ner_model: str = "savasy/bert-base-turkish-ner-cased"  # optional transformers upgrade ([tr] extra)
+    tr_ner_model: str = "savasy/bert-base-turkish-ner-cased"  # optional transformers upgrade
     use_transformers_tr: bool = False
     anonymizer_score_threshold: float = 0.4
     lang_detector: Literal["langdetect", "fasttext"] = "langdetect"
+    # Always-mask terms for THIS project/data room (fund, portfolio-company, brand names that NER
+    # can't reliably catch, e.g. "e2vc"). Comma-separated; applied deterministically every run.
+    deny_terms: str = ""
 
-    # External chat (post-approval only)
-    chat_provider: Literal["openai", "anthropic", "azure"] = "anthropic"
+    # Chat (post-approval only). Default 'ollama' = fully local, no external API/key required.
+    chat_provider: Literal["openai", "anthropic", "azure", "ollama"] = "ollama"
     chat_model: str = "claude-sonnet-4-6"
+    chat_ollama_model: str = "qwen2.5:3b"  # small + fast for local chat (~2GB)
     chat_max_message_chars: int = 4000
-    cors_allow_origins: str = "http://localhost:5173"  # comma-separated
+    cors_allow_origins: str = "http://localhost:5173,http://localhost:5174"  # comma-separated
     openai_api_key: str = ""
     anthropic_api_key: str = ""
     azure_openai_api_key: str = ""
@@ -70,6 +74,9 @@ class Settings(BaseSettings):
 
     def layer_path(self, layer_dir: str) -> Path:
         return self.storage_root / layer_dir
+
+    def deny_list(self) -> list[str]:
+        return [t.strip() for t in self.deny_terms.split(",") if t.strip()]
 
 
 @lru_cache

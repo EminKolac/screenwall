@@ -63,8 +63,15 @@ class Orchestrator:
         self.max_risk = RiskLevel(settings.auditor_risk_approve)
         self.hook = hook or _NullHook()
 
-    def run(self, doc: Document, content: ExtractedContent, language: Language) -> PipelineResult:
-        deny_terms: list[str] = []
+    def run(
+        self,
+        doc: Document,
+        content: ExtractedContent,
+        language: Language,
+        initial_deny_terms: list[str] | None = None,
+    ) -> PipelineResult:
+        # Project deny-list (known-sensitive names NER can't reliably catch) seeds iteration 1.
+        deny_terms: list[str] = list(initial_deny_terms or [])
         last_anonymized: ExtractedContent | None = None
         last_mapping: dict[str, str] = {}
 
