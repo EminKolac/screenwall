@@ -56,6 +56,11 @@ class StorageDocumentRepository:
     def save_mapping(self, doc_id: str, mapping: dict[str, str]) -> None:
         self.backend.write_json(StorageLayer.EXTRACTED, doc_id, "mapping.json", mapping)
 
+    def get_mapping(self, doc_id: str) -> dict[str, str] | None:
+        if not self.backend.exists(StorageLayer.EXTRACTED, doc_id, "mapping.json"):
+            return None
+        return self.backend.read_json(StorageLayer.EXTRACTED, doc_id, "mapping.json")
+
     # --- anonymized (layer 3) ---
     def save_anonymized(self, doc_id: str, content: ExtractedContent) -> None:
         self.backend.write_json(StorageLayer.ANONYMIZED, doc_id, "anonymized.json", content.model_dump(mode="json"))

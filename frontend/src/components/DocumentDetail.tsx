@@ -59,8 +59,8 @@ export default function DocumentDetail({
             </>
           )}
           {anon && (
-            <a className="btn" href={`/api/documents/${id}/anonymized`} target="_blank" rel="noreferrer">
-              ⬇ Download
+            <a className="btn" href={`/api/documents/${id}/download`} rel="noreferrer">
+              ⬇ Download (PDF)
             </a>
           )}
           <button className="danger" onClick={() => act(async () => { await api.remove(id); onDeleted(); })}>

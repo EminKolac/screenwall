@@ -5,9 +5,12 @@ anonymized content (layer 3) and redacted metadata/reports leave the service.
 """
 from __future__ import annotations
 
+import re
+from urllib.parse import quote
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response
 
 from app.config import get_settings
 from app.extraction.base import ExtractionFailed, UploadRejected
@@ -43,7 +46,7 @@ async def _read_bounded(file: UploadFile, max_bytes: int) -> bytes | None:
 
 
 @router.post("")
-async def upload_document(file: UploadFile = File(...)) -> dict:
+async def upload_document(file: UploadFile = File(...)) -> dict:  # noqa: B008 — FastAPI DI idiom
     settings = get_settings()
     repo = get_repository()
     data = await _read_bounded(file, settings.max_upload_mb * 1024 * 1024)
@@ -85,11 +88,50 @@ def download_anonymized(doc_id: str) -> str:
     # Privacy-first: unapproved best-effort output may still contain residual PII flagged for
     # human review, so it is not downloadable until the document is approved.
     if not doc.approved:
-        raise HTTPException(status_code=403, detail="anonymized download is available only after approval")
+        raise HTTPException(
+            status_code=403, detail="anonymized download is available only after approval"
+        )
     anon = repo.get_anonymized(doc_id)
     if anon is None:
         raise HTTPException(status_code=404, detail="no anonymized content available")
     return anon.plain_text
+
+
+def _content_disposition(safe_stem: str) -> str:
+    """RFC 5987 attachment header (safe for non-ASCII / Turkish) for the anonymized PDF."""
+    name = f"anonymized_{safe_stem}.pdf"
+    ascii_fallback = re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("_") or "anonymized.pdf"
+    return f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{quote(name)}"
+
+
+@router.get("/{doc_id}/download")
+def download_anonymized_pdf(doc_id: str) -> Response:
+    """Approved anonymized content rendered as a fresh PDF — from storage layer 3 ONLY.
+
+    Never reads the original (layer 1) or the placeholder mapping (layer 2): what is shipped is
+    exactly the audited anonymized content, so no un-audited channel of the original (image pixels,
+    headers/footers, comments, metadata, formula source, spelling variants) can leak.
+    """
+    repo = get_repository()
+    doc = repo.get_document(doc_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="document not found")
+    if not doc.approved:
+        raise HTTPException(status_code=403, detail="download is available only after approval")
+    anon = repo.get_anonymized(doc_id)
+    if anon is None:
+        raise HTTPException(status_code=404, detail="no anonymized content available")
+    from app.export.filename import anonymize_filename
+    from app.export.render_pdf import render_content_pdf
+
+    pdf = render_content_pdf(anon)
+    # don't leak PII (or deny-listed names) via the download filename
+    safe = anonymize_filename(doc.filename, doc.language, deny_terms=get_settings().deny_list())
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": _content_disposition(safe)},
+    )
 
 
 @router.get("/{doc_id}/findings")
