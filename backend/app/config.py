@@ -46,6 +46,22 @@ class Settings(BaseSettings):
     # can't reliably catch, e.g. "e2vc"). Comma-separated; applied deterministically every run.
     deny_terms: str = ""
 
+    # OpenAI Privacy Filter — optional LOCAL (on-device) contextual PII detector: a 2nd detection
+    # stage unioned with Presidio. Needs the [privacy] extra (transformers+torch) and the model
+    # PRE-DOWNLOADED once (scripts/setup_macos.sh with PRIVACY_FILTER=1); runtime loading is
+    # local_files_only — zero network. Off by default so the platform runs torch-free by default.
+    use_privacy_filter: bool = False
+    privacy_filter_model: str = "OpenMed/privacy-filter-multilingual"  # multilingual (TR+EN)
+    privacy_filter_threshold: float = 0.5
+    require_privacy_filter: bool = False  # if unavailable → fail-closed to human review
+    # Model labels to IGNORE (comma-separated, model taxonomy names). Defaults drop the noisy,
+    # non-identifying classes that would over-mask business documents (contract dates, amounts,
+    # currencies, job titles, "Visa" as card issuer); anything NOT listed is masked (fail-safe).
+    privacy_filter_exclude_labels: str = (
+        "AMOUNT,CREDITCARDISSUER,CURRENCY,CURRENCYCODE,CURRENCYNAME,CURRENCYSYMBOL,DATE,"
+        "JOBDEPARTMENT,JOBTITLE,OCCUPATION,ORDINALDIRECTION,PREFIX,TIME"
+    )
+
     # Chat (post-approval only). Default 'ollama' = fully local, no external API/key required.
     chat_provider: Literal["openai", "anthropic", "azure", "ollama"] = "ollama"
     chat_model: str = "claude-sonnet-4-6"
@@ -77,6 +93,10 @@ class Settings(BaseSettings):
 
     def deny_list(self) -> list[str]:
         return [t.strip() for t in self.deny_terms.split(",") if t.strip()]
+
+    def privacy_filter_excluded(self) -> frozenset[str]:
+        labels = self.privacy_filter_exclude_labels.split(",")
+        return frozenset(t.strip().upper() for t in labels if t.strip())
 
 
 @lru_cache

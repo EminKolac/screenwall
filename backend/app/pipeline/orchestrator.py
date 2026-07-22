@@ -91,6 +91,7 @@ class Orchestrator:
                 iteration=i,
                 presidio_entities=result.entity_count,
                 placeholders_used=result.placeholders_used,
+                by_source=result.by_source,
                 audit=audit,
             )
             doc.iterations.append(record)

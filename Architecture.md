@@ -7,7 +7,9 @@
 
 **Goals**
 - Anonymize PDF / DOCX / XLSX documents in **Turkish, English, and mixed** content.
-- Detect PII with **Microsoft Presidio** (universal + TR-specific + EN-specific recognizers).
+- Detect PII with **Microsoft Presidio** (universal + TR-specific + EN-specific recognizers), plus
+  an optional **local OpenAI Privacy Filter** pass (open-weight, on-device) as the 2nd, context-aware
+  detection stage unioned with Presidio (① Presidio → ② Privacy Filter → ③ audit).
 - **Validate** anonymization with a **local** LLM privacy auditor (Qwen via Ollama).
 - Enforce an **iterative loop (max 3)**; escalate to **human review** on failure.
 - Allow **external LLM chat only after approval**, over **anonymized content only**.
@@ -53,7 +55,7 @@ Upload ─▶ Extract ─▶ Detect Language ─┐
 | `api/` | FastAPI routers: documents (upload/status/download), review, chat. |
 | `extraction/` | `pdf.py` (PyMuPDF), `docx.py` (python-docx), `xlsx.py` (openpyxl) → `ExtractedContent`. |
 | `language/` | TR/EN/mixed detection (langdetect default; fastText optional). |
-| `anonymization/` | Presidio orchestration: `nlp.py` (EN spaCy + TR transformers NER), `recognizers/` (TR+EN custom), `placeholders.py` (deterministic mapping), `engine.py`. |
+| `anonymization/` | Presidio orchestration: `nlp.py` (EN spaCy + TR transformers NER), `recognizers/` (TR+EN custom), `placeholders.py` (deterministic mapping), `privacy_filter.py` (optional local OpenAI Privacy Filter detector), `engine.py`. |
 | `audit/` | Privacy auditor: `base.py` (LLM provider protocol), `ollama_provider.py`, `mlx_provider.py` (stub), `auditor.py` (prompt + strict JSON parse). |
 | `pipeline/` | `orchestrator.py` — the iteration loop + status state machine. |
 | `chat/` | Post-approval chat: provider protocol + OpenAI/Anthropic/Azure + gated `service.py`. |

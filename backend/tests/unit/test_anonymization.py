@@ -69,3 +69,34 @@ def test_mapping_excluded_from_serialization():
     out = eng.anonymize(_content("Reach me at ahmet@example.com"), Language.en)
     assert "mapping" not in out.model_dump()
     assert out.mapping  # accessible as attribute (layer-2 only)
+
+
+def test_by_source_reports_presidio_stage():
+    out = eng.anonymize(_content("Ahmet Yılmaz, e-posta ahmet@example.com"), Language.tr)
+    assert out.by_source.get("presidio", 0) >= 1  # stage ① attributed
+
+
+# --- Stage ② — OpenAI Privacy Filter (local detector) merges into the same resolution ---
+
+def test_privacy_filter_span_wins_overlap_by_score():
+    # A Privacy Filter person span (0.9) beats an overlapping weaker Presidio NRP span (0.3).
+    pf = EntitySpan(start=0, end=12, entity_type="PERSON", score=0.9, source="privacy_filter")
+    weak = EntitySpan(start=0, end=5, entity_type="NRP", score=0.3, source="tr")
+    assert resolve_spans([weak, pf]) == [pf]
+
+
+def test_privacy_filter_detector_spans_masked_and_counted(monkeypatch):
+    import app.anonymization.presidio_engine as pe
+
+    class FakePF:  # a made-up brand NER wouldn't catch; PF "detects" it
+        def detect(self, text):
+            i = text.find("Zorptech")
+            return [] if i == -1 else [EntitySpan(
+                start=i, end=i + len("Zorptech"),
+                entity_type="PERSON", score=0.99, source="privacy_filter")]
+
+    monkeypatch.setattr(pe, "get_privacy_filter", lambda: FakePF())
+    out = eng.anonymize(_content("Please contact Zorptech about the deal."), Language.en)
+    assert "Zorptech" not in out.content.plain_text
+    assert "<PERSON_" in out.content.plain_text
+    assert out.by_source.get("privacy_filter", 0) >= 1

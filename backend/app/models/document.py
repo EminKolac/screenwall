@@ -72,6 +72,7 @@ class IterationRecord(BaseModel):
     iteration: int
     presidio_entities: int = 0
     placeholders_used: dict[str, int] = Field(default_factory=dict)
+    by_source: dict[str, int] = Field(default_factory=dict)  # masked spans per detection stage
     audit: AuditResult | None = None
     created_at: datetime = Field(default_factory=_now)
 

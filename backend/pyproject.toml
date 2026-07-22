@@ -31,6 +31,10 @@ dependencies = [
 [project.optional-dependencies]
 # Turkish NER via transformers (heavier: torch). Install for full TR support.
 tr = ["transformers>=4.40", "torch>=2.2"]
+# OpenAI Privacy Filter — optional local (on-device) contextual PII detector (2nd detection stage).
+# Pre-download the model once (PRIVACY_FILTER=1 scripts/setup_macos.sh); runtime loading is
+# local_files_only (zero network). Enable with USE_PRIVACY_FILTER=true.
+privacy = ["transformers>=4.40", "torch>=2.2"]
 # External chat providers (post-approval only)
 chat = ["openai>=1.30", "anthropic>=0.34"]
 # Optional fastText language id

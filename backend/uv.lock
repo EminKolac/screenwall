@@ -50,6 +50,10 @@ chat = [
 fasttext = [
     { name = "fasttext-wheel" },
 ]
+privacy = [
+    { name = "torch" },
+    { name = "transformers" },
+]
 tr = [
     { name = "torch" },
     { name = "transformers" },
@@ -81,12 +85,14 @@ requires-dist = [
     { name = "python-docx", specifier = ">=1.1" },
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "spacy", specifier = ">=3.7" },
+    { name = "torch", marker = "extra == 'privacy'", specifier = ">=2.2" },
     { name = "torch", marker = "extra == 'tr'", specifier = ">=2.2" },
+    { name = "transformers", marker = "extra == 'privacy'", specifier = ">=4.40" },
     { name = "transformers", marker = "extra == 'tr'", specifier = ">=4.40" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
     { name = "xx-ent-wiki-sm", url = "https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.8.0/xx_ent_wiki_sm-3.8.0-py3-none-any.whl" },
 ]
-provides-extras = ["tr", "chat", "fasttext"]
+provides-extras = ["tr", "privacy", "chat", "fasttext"]
 
 [package.metadata.requires-dev]
 dev = [

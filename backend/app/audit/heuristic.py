@@ -2,7 +2,9 @@
 
 Re-scans the ANONYMIZED text (placeholder tokens stripped) for residual PII using ONLY
 high-confidence, deterministic patterns that must never remain: email, Turkish IBAN, credit-card
-runs, valid-checksum TCKN, and prefixed Turkish phone numbers.
+runs, valid-checksum TCKN, prefixed Turkish phone numbers, and well-known API-key/secret prefixes.
+The secret patterns close a fail-OPEN gap: base Presidio has no SECRET recognizer, so without this
+backstop an unmasked API key could sit inside an APPROVED export (benchmark-confirmed).
 
 It deliberately does NOT re-run NER for names/orgs/locations. The anonymization engine already
 applies the same NER at a LOWER (more aggressive) threshold, so a second NER pass here catches
@@ -27,6 +29,15 @@ _HARD_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("CARD", re.compile(r"\b(?:\d[ -]?){13,19}\b")),
     # Turkish phone: require a 0 / +90 prefix so bare financial figures aren't flagged.
     ("TR_PHONE", re.compile(r"\b(?:\+?90[ ]?|0)5\d{2}[\s.\-]?\d{3}[\s.\-]?\d{2}[\s.\-]?\d{2}\b")),
+    # API keys / secrets by well-known prefix (extremely low false-positive) + a context-gated
+    # generic credential. Base Presidio has no SECRET recognizer, so this is the only deterministic
+    # guard that keeps a live credential out of an APPROVED export (else fail-open).
+    ("SECRET", re.compile(r"\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{8,}\b")),
+    ("SECRET", re.compile(r"\bAKIA[0-9A-Z]{12,}\b")),
+    ("SECRET", re.compile(r"\bghp_[A-Za-z0-9]{20,}\b")),
+    ("SECRET", re.compile(r"\bAIza[0-9A-Za-z_\-]{18,}\b")),
+    ("SECRET", re.compile(
+        r"(?i)\b(?:api[_\s-]?key|secret|token|bearer|password|passwd)\b[\s:=]+[A-Za-z0-9_\-.]{12,}")),
 ]
 _TCKN_CANDIDATE = re.compile(r"\b\d{11}\b")  # validated by checksum below (no bare-number flagging)
 

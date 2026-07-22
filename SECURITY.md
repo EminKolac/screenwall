@@ -13,7 +13,11 @@ the Codex **Security** and **Privacy** reviews.
 ## 2. Hard guarantees
 
 1. **No external API calls before approval.** A central guard blocks all outbound provider calls
-   unless the document's `status == APPROVED`. The auditor (Qwen) runs **locally** (Ollama).
+   unless the document's `status == APPROVED`. Every detection/audit model runs **on-device** — the
+   auditor (Qwen via Ollama) and the optional OpenAI **Privacy Filter** (open-weight HF model) both
+   run locally with zero external calls, so enabling them does not weaken this invariant. The
+   Privacy Filter is loaded with `local_files_only=True` (pre-downloaded at setup), so even a
+   missing model cache degrades offline instead of triggering a network fetch.
 2. **Raw documents never leave the machine.** Layers 1–2 (original + extracted, incl. mapping
    tables) are local-only and never serialized to clients or sent to any provider.
 3. **Chat reads anonymized content only** (storage layer 5), never layers 1–2. Enforced

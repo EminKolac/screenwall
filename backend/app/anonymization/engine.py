@@ -60,6 +60,8 @@ class AnonymizationOutput(BaseModel):
     content: ExtractedContent                 # structure-preserving, anonymized
     entity_count: int = 0
     placeholders_used: dict[str, int] = Field(default_factory=dict)
+    # Masked-span count per detection stage (e.g. {"presidio": N, "privacy_filter": M, "deny": K}).
+    by_source: dict[str, int] = Field(default_factory=dict)
     # Excluded from model_dump()/JSON so it cannot leak via API responses or logs.
     mapping: dict[str, str] = Field(default_factory=dict, exclude=True, repr=False)
 

@@ -36,6 +36,7 @@ npm run dev                               # http://localhost:5173 (proxies /api 
 | Upgrade | Why | How |
 |---|---|---|
 | **Local Qwen auditor** | LLM-grade residual-PII detection on top of the heuristic | `bash scripts/setup_macos.sh` (installs Ollama, pulls `qwen2.5:7b-instruct-q4_K_M`) |
+| **OpenAI Privacy Filter** | 2nd detection stage: a **local, on-device** open-weight model for context-aware PII (names/addresses/secrets) Presidio misses — no external call | `PRIVACY_FILTER=1 bash scripts/setup_macos.sh` (installs `[privacy]` extra **and pre-downloads the model** — runtime loading is `local_files_only`, zero network), then `USE_PRIVACY_FILTER=true`. Tune: `PRIVACY_FILTER_MODEL` / `PRIVACY_FILTER_THRESHOLD` / `PRIVACY_FILTER_EXCLUDE_LABELS` (calibrate with `uv run python -m app.cli.eval_privacy_filter`); `REQUIRE_PRIVACY_FILTER=true` fails closed if unavailable |
 | **Turkish transformers NER** | Higher TR name/org accuracy than the multilingual baseline | `uv sync --extra tr` then set `USE_TRANSFORMERS_TR=true` |
 | **`en_core_web_lg`** | Higher English NER accuracy | `uv run python -m spacy download en_core_web_lg` then `SPACY_EN_MODEL=en_core_web_lg` |
 | **External chat** | Q&A over approved docs | `uv sync --extra chat`, set `CHAT_PROVIDER` + API key |

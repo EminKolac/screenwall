@@ -81,14 +81,22 @@ export default function DocumentDetail({
           {doc.iterations.map((it) => (
             <div key={it.iteration} className="iter">
               <div className="iter-head">
-                <b>Presidio Pass {it.iteration}</b>
-                <span className="muted">{it.presidio_entities} entities</span>
+                <b>Tur {it.iteration}</b>
+                <span className="muted">{it.presidio_entities} maskelenen</span>
                 {it.audit && (
                   <StatusBadge
                     status={it.audit.approved ? "approved" : "needs_human_review"}
-                    label={it.audit.approved ? "Audit OK" : `Flagged (${it.audit.risk_level})`}
+                    label={it.audit.approved ? "Denetim OK" : `Flagged (${it.audit.risk_level})`}
                   />
                 )}
+              </div>
+              <div className="chips stages">
+                <span className="chip">① Presidio {it.by_source?.presidio ?? it.presidio_entities}</span>
+                <span className="chip">② Privacy Filter {it.by_source?.privacy_filter ?? "kapalı"}</span>
+                {it.by_source?.deny != null && <span className="chip">deny {it.by_source.deny}</span>}
+                <span className="chip">
+                  ③ Denetim {it.audit ? (it.audit.approved ? "temiz" : it.audit.risk_level) : "—"}
+                </span>
               </div>
               {it.audit && (
                 <div className="iter-body">

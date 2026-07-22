@@ -31,6 +31,7 @@ export interface IterationRecord {
   iteration: number;
   presidio_entities: number;
   placeholders_used: Record<string, number>;
+  by_source?: Record<string, number>; // masked spans per detection stage (presidio / privacy_filter / deny)
   audit: AuditResult | null;
   created_at: string;
 }
