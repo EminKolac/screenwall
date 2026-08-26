@@ -57,3 +57,21 @@ Testing: [docs/TESTING.md](docs/TESTING.md).
 
 Copy `.env.example` → `.env`. Key settings: auditor provider/model, chat provider + API keys
 (used **only after approval**), storage root, max upload size, `MAX_ITERATIONS=3`.
+
+## Benchmark — iki bağımsız sistem, aynı sınav
+
+Fable'ın ölçüm altyapısı (GoldBench holdout · 72'lik stres korpusu · kanarya/aşırı-maskeleme
+probları, hepsi hash-pinli) bağımsız geliştirilmiş ikinci bir sistemle (Sol/Codex) aynı
+kurallar altında koşuldu; skorlayıcı bağımsız ve yeniden koşturulabilir.
+
+| Test | Fable | Sol |
+|---|---|---|
+| Kritik recall (gold) | 1.00* | 0.68 (kural-eşitlenmiş: 0.86) |
+| Aşırı-maskeleme (gold) | 0/90 | 0/90 |
+| Stres kritik yanlış onay | 0/72 | 9/72 (çoğu mimari: aynı-format sevkiyatta metadata) |
+| Kanarya kaçışı | 0/16 | 1/16 |
+| Gereksiz maskeleme probu | 11/40 | **3/40 — Sol daha iyi** |
+
+*Mühürlü holdout alt-kümesi; ayrıntı ve tüm dürüstlük notları: `thoughts/EXPERIMENTS.md`,
+`docs/CALIBRATION.md`. Sunumlar: `Fable-Sunum-B2C.pptx` (bireysel kullanıcı odaklı) ve
+`Fable-Sunum-Rapor.pptx` (teknik rapor). Tanıtım videosu: `fable-promo.mp4`.
