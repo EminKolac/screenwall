@@ -10,7 +10,7 @@
 
 <img src="docs/media/demo.gif" alt="Screenwall demo — tespit, maskeleme ve onay" width="820">
 
-**[▶ 42 saniyelik tanıtım videosu](screenwall-promo.mp4)** · **[📽 Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)** · **[📊 Teknik rapor](Fable-Sunum-Rapor.pptx)**
+**[▶ 42 saniyelik tanıtım videosu](screenwall-promo.mp4)** · **[📽 Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)**
 
 </div>
 
@@ -43,33 +43,69 @@ Ve piyasadaki araçların aksine **"bize güven" demiyoruz — sayı veriyoruz**
 
 <img src="docs/media/metrics.jpg" alt="Ölçülmüş güvenlik" width="640">
 
-| Metrik | Sonuç |
-|---|---|
-| 72 tuzaklı belgede kritik sızıntı (stres) | **0 / 72** |
-| Kritik veri yakalama (mühürlü holdout) | **%100*** |
-| Belgenin işe yararlığı (utility retention) | **%98,9** |
-| Sahte kimlik probu | **16/16** yakalandı |
-| Otomatik test | **337 yeşil** |
+| Ölçüm | Sonuç | Bu ne demek? |
+|---|---|---|
+| Stres testi | **0 / 72** | Kişisel veriyi *bilerek saklamaya çalışan* 72 tuzaklı belge hazırladık — satır sonunda bölünmüş numaralar, gizli Excel sayfaları, taranmış (fotoğraf) sayfalar, bozuk dosyalar. **Hiçbirinden tek bir kritik bilgi sızmadı.** |
+| Kritik veri yakalama | **%100*** | Sistemin daha önce *hiç görmediği*, cevap anahtarı kilitli tutulmuş belgelerde TCKN, ad, IBAN, sağlık bilgisi gibi kritik verilerin tamamı yakalandı. |
+| Belgenin işe yararlığı | **%98,9** | Maskeleme sonrası belge çöpe dönmüyor: belgeye sorulan 280 sorunun %98,9'u anonim kopyadan hâlâ cevaplanabiliyor. Gizlilik var, iş kaybı yok. |
+| Sahte kimlik probu | **16/16** | Belgelere 16 sahte kimlik/hesap/anahtar yerleştirdik ("kanarya" yöntemi — madencinin kanaryası gibi erken uyarı). Hepsi, yanında ipucu kelime olmasa bile yakalandı. |
+| Otomatik test | **337 yeşil** | Her kod değişikliğinde 337 otomatik kontrol çalışıyor; biri bile kırılırsa değişiklik yayınlanmaz. |
 
-Ölçüm altyapısı: **GoldBench** (240 gold belge, mühürlü holdout) · 72'lik stres korpusu
-(satıra bölünmüş PII, gizli sayfa, taranmış PDF, zip-bomb…) · bağımsız kanarya/aşırı-maskeleme
-probları · TAB (EN) dış doğrulaması. Deney günlüğü: [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md).
+<details>
+<summary><b>Nasıl ölçüyoruz?</b> (terimlerin açıklaması)</summary>
+
+- **GoldBench:** 240 gerçekçi ama tamamen sentetik belge (sözleşme, bordro, sağlık raporu…) —
+  içindeki her kişisel verinin yeri önceden işaretli. Sistem ne bulması gerektiğini "bilmeden"
+  taranır, sonuç cevap anahtarıyla karşılaştırılır.
+- **Mühürlü holdout:** Sınavın bir bölümünün cevap anahtarı kilitli tutulur ve sistem
+  geliştirilirken o bölüme *hiç bakılmaz*. Böylece "ezberledi mi, gerçekten öğrendi mi"
+  sorusu dürüstçe cevaplanır. (*%100 bu bölümün alt-kümesinde ölçüldü — dipnotsuz
+  yuvarlamıyoruz.*)
+- **Stres korpusu:** Kötü niyetli ya da şanssız gerçek dünya vakalarının simülasyonu:
+  bir telefon numarasının iki hücreye bölünmesi, PII'ın sayfa altbilgisine saklanması,
+  zip-bomb gibi bozuk dosyalar. Amaç: sistemin "emin değilsem onaylamam" refleksini sınamak.
+- **Kanarya probu:** Belgeye bilerek sahte kimlik yerleştirip kaçıp kaçmadığına bakmak.
+- **Aşırı-maskeleme probu:** Tersi de ölçülür — kişisel veri İÇERMEYEN 40 sıradan iş cümlesi
+  sisteme verilir; gereksiz yere karartılan her cümle hata sayılır (bizde 11/40 — açık kusur,
+  aşağıda).
+- **Deney günlüğü:** Her iyileştirme denemesi, başarısızlar dahil, ölçümüyle kayıt altında:
+  [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md).
+
+</details>
 
 ### İki bağımsız sistem, aynı sınav
 
-Aynı korpus + sabit kurallar + bağımsız skorlayıcı ile ikinci bir sistem (Sol/Codex) koşuldu:
+Kendi sınavımızı kendimiz geçmiş olmayalım diye: bağımsız geliştirilen ikinci bir sistem
+(**Sol**) aynı belgeler, aynı sabit kurallar ve bağımsız bir puanlayıcıyla koşuldu.
 
-| Test | Screenwall | Sol |
-|---|---|---|
-| Kritik veri yakalama | **1.00*** | 0.68 (kural-eşit: 0.86) |
-| Aşırı-maskeleme | 0/90 | 0/90 |
-| Stres kritik sızıntı | **0/72** | 9/72 |
-| Gereksiz maskeleme probu | 11/40 | **3/40 — Sol önde** |
+| Test | Screenwall | Sol | Kim önde? |
+|---|---|---|---|
+| Kritik veri yakalama | **1.00*** | 0.68 (kural-eşit: 0.86) | Screenwall |
+| Aşırı-maskeleme | 0/90 | 0/90 | Berabere |
+| Stres kritik sızıntı | **0/72** | 9/72 | Screenwall |
+| Gereksiz maskeleme probu | 11/40 | **3/40** | **Sol** — açıkça yazıyoruz |
 
-*Mühürlü holdout alt-kümesi. Dürüstlük notlarının tamamı (ev-sahibi avantajı, kural farkları,
-"ölçülmedi" kalan TRIR gate'i): [`docs/CALIBRATION.md`](backend/docs/CALIBRATION.md).
+Sol'un önde olduğu satırı saklamıyoruz; tersine yol haritamıza hedef olarak koyduk.
+Sol'un yakalama skoru iki kuralla verildi çünkü Sol kendini bizden daha sert bir kuralla
+puanladı; adil karşılaştırma için ikisi de tabloda. Tüm dürüstlük notları (ev-sahibi avantajı,
+kural farkları, henüz "ölçülmedi" durumundaki saldırı-direnci testi):
+[`docs/CALIBRATION.md`](backend/docs/CALIBRATION.md).
 
-## 🏗 Mimari
+## 🏗 Nasıl çalışır?
+
+Teknik olmayan özet — dört adım:
+
+1. **Yükle:** PDF/Word/Excel belgeni bırakırsın. Belge bilgisayarından çıkmaz.
+2. **Tara & maskele:** Üç ayrı dedektör (kural tabanlı + iki yapay zekâ modeli) kişisel
+   verileri bulur ve `<PERSON_1>` gibi etiketlerle değiştirir. Biri kaçırırsa diğeri yakalar.
+3. **Denetle:** Bağımsız bir denetçi maskeli kopyayı kontrol eder. Kalıntı bulursa sistem
+   baştan maskeleyerek tekrar dener (en çok 3 tur). **Hâlâ emin değilse onaylamaz — sana
+   sorar.** Otomatik onay ancak denetim temizse gerçekleşir.
+4. **Kullan:** Onaylı anonim kopyayı PDF olarak indirir ya da üstünden yapay zekâya soru
+   sorarsın. Dışarı yalnız bu anonim kopya çıkar; yanlış maskelenen bir şey olursa tek tıkla
+   geri alırsın.
+
+Teknik akış:
 
 ```
 Yükle ─▶ Doğrula ─▶ Çıkar (yapı korunur) ─▶ ┌── Denetim döngüsü (max 3) ──┐
