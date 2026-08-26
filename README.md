@@ -1,32 +1,28 @@
 <div align="center">
 
-# Fable
+<img src="docs/media/hero.png" alt="Screenwall — Belgeni ver, verini verme" width="880">
 
-### Belgeni ver, verini verme.
+[![tests](https://img.shields.io/badge/tests-337%20passing-2F6B4F)](backend/tests)
+[![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#-benchmark--iddia-değil-sayı)
+[![python](https://img.shields.io/badge/python-3.12-6B675C)](backend/pyproject.toml)
+[![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-6B675C)](#-kurulum)
+[![local](https://img.shields.io/badge/%C3%A7al%C4%B1%C5%9Fma-%25100%20yerel-1C1B18)](#neden-screenwall)
 
-**Hassas belgelerini yapay zekâya güvenle sordur — kişisel veriler bilgisayarından hiç çıkmadan.**
+<img src="docs/media/demo.gif" alt="Screenwall demo — tespit, maskeleme ve onay" width="820">
 
-[![tests](https://img.shields.io/badge/tests-337%20passing-2ea44f)](backend/tests)
-[![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2ea44f)](#-benchmark--iddia-değil-sayı)
-[![python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](backend/pyproject.toml)
-[![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-444)](#-kurulum)
-[![local](https://img.shields.io/badge/%C3%A7al%C4%B1%C5%9Fma-%25100%20yerel-0b7285)](#neden-fable)
-
-<img src="docs/media/demo.gif" alt="Fable demo — tespit, maskeleme ve onay" width="820">
-
-**[▶ 42 saniyelik tanıtım videosu](fable-promo.mp4)** · **[📽 Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)** · **[📊 Teknik rapor sunumu](Fable-Sunum-Rapor.pptx)**
+**[▶ 42 saniyelik tanıtım videosu](screenwall-promo.mp4)** · **[📽 Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)** · **[📊 Teknik rapor](Fable-Sunum-Rapor.pptx)**
 
 </div>
 
 ---
 
-## Neden Fable?
+## Neden Screenwall?
 
 Bir sözleşmeyi, bordroyu ya da sağlık raporunu ChatGPT'ye yapıştırdığın an, içindeki
 TCKN'ler, IBAN'lar, adlar ve tanılar **geri alınamaz şekilde** dışarı çıkar. KVKK yalnız
 şirketlerin sorunu değil: müvekkilinin, müşterinin, çalışanının verisi senin sorumluluğunda.
 
-Fable aradaki perdedir: belge **senin makinende** taranır, kişisel veriler deterministik
+Screenwall aradaki perdedir: belge **senin makinende** taranır, kişisel veriler deterministik
 `<PERSON_1>` etiketlerine çevrilir, yalnız onaylı anonim kopya dışarı çıkar. Sistem emin
 olamadığında **otomatik onaylamaz** — belge sana düşer. Güvenlik ayar değil, varsayılandır.
 
@@ -63,7 +59,7 @@ probları · TAB (EN) dış doğrulaması. Deney günlüğü: [`thoughts/EXPERIM
 
 Aynı korpus + sabit kurallar + bağımsız skorlayıcı ile ikinci bir sistem (Sol/Codex) koşuldu:
 
-| Test | Fable | Sol |
+| Test | Screenwall | Sol |
 |---|---|---|
 | Kritik veri yakalama | **1.00*** | 0.68 (kural-eşit: 0.86) |
 | Aşırı-maskeleme | 0/90 | 0/90 |
@@ -80,7 +76,7 @@ Yükle ─▶ Doğrula ─▶ Çıkar (yapı korunur) ─▶ ┌── Denetim d
                                             │  3-aşamalı tespit → maskele  │
                                             │  Denetçi temiz mi? ──hayır──┘
                                             └──── evet ▼
-                              ONAYLANDI ◀── insan incelemesi (şüphede) 
+                              ONAYLANDI ◀── insan incelemesi (şüphede)
                                   │
                     anonim PDF indir · onay-sonrası sohbet (yalnız anonim katman)
 ```
@@ -88,7 +84,7 @@ Yükle ─▶ Doğrula ─▶ Çıkar (yapı korunur) ─▶ ┌── Denetim d
 ## 🚀 Kurulum
 
 ```bash
-git clone https://github.com/EminKolac/fable.git && cd fable
+git clone https://github.com/EminKolac/screenwall.git && cd screenwall
 
 # Backend
 cd backend && uv sync
@@ -112,14 +108,8 @@ uv run python -m evaluation.goldbench.run_stress --mode mapping --tag benim
 uv run python scripts/measure_canary.py
 ```
 
-Korpuslar deterministik üretilir (aynı seed → aynı byte'lar); dış sistemler için taşınabilir
-paket: `~/bist10-benchmark/` düzeni ([`GOLDBENCH_GUIDE`](bist10-benchmark) kuralları bağlayıcı).
-
-## 🎓 Öğrenciler & topluluk
-
-PII-avı atölyesi, "Maskeyi Kandır" CTF'i, korpus yazarlığı, tanıyıcı hackathonu — her biri
-süre/seviye/kazanımlarıyla: [`docs/OGRENCI-ETKINLIKLERI.md`](docs/OGRENCI-ETKINLIKLERI.md).
-CTF sızıntıları stres korpusuna, öğrenci yazımı belgeler bağımsız test setine katkı olur.
+Korpuslar deterministik üretilir (aynı seed → aynı byte'lar); benchmark kuralları dış
+sistemler için de sabittir — bağımsız Sol koşusu bu kurallarla yapıldı.
 
 ## 🗺 Yol haritası
 
