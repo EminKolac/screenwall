@@ -77,20 +77,22 @@ belgeler söyler.
 
 ### Sınavı bir de başkası çözsün: bağımsız karşılaştırma
 
-Kendi hazırladığımız sınavda kendimize iyi not vermiş olmayalım diye, bağımsız geliştirilen
-ikinci bir sistem (Sol) aynı belgeler ve aynı kurallarla, ayrı bir puanlayıcı üzerinden koşuldu:
+Kendi hazırladığımız sınavda kendimize iyi not vermiş olmayalım diye aynı ürün iki ayrı
+yapay zekâ asistanıyla, birbirinden bağımsız geliştirildi: bu repo **Claude** ile, ikinci
+sürüm **ChatGPT (Codex)** ile. İkisi de aynı belgeler ve aynı kurallarla, ayrı bir puanlayıcı
+üzerinden koşuldu:
 
-| Test | Screenwall | Sol |
+| Test | Screenwall Claude | Screenwall ChatGPT |
 |---|---|---|
 | Kritik veri yakalama | 1.00* | 0.68 (kural eşitlenince 0.86) |
 | Gereksiz karartma | 0/90 | 0/90 |
 | Stres testi sızıntısı | 0/72 | 9/72 |
-| Gereksiz karartma denemesi | 11/40 | 3/40 — **Sol burada bizden iyi** |
+| Gereksiz karartma denemesi | 11/40 | 3/40 — ChatGPT sürümü burada bizden iyi |
 
-Son satırı saklamıyoruz; Sol'un 3/40'ı bizim sonraki hedefimiz. Yakalama skorunun iki kural
-ile verilmesinin nedeni de şu: Sol kendini bizden daha sert bir kuralla puanladı, adil olsun
-diye ikisini de yazdık. Deney günlüğünün tamamı (başarısız denemeler dahil)
-[`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
+Son satırı saklamıyoruz; ChatGPT sürümünün 3/40'ı bizim sonraki hedefimiz. Yakalama skorunun
+iki kural ile verilmesinin nedeni de şu: ChatGPT sürümü kendini bizden daha sert bir kuralla
+puanladı, adil olsun diye ikisini de yazdık. Deney günlüğünün tamamı (başarısız denemeler
+dahil) [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
 
 ## Nasıl çalışıyor?
 
