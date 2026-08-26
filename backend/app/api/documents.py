@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from urllib.parse import quote
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import PlainTextResponse, Response
 
@@ -21,6 +21,7 @@ from app.services.repository import DocumentRepository
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 _REJECT_STATUS = {"too_large": 413, "unsupported": 415, "invalid": 400}
+_VALID_MODES = {"mapping", "destructive"}
 
 
 def _summary(doc: Document, repo: DocumentRepository) -> dict:
@@ -32,6 +33,7 @@ def _summary(doc: Document, repo: DocumentRepository) -> dict:
         "language": doc.language.value,
         "status": doc.status.value,
         "status_label": doc.status.display,
+        "mode": doc.mode,
         "iterations": len(doc.iterations),
         "approved": doc.approved,
         "chat_enabled": doc.chat_enabled,
@@ -46,15 +48,22 @@ async def _read_bounded(file: UploadFile, max_bytes: int) -> bytes | None:
 
 
 @router.post("")
-async def upload_document(file: UploadFile = File(...)) -> dict:  # noqa: B008 — FastAPI DI idiom
+async def upload_document(
+    file: UploadFile = File(...),  # noqa: B008 — FastAPI DI idiom
+    mode: str | None = Form(None),  # noqa: B008 — "mapping" | "destructive"; None = settings default
+) -> dict:
     settings = get_settings()
     repo = get_repository()
+    if mode is not None and mode not in _VALID_MODES:
+        raise HTTPException(status_code=400, detail=f"mode must be one of {sorted(_VALID_MODES)}")
     data = await _read_bounded(file, settings.max_upload_mb * 1024 * 1024)
     if data is None:
         raise HTTPException(status_code=413, detail="file too large")
     try:
         # Heavy CPU/IO pipeline runs in a threadpool so it never blocks the event loop.
-        doc = await run_in_threadpool(run_pipeline, data, file.filename or "upload", settings, repo)
+        doc = await run_in_threadpool(
+            run_pipeline, data, file.filename or "upload", settings, repo, None, mode
+        )
     except UploadRejected as e:
         raise HTTPException(status_code=_REJECT_STATUS.get(e.code, 400), detail=str(e)) from e
     except ExtractionFailed as e:

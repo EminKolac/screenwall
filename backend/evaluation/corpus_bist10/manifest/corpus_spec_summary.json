@@ -1,0 +1,50 @@
+{
+  "spec_version": "bist10-v1",
+  "generated_at": "2026-08-12T07:11:18+00:00",
+  "documents": 300,
+  "companies": [
+    "AKBNK",
+    "BIMAS",
+    "EREGL",
+    "FROTO",
+    "GARAN",
+    "SAHOL",
+    "THYAO",
+    "TTKOM",
+    "TUPRS",
+    "TURSG"
+  ],
+  "by_company": {
+    "AKBNK": 31,
+    "BIMAS": 34,
+    "EREGL": 34,
+    "FROTO": 18,
+    "GARAN": 22,
+    "SAHOL": 27,
+    "THYAO": 34,
+    "TTKOM": 34,
+    "TUPRS": 33,
+    "TURSG": 33
+  },
+  "by_format": {
+    "pdf": 300
+  },
+  "by_doc_type": {
+    "annual_report": 80,
+    "articles_of_association": 8,
+    "earnings_presentation": 24,
+    "financial_statements": 62,
+    "corporate_governance": 18,
+    "general_assembly": 60,
+    "interim_report": 33,
+    "investor_presentation": 8,
+    "sustainability_report": 7
+  },
+  "selection_rules": {
+    "max_docs": 300,
+    "per_company": 40,
+    "max_mb": 25,
+    "text_only": true,
+    "sort": "format_rank, doc_type, doc_name, url; round-robin across companies"
+  }
+}

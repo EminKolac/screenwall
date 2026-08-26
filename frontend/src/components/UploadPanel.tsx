@@ -1,6 +1,20 @@
 import { useRef, useState } from "react";
 import { api } from "../api";
-import type { DocSummary } from "../types";
+import type { AnonymizationMode, DocSummary } from "../types";
+
+const MODES: { value: AnonymizationMode; label: string; hint: string }[] = [
+  {
+    value: "mapping",
+    label: "Mapping",
+    hint: "Reversible — original + mapping kept locally so a reviewer can compare and correct.",
+  },
+  {
+    value: "destructive",
+    label: "Destructive",
+    hint: "Irreversible — original and mapping are never written. A missed entity can't be " +
+      "corrected in place; re-upload to try again.",
+  },
+];
 
 export default function UploadPanel({
   onUploaded,
@@ -10,6 +24,7 @@ export default function UploadPanel({
   onError: (m: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<AnonymizationMode>("mapping");
   const input = useRef<HTMLInputElement>(null);
 
   const handle = async (file: File | undefined) => {
@@ -17,7 +32,7 @@ export default function UploadPanel({
     setBusy(true);
     onError("");
     try {
-      onUploaded(await api.upload(file));
+      onUploaded(await api.upload(file, mode));
     } catch (e: any) {
       onError(e.message);
     } finally {
@@ -28,6 +43,23 @@ export default function UploadPanel({
 
   return (
     <div className="upload">
+      <div className="mode-select" role="radiogroup" aria-label="Anonymization mode">
+        {MODES.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            className={"mode-option" + (mode === m.value ? " active" : "")}
+            role="radio"
+            aria-checked={mode === m.value}
+            title={m.hint}
+            disabled={busy}
+            onClick={() => setMode(m.value)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <p className="mode-hint">{MODES.find((m) => m.value === mode)!.hint}</p>
       <label className={"dropzone" + (busy ? " busy" : "")}>
         <input
           ref={input}

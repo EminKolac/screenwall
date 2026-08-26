@@ -21,14 +21,18 @@ def test_pipeline_anonymizes_turkish_and_exposes_no_pii(docx_tr):
 
     detail = client.get(f"/api/documents/{gid}").json()
     assert detail["iterations"]
-    assert "mapping" not in str(detail)  # mapping never serialized
+    # The sensitive placeholder->original mapping must never be serialized as a "mapping" key —
+    # checked as a key-shaped pattern (not a bare substring) since `detail["mode"]` legitimately
+    # has the string value "mapping" (the anonymization-mode field, unrelated to this mapping).
+    assert '"mapping":' not in client.get(f"/api/documents/{gid}").text
 
     findings = client.get(f"/api/documents/{gid}/findings").json()
     assert "iterations" in findings
 
 
 def test_list_and_delete(docx_en):
-    gid = client.post("/api/documents", files={"file": ("a.docx", docx_en, _DOCX_MIME)}).json()["id"]
+    r = client.post("/api/documents", files={"file": ("a.docx", docx_en, _DOCX_MIME)})
+    gid = r.json()["id"]
     assert any(d["id"] == gid for d in client.get("/api/documents").json()["documents"])
     assert client.delete(f"/api/documents/{gid}").status_code == 200
     assert client.get(f"/api/documents/{gid}").status_code == 404

@@ -30,6 +30,32 @@ the Codex **Security** and **Privacy** reviews.
    **crypto-shredding** (sensitive layers encrypted at rest; deletion destroys the key). Planned
    in Phase 5; until then, deletion unlinks all layers for a document id.
 
+## 2a. Two anonymization modes — pseudonymization vs. anonymization
+
+The system offers two modes, selectable per upload (`mode` field on `POST /api/documents`,
+default from `Settings.anonymization_mode`):
+
+| | `mapping` (default) | `destructive` |
+|---|---|---|
+| Layers 1–2 (original + extracted/mapping) | **persisted** | **never written** |
+| Reversible by whoever holds layer 2? | **Yes** | **No** |
+| Human review can compare against source? | Yes | No |
+| A missed entity can be corrected in place? | Yes (redact + re-audit) | No — re-upload required |
+
+**Terminology matters here.** In `mapping` mode the placeholder↔original map exists on disk, so the
+output is **pseudonymized**, not anonymized: under KVKK/GDPR it remains personal data for as long as
+that map exists, because it is reversible by anyone who can read layer 2. Only `destructive` mode —
+where layers 1–2 are never written at all, not written-then-deleted — produces output that can
+accurately be called anonymized. `mapping` mode is not a weaker security posture; it is a different,
+explicit product choice (reversibility for review/correction), and it must not be described as
+"anonymization" in user-facing copy or reports.
+
+`destructive` mode's trade-off: because nothing to compare against is ever persisted, a human
+reviewer sees only the anonymized text (never the source), and a false negative discovered later
+cannot be patched via `/api/review/{id}/redact` — that endpoint requires layer 2 and returns 409 in
+destructive mode. The remedy is re-uploading the original file, which the user must still hold
+themselves.
+
 ## 3. Storage isolation (5 layers)
 
 | Layer | Sensitivity | Leaves machine? |

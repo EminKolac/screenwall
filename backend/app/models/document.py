@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -89,7 +90,19 @@ class Document(BaseModel):
     kind: FileKind
     language: Language = Language.unknown
     status: DocumentStatus = DocumentStatus.UPLOADED
+    # "mapping" (reversible, today's behaviour) vs "destructive" (irreversible — original/mapping
+    # never persisted). See Settings.anonymization_mode for the full contract.
+    mode: Literal["mapping", "destructive"] = "mapping"
     current_iteration: int = 0
+    # Faz 3 — insan düzeltmesi. Bir gözden geçiren "bu maskeleme yanlıştı" dediğinde, geri alınan
+    # DEĞER buraya yazılır ve belge yeniden anonimleştirilirken allow-list'e eklenir. Böylece
+    # düzeltme kalıcıdır: aynı terim sonraki iterasyonlarda tekrar maskelenmez.
+    #
+    # Bu alan ham (maskelenmemiş) metin taşır — yalnızca insanın açıkça "bu PII değil" dediği
+    # terimler girer, dolayısıyla tanım gereği PII DEĞİLDİR. Yine de dışa açık yüzeylere sızmaması
+    # için `exclude=True`: API yanıtlarında ve layer-5 bağlamında görünmez (eşleme tablosunun
+    # `AnonymizationOutput.mapping` üzerindeki korumasıyla aynı desen).
+    allow_terms: list[str] = Field(default_factory=list, exclude=True)
     iterations: list[IterationRecord] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)

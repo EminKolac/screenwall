@@ -32,6 +32,31 @@ def test_resolve_spans_priority_prevents_partial_leak():
     assert all(s is iban or s.end <= iban.start or s.start >= iban.end for s in kept)
 
 
+def test_tr_phone_masked_whole_no_fragment_leak():
+    """Regression: '0532 123 45 67' used to mask as '<DATE_2> 123 <DATE_1>' — spaCy split the
+    number into two DATE_TIME fragments (hard-coded 0.85 score) that outranked the validated
+    TR_GSM pattern match (0.5-0.85) by pure score, leaving the middle digits in the clear. The
+    trust-tiered resolve_spans + dropping DATE_TIME (nlp.py) must mask it as one contiguous span."""
+    c = _content("Kayıt için cep: 0532 123 45 67 numaralı hattı arayınız.")
+    t = eng.anonymize(c, Language.tr).content.plain_text
+    for fragment in ["0532", "123", "45 67", "45", "67"]:
+        assert fragment not in t, f"leaked phone fragment '{fragment}': {t}"
+    assert "<PHONE_1>" in t
+    assert "<DATE_" not in t  # DATE_TIME is dropped entirely (nlp.py labels_to_ignore)
+
+
+def test_resolve_spans_pattern_outranks_higher_scored_statistical_fragment():
+    """A short, high-scored statistical NER fragment must not beat a longer, lower-scored but
+    format-validated pattern match — the exact shape of the phone-fragmentation bug, at the
+    resolve_spans unit level (no NLP models involved)."""
+    # "0.85" NER fragment covering the middle of a value vs. a 0.5-scored pattern match covering
+    # the whole value.
+    fragment = EntitySpan(start=5, end=8, entity_type="DATE_TIME", score=0.85)
+    whole = EntitySpan(start=0, end=12, entity_type="TR_GSM", score=0.5)
+    kept = resolve_spans([fragment, whole])
+    assert kept == [whole]
+
+
 def test_turkish_pii_fully_masked_no_partial_leak():
     c = _content(
         "Ahmet Yılmaz, TCKN 10000000146, e-posta ahmet@example.com, "
@@ -100,3 +125,15 @@ def test_privacy_filter_detector_spans_masked_and_counted(monkeypatch):
     assert "Zorptech" not in out.content.plain_text
     assert "<PERSON_" in out.content.plain_text
     assert out.by_source.get("privacy_filter", 0) >= 1
+
+
+def test_detection_cache_preserves_output_and_determinism():
+    """The per-document detection cache must be an exact memo, not an approximation: repeating the
+    same text must still be masked everywhere, with the SAME placeholder token each time."""
+    line = "İletişim: Kemal Vardar, e-posta kemal.vardar@ornekposta.com"
+    out = eng.anonymize(_content(line, line, line, line), Language.mixed)
+    texts = [b.text for b in out.content.blocks]
+
+    assert all("kemal.vardar@ornekposta.com" not in t for t in texts), "repeat occurrence leaked"
+    assert len(set(texts)) == 1, "identical input produced different placeholders"
+    assert "<EMAIL_1>" in texts[0]

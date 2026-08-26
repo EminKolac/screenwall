@@ -19,7 +19,7 @@ so the suite never touches `./data`.
 | Extraction | `unit/test_extraction.py` | DOCX headings/tables, XLSX cells+addresses, PDF text+page |
 | Upload validation | `unit/test_upload_validation.py` | extension/magic/size, OOXML, fail-closed |
 | Language | `unit/test_language.py` | TR / EN / mixed, per-block annotation |
-| Anonymization | `unit/test_anonymization.py` | TCKN checksum, span overlap (no partial IBAN leak), determinism, deny terms, mapping-not-serialized, per-stage `by_source` |
+| Anonymization | `unit/test_anonymization.py` | TCKN checksum, span overlap trust-tiering (pattern beats statistical NER — no partial IBAN/phone leak), determinism, deny terms, mapping-not-serialized, per-stage `by_source` |
 | Privacy Filter | `unit/test_privacy_filter.py` | label folding (54-label + original taxonomy → platform types), exclude-list, threshold, SENSITIVE fallback, degrade vs fail-closed load paths, `<PERSON_n>` family unity through the engine |
 | Eval seam | `unit/test_eval.py` | detection precision/recall scoring harness |
 | PDF render | `unit/test_render_pdf.py` | layer-3-only PDF, Turkish glyphs, OCR fallback behavior |

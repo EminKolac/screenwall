@@ -19,6 +19,7 @@ export default function DocumentDetail({
   const [doc, setDoc] = useState<DocDetail | null>(null);
   const [anon, setAnon] = useState("");
   const [err, setErr] = useState("");
+  const [busyToken, setBusyToken] = useState("");
 
   const load = () => {
     api.detail(id).then(setDoc).catch((e) => setErr(e.message));
@@ -30,6 +31,9 @@ export default function DocumentDetail({
 
   const approved = doc.status === "approved";
   const needsReview = doc.status === "needs_human_review";
+  // Anonim metinde GERÇEKTEN geçen yer tutucular. Iterasyon sayaçlarından türetmek yanlış olurdu:
+  // sayaçlar kümülatif (her turda yeniden sayılır) ve geri alınmış bir token'ı da sayardı.
+  const maskedTokens = Array.from(new Set(anon.match(/<[A-Z]+_\d+>/g) ?? [])).sort();
   const act = async (fn: () => Promise<unknown>) => {
     try {
       await fn();
@@ -47,6 +51,12 @@ export default function DocumentDetail({
           <h2>{doc.filename}</h2>
           <div className="sub">
             {doc.kind.toUpperCase()} · {doc.language.toUpperCase()} · {doc.iterations.length} iteration(s)
+            {" · "}
+            <span title={doc.mode === "destructive"
+              ? "Irreversible — original and mapping were never persisted"
+              : "Reversible — original and mapping are kept locally"}>
+              {doc.mode === "destructive" ? "🔥 destructive" : "🔗 mapping"}
+            </span>
           </div>
         </div>
         <div className="actions">
@@ -71,6 +81,45 @@ export default function DocumentDetail({
 
       {err && <div className="error">{err}</div>}
       <StatusFlow statuses={statuses} current={doc.status} />
+
+      {/* Faz 3 — insan düzeltmesi. Bugüne kadar UI yalnız "PERSON: 4" gibi AGREGAT sayı
+          gösteriyordu; yanlış maskelenmiş tek bir terimi geri almanın hiçbir yolu yoktu. */}
+      {maskedTokens.length > 0 && (
+        <section className="card">
+          <h3>Maskelenenler — yanlış olanı geri al</h3>
+          <p className="muted">
+            Bir yer tutucu yanlışlıkla maskelenmişse geri alabilirsiniz. Geri alınan terim bu
+            belgenin izin listesine eklenir, belge yeniden anonimleştirilir ve tekrar onayınıza
+            düşer. Ham değer hiçbir zaman API yanıtında dönmez.
+          </p>
+          <div className="chips">
+            {maskedTokens.map((t) => (
+              <button
+                key={t}
+                className="chip chip-action"
+                disabled={busyToken !== "" || doc.mode === "destructive"}
+                title={
+                  doc.mode === "destructive"
+                    ? "Destructive modda geri alma mümkün değil (eşleme hiç saklanmadı)"
+                    : `${t} maskesini kaldır`
+                }
+                onClick={() =>
+                  act(async () => {
+                    setBusyToken(t);
+                    try {
+                      await api.unmask(id, t);
+                    } finally {
+                      setBusyToken("");
+                    }
+                  })
+                }
+              >
+                {busyToken === t ? "…" : `${t} ✕`}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="cols">
         <section className="card">

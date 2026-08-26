@@ -69,9 +69,14 @@ class Orchestrator:
         content: ExtractedContent,
         language: Language,
         initial_deny_terms: list[str] | None = None,
+        initial_allow_terms: list[str] | None = None,
     ) -> PipelineResult:
         # Project deny-list (known-sensitive names NER can't reliably catch) seeds iteration 1.
         deny_terms: list[str] = list(initial_deny_terms or [])
+        # Allow-list is FIXED across iterations — unlike deny_terms it is never fed back from the
+        # auditor (an auditor has no way to say "this was a false positive"; that is Faz 3's
+        # human-review un-mask flow, not an automatic loop).
+        allow_terms: list[str] = list(initial_allow_terms or [])
         last_anonymized: ExtractedContent | None = None
         last_mapping: dict[str, str] = {}
 
@@ -80,7 +85,8 @@ class Orchestrator:
 
             doc.transition(presidio_pass_status(i))
             self.hook.on_status(doc)
-            result = self.engine.anonymize(content, language, extra_deny_terms=deny_terms)
+            result = self.engine.anonymize(content, language, extra_deny_terms=deny_terms,
+                                           extra_allow_terms=allow_terms)
             last_anonymized, last_mapping = result.content, result.mapping
 
             doc.transition(qwen_audit_status(i))

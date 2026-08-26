@@ -65,9 +65,12 @@ def test_unknown_label_falls_back_to_sensitive_not_a_novel_family():
 # --- filtering -----------------------------------------------------------------------------
 
 def test_default_excluded_labels_are_dropped():
+    """Deney v5: JOBTITLE/OCCUPATION artık varsayılan exclude'da DEĞİL — GoldBench şeması mesleği
+    maskelenmesi gereken QUASI sayar (holdout'ta OCCUPATION 0/40 ölçülmüştü). DATE/AMOUNT gibi
+    gürültülü, kimliksiz sınıflar exclude'da kalır."""
     spans = _pf([_r("DATE", 0, 10), _r("JOBTITLE", 11, 14), _r("AMOUNT", 15, 20),
                  _r("FIRSTNAME", 21, 26)]).detect("x" * 30)
-    assert [s.entity_type for s in spans] == ["PERSON"]  # only the non-excluded one survives
+    assert [s.entity_type for s in spans] == ["SENSITIVE", "PERSON"]  # JOBTITLE→SENSITIVE kalır
 
 
 def test_below_threshold_dropped():

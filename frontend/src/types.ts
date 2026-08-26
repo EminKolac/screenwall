@@ -1,3 +1,5 @@
+export type AnonymizationMode = "mapping" | "destructive";
+
 export interface DocSummary {
   id: string;
   filename: string;
@@ -5,6 +7,7 @@ export interface DocSummary {
   language: string;
   status: string;
   status_label: string;
+  mode: AnonymizationMode;
   iterations: number;
   approved: boolean;
   chat_enabled: boolean;
@@ -42,6 +45,7 @@ export interface DocDetail {
   kind: string;
   language: string;
   status: string;
+  mode: AnonymizationMode;
   current_iteration: number;
   iterations: IterationRecord[];
   created_at: string;

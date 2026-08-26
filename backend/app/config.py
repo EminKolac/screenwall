@@ -24,6 +24,18 @@ class Settings(BaseSettings):
     storage_root: Path = Path("./data")
     max_upload_mb: int = 50
     max_iterations: int = 3
+    # Two anonymization modes, overridable per upload (see api/documents.py `mode` form field):
+    #   "mapping"     — today's behaviour. Original + extracted-text + placeholder<->original map
+    #                   are persisted (layers 1-2). Reversible by whoever holds the map. This is
+    #                   PSEUDONYMIZATION, not anonymization — under KVKK/GDPR the output is still
+    #                   personal data as long as the map exists. Lets a reviewer compare against
+    #                   the source and lets a missed entity be corrected without re-uploading.
+    #   "destructive" — layers 1-2 (original bytes, extracted text, the map) are NEVER written.
+    #                   Only the anonymized text (layer 3) and PII-safe audit reports (layer 4)
+    #                   are persisted. Irreversible: a missed entity cannot be recovered from
+    #                   storage, and the reviewer cannot compare against the source — the document
+    #                   must be re-uploaded. This is the only mode where "anonymized" is accurate.
+    anonymization_mode: Literal["mapping", "destructive"] = "mapping"
 
     # Local privacy auditor (never external)
     auditor_provider: Literal["ollama", "mlx", "llamacpp"] = "ollama"
@@ -45,6 +57,13 @@ class Settings(BaseSettings):
     # Always-mask terms for THIS project/data room (fund, portfolio-company, brand names that NER
     # can't reliably catch, e.g. "e2vc"). Comma-separated; applied deterministically every run.
     deny_terms: str = ""
+    # Never-mask terms — the deny_terms mirror. GoldBench measured over-masking at 100% (24/24
+    # ordinary business terms wrongly masked: "Genel Kurul", "Fatura Dönemi", "Sayfa"...); this is
+    # the primary lever against it that carries ZERO recall risk (unlike discounting a whole NER
+    # label, an allow-list only suppresses the SPECIFIC terms listed, never a real entity that
+    # happens to share a label). `allowlist_tr.py` is the seeded Turkish business/legal/accounting
+    # dictionary; this field is for project-specific ADDITIONS on top of it.
+    allow_terms: str = ""
 
     # OpenAI Privacy Filter — optional LOCAL (on-device) contextual PII detector: a 2nd detection
     # stage unioned with Presidio. Needs the [privacy] extra (transformers+torch) and the model
@@ -57,9 +76,13 @@ class Settings(BaseSettings):
     # Model labels to IGNORE (comma-separated, model taxonomy names). Defaults drop the noisy,
     # non-identifying classes that would over-mask business documents (contract dates, amounts,
     # currencies, job titles, "Visa" as card issuer); anything NOT listed is masked (fail-safe).
+    # Deney v5: OCCUPATION/JOBTITLE/JOBDEPARTMENT exclude'dan ÇIKARILDI — GoldBench şeması
+    # mesleği maskelenmesi gereken QUASI tanımlayıcı sayar ve holdout'ta OCCUPATION recall 0/40
+    # ölçülmüştü; asıl engel eşleme değil (harita zaten SENSITIVE'e katlıyor) bu excludetı.
+    # Aşırı-maskeleme etkisi ölçüldü (bkz. EXPERIMENTS.md v5): bağımsız prob PF'le değişmedi.
     privacy_filter_exclude_labels: str = (
         "AMOUNT,CREDITCARDISSUER,CURRENCY,CURRENCYCODE,CURRENCYNAME,CURRENCYSYMBOL,DATE,"
-        "JOBDEPARTMENT,JOBTITLE,OCCUPATION,ORDINALDIRECTION,PREFIX,TIME"
+        "ORDINALDIRECTION,PREFIX,TIME"
     )
 
     # Chat (post-approval only). Default 'ollama' = fully local, no external API/key required.
@@ -93,6 +116,12 @@ class Settings(BaseSettings):
 
     def deny_list(self) -> list[str]:
         return [t.strip() for t in self.deny_terms.split(",") if t.strip()]
+
+    def allow_list(self) -> list[str]:
+        """Proje-özel ek allow-terimleri. Sabit sözlük (`allowlist_tr.py:TR_ALLOWLIST`) buna
+        DAHİL DEĞİLDİR — o, dile ait sabit bir liste; bu alan yalnız proje-özel eklemeler içindir.
+        İkisi `PresidioEngine.anonymize`'da birleştirilir (bkz. `pipeline/runner.py` deseni)."""
+        return [t.strip() for t in self.allow_terms.split(",") if t.strip()]
 
     def privacy_filter_excluded(self) -> frozenset[str]:
         labels = self.privacy_filter_exclude_labels.split(",")

@@ -15,8 +15,15 @@ from docx import Document as Docx
 
 @pytest.fixture(autouse=True)
 def _isolated_storage(tmp_path, monkeypatch):
-    """Point every test at a temp STORAGE_ROOT so the storage-backed repo never touches ./data."""
+    """Point every test at a temp STORAGE_ROOT so the storage-backed repo never touches ./data.
+
+    Also pins the auditor to the deterministic heuristic ("mlx" — no LLM). Without this, tests pass
+    or fail depending on whether an unrelated local Ollama server happens to be running: the Qwen
+    auditor is far stricter than the heuristic (approved vs. 3 iterations -> needs_human_review on
+    the exact same input), so results must not depend on the environment.
+    """
     monkeypatch.setenv("STORAGE_ROOT", str(tmp_path))
+    monkeypatch.setenv("AUDITOR_PROVIDER", "mlx")
     from app.anonymization.privacy_filter import get_privacy_filter
     from app.config import get_settings
     from app.services.deps import get_repository

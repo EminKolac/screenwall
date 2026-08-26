@@ -109,6 +109,14 @@ class PrivacyFilter:
             start, end = r.get("start"), r.get("end")
             if start is None or end is None or int(end) <= int(start):
                 continue
+            # Kelime bazlı birleştirme span'i ÖNCEKİ boşluktan başlatıyor (" Kemal"). Boşluğu
+            # span'e dahil etmek yer tutucuyu bitişik kelimeye yapıştırır ("katıldı<PERSON_1>");
+            # baştaki boşlukları kırp — PII değil, yalnız ayraç.
+            start, end = int(start), int(end)
+            while start < end and text[start].isspace():
+                start += 1
+            if start >= end:
+                continue
             # Fail-safe fallback: an unknown label is still masked, in the generic SENSITIVE
             # family — never a novel placeholder family leaking the model's raw taxonomy.
             entity_type = _LABEL_MAP.get(label, "SENSITIVE")
@@ -125,8 +133,16 @@ def _load_pipeline(model: str):
 
     tok = AutoTokenizer.from_pretrained(model, local_files_only=True)
     mdl = AutoModelForTokenClassification.from_pretrained(model, local_files_only=True)
+    # `aggregation_strategy` "simple" DEĞİL "max" — ölçümle bulunmuş bir hata:
+    # bu model BIOES etiketliyor (B-/I-/E-/S-, bkz. config.id2label), HuggingFace'in "simple"
+    # stratejisi ise yalnız B-/I- bilir ve `E-FIRSTNAME`'i YENİ bir varlık sanar. Sonuç:
+    # "Kemal" → " Kem" + "al" diye ikiye bölünüyordu, yani filtre açılsaydı kelimelerin
+    # ORTASINI maskeleyip "Kem<PERSON_1> Vardar" gibi hem bozuk hem sızdıran metin üretecekti.
+    # "max"/"first"/"average" kelime bazlı birleştirir (BIOES'ten etkilenmez); "max" seçildi
+    # çünkü "average" alt-parça skorlarını seyreltiyor (Kemal 0.69 → 0.35) ve 0.5 eşiğinin
+    # ALTINA düşürerek gerçek adları kaçırıyordu — güvenlik öncelikli sistemde kabul edilemez.
     return pipeline(task="token-classification", model=mdl, tokenizer=tok,
-                    aggregation_strategy="simple")
+                    aggregation_strategy="max")
 
 
 @lru_cache

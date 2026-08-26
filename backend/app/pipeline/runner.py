@@ -1,9 +1,14 @@
 """Pipeline runner: ingest → anonymize/audit loop → persist. Used by the upload API.
 
 Chat context (layer 5) is built ONLY on approval, from anonymized content only.
+
+Two anonymization modes (`Settings.anonymization_mode`, overridable per call via `mode`):
+"mapping" (default, reversible — persists layers 1-2) vs "destructive" (irreversible — layers 1-2
+are never written). See Settings.anonymization_mode for the full contract.
 """
 from __future__ import annotations
 
+from app.anonymization.allowlist_tr import default_allow_list
 from app.anonymization.presidio_engine import PresidioEngine
 from app.audit.factory import build_auditor
 from app.config import Settings
@@ -24,12 +29,18 @@ def build_chat_context(repo: DocumentRepository, doc_id: str) -> bool:
 
 def run_pipeline(
     data: bytes, filename: str, settings: Settings, repo: DocumentRepository,
-    deny_terms: list[str] | None = None,
+    deny_terms: list[str] | None = None, mode: str | None = None,
 ) -> Document:
+    effective_mode = mode or settings.anonymization_mode
+    destructive = effective_mode == "destructive"
+
     doc, content = ingest(data, filename, settings)  # UploadRejected / ExtractionFailed propagate
+    doc.mode = effective_mode
     repo.save_document(doc)
-    repo.save_original(doc.id, data, filename)  # layer 1 (local-only)
-    repo.save_extracted(doc.id, content)
+    if not destructive:
+        repo.save_original(doc.id, data, filename)  # layer 1 (local-only)
+        repo.save_extracted(doc.id, content)
+    # destructive mode: layers 1-2 are never written — data never in `data`/`content` reaches disk.
 
     # Empty/scanned with no usable text → nothing to anonymize; leave it for a human.
     flagged_for_review = doc.status == DocumentStatus.NEEDS_HUMAN_REVIEW
@@ -40,9 +51,14 @@ def run_pipeline(
     # (partial extraction: OCR-unavailable / truncated workbook). This guarantees an approved
     # review still has a downloadable artifact and chat context, instead of a 404.
     effective_deny = settings.deny_list() + list(deny_terms or [])
+    # Fixed TR dictionary + project-specific additions. English has no equivalent seeded list yet
+    # (GoldBench's over-masking finding was on the TR-heavy corpus) — settings.allow_list() still
+    # applies to any language since it is just deny-list-style term suppression.
+    effective_allow = default_allow_list() + settings.allow_list()
     try:
         result = Orchestrator(PresidioEngine(), build_auditor(settings), settings).run(
-            doc, content, doc.language, initial_deny_terms=effective_deny
+            doc, content, doc.language, initial_deny_terms=effective_deny,
+            initial_allow_terms=effective_allow,
         )
     except Exception:  # noqa: BLE001 — any pipeline failure fails closed to human review
         doc.transition(DocumentStatus.NEEDS_HUMAN_REVIEW)
@@ -50,7 +66,10 @@ def run_pipeline(
         return doc
     if result.anonymized is not None:
         repo.save_anonymized(doc.id, result.anonymized)
-        repo.save_mapping(doc.id, result.mapping)
+        if not destructive:
+            repo.save_mapping(doc.id, result.mapping)
+        # destructive mode: the map (result.mapping) is discarded here, in memory, unpersisted —
+        # PlaceholderMapper already ran so within-document token reuse/readability is unaffected.
     if flagged_for_review:
         # A partial extraction stays in human review regardless of the audit verdict (fail-closed);
         # the reviewer approves via the API, which then builds the chat context.

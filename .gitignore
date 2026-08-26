@@ -33,3 +33,7 @@ frontend/.vite/
 
 # runtime storage created when running from backend/
 /backend/data/
+
+# deney yedekleri (gecici)
+thoughts/.backup/
+thoughts/.exploop_backup/

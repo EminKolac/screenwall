@@ -160,7 +160,11 @@ The Codex *Architecture Review* produced 4 Critical / 9 High findings. Incorpora
   `next_action == approve`. Fail-closed otherwise.
 - **Mapping isolation**: the placeholder↔original map is a separate artifact, excluded from
   serialization (`exclude=True`), persisted only to layer 2.
-- **Span/overlap contract** (`EntitySpan` + `resolve_spans`) for deterministic replacement.
+- **Span/overlap contract** (`EntitySpan` + `resolve_spans`) for deterministic replacement —
+  validated pattern recognizers (IBAN, TCKN, phone, email, …) outrank statistical spaCy NER
+  guesses on overlap, closing a partial-PII-leak class where a short NER fragment (e.g. a
+  date-shaped sub-span inside a phone number) could otherwise win by score alone and leave the
+  rest of the value unmasked; generic `DATE_TIME` guesses are dropped entirely (`nlp.py`).
 - **Richer extraction model** (stable `block_id`, page/sheet, typed `TableCell`, per-block
   `language`) + `validate_upload` (MIME/magic/size, fail-closed).
 - **Per-block language routing** for mixed TR/EN documents.

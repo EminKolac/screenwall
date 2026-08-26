@@ -17,7 +17,12 @@ def english_recognizers() -> list[PatternRecognizer]:
         ),
         PatternRecognizer(
             supported_entity="UK_PHONE", supported_language="en",
-            patterns=[Pattern("uk_phone", r"\b(?:\+?44[ -]?|0)(?:\d[ -]?){9,10}\b", 0.4)],
+            # `(?<![\w+])` yerine `\b` KULLANILMAZ: `\b` boşluk ile "+" arasında eşleşmez (ikisi de
+            # word-karakteri değil), bu yüzden "+44 7911 123456" span'i "+"ı DIŞARIDA bırakıyordu
+            # ve maskeleme sonrası metinde yalnız "+" kalıyordu (kısmi span — PLAN.md §14.4'teki
+            # "0532 <DATE> 123" sınıfının aynısı, ölçümle bulundu). Lookbehind hem "+"ı içeri alır
+            # hem de sayının bir kelimenin/başka bir "+"ın ortasından başlamasını engeller.
+            patterns=[Pattern("uk_phone", r"(?<![\w+])(?:\+?44[ -]?|0)(?:\d[ -]?){9,10}\b", 0.4)],
             context=["phone", "tel", "mobile", "telephone"],
         ),
         PatternRecognizer(

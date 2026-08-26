@@ -32,19 +32,75 @@ class EntitySpan(BaseModel):
         return self.end - self.start
 
 
+# Deterministic, format/checksum-validated pattern recognizers. Their spans cover the ENTIRE
+# matched value (an IBAN, a phone number) by construction, unlike statistical NER which can emit
+# short fragments. Tier 0: always outranks tier 2 on overlap, regardless of score.
+_TRUSTED_PATTERN_TYPES = frozenset({
+    "TR_IBAN", "TR_TCKN", "TR_GSM", "TR_PHONE",
+    "IBAN_CODE", "CREDIT_CARD", "EMAIL_ADDRESS",
+    "US_SSN", "UK_PHONE", "IP_ADDRESS", "URL",
+})
+# spaCy NER guesses — no format validation, uniform 0.85 confidence regardless of correctness
+# (see nlp.py). Tier 2: always outranked by tier 0, and by anything else (tier 1) on overlap.
+_STATISTICAL_NER_TYPES = frozenset({
+    "PERSON", "LOCATION", "ORGANIZATION", "NRP", "DATE_TIME",
+})
+
+
+def _trust_tier(entity_type: str) -> int:
+    if entity_type in _TRUSTED_PATTERN_TYPES:
+        return 0
+    if entity_type in _STATISTICAL_NER_TYPES:
+        return 2
+    return 1
+
+
 def resolve_spans(spans: list[EntitySpan]) -> list[EntitySpan]:
     """Deterministically pick non-overlapping spans by PRIORITY, not position.
 
-    Accept highest-value spans first (score desc, then length desc, then earliest start, then
-    entity_type for stability); reject any span overlapping an already-accepted one. This ensures
-    a high-confidence long entity (e.g. a full IBAN, score 1.0) wins over an earlier-starting
-    lower-value NER span that only partially overlaps it — preventing partial-PII leaks.
+    Accept highest-value spans first — trust tier first (validated pattern > everything else >
+    statistical NER guess), then score desc, then length desc, then earliest start, then
+    entity_type for stability — and reject any span overlapping an already-accepted one.
+
+    The trust tier exists because spaCy NER carries no real confidence signal: every hit is
+    hard-coded to the same 0.85 score (see nlp.py) whether or not it is correct, and it can emit a
+    SHORT FRAGMENT of a longer value (e.g. a "date-shaped" sub-span inside a phone number). Pure
+    score ordering let a 0.85 fragment beat a 0.5-0.7 but format/checksum-VALIDATED pattern match
+    (TR_GSM, TR_IBAN, TR_TCKN, …), leaving the unmatched middle of the real value unmasked — a
+    partial-PII leak, not just a wrong label. Tiering the trusted pattern types ahead of
+    statistical NER closes that gap; a high-confidence long entity (e.g. a full IBAN) still wins
+    over an earlier-starting lower-value NER span within the same tier, exactly as before.
     """
-    ordered = sorted(spans, key=lambda s: (-s.score, -s.length, s.start, s.entity_type))
+    ordered = sorted(
+        spans,
+        key=lambda s: (_trust_tier(s.entity_type), -s.score, -s.length, s.start, s.entity_type),
+    )
     accepted: list[EntitySpan] = []
     for s in ordered:
-        if all(s.end <= a.start or s.start >= a.end for a in accepted):
+        # KAPSAMA (containment) genişletmesi — ölçümle bulunan bir sızıntının düzeltmesi.
+        # Eski sürüm çakışan span'i tamamen atıyordu; bu yüzden KISA ama yüksek skorlu bir
+        # tespit, KENDİSİNİ İÇEREN uzun bir span'i bastırıp geri kalanını AÇIKTA bırakıyordu
+        # (somut ölçüm: 20 karakterlik tam maskeli bir kişi adı, 0.99 skorlu 4 karakterlik bir
+        # parça eklenince 4 karaktere düşüyordu — adın %80'i açığa çıkıyor). Sonuç: yeni bir
+        # dedektör EKLEMEK kapsamı DÜŞÜREBİLİYORDU (Privacy Filter açıkken TAB'da doğrudan-
+        # tanımlayıcı recall 0.638 → 0.574).
+        #
+        # Genişletme YALNIZ kapsama durumunda yapılır (kabul edilen span, reddedileni tamamen
+        # içinde barındırıyorsa). KOŞULSUZ birleştirme denendi ve BİLEREK reddedildi: kısmi
+        # çakışmada da birleştirmek, yanlış pozitif bir NER span'inin gerçek bir IBAN'ın
+        # maskesini geriye doğru büyütmesine yol açıyor (regresyon testi
+        # `test_resolve_spans_priority_prevents_partial_leak` bunu yakaladı) — yani aşırı-
+        # maskelemeyi geri getiriyordu. Kapsama şartı, ölçülen sızıntıyı tam olarak kapatır ve
+        # kısmi-çakışma semantiğini olduğu gibi bırakır.
+        blocking = [a for a in accepted if not (s.end <= a.start or s.start >= a.end)]
+        if not blocking:
             accepted.append(s)
+            continue
+        for a in blocking:
+            # reddedilen `s`, kabul edilen `a`yı tamamen içeriyorsa `a` onun kapsamına genişler
+            if s.start <= a.start and s.end >= a.end:
+                accepted[accepted.index(a)] = a.model_copy(
+                    update={"start": s.start, "end": s.end})
     accepted.sort(key=lambda s: s.start)
     return accepted
 
@@ -75,6 +131,7 @@ class AnonymizationEngine:
         language: Language,
         *,
         extra_deny_terms: list[str] | None = None,
+        extra_allow_terms: list[str] | None = None,
     ) -> AnonymizationOutput:
         # Per-block: use block.language if set, else `language`. For mixed, run EN + TR analyzers
         # and merge spans via resolve_spans before applying deterministic placeholders.
