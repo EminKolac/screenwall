@@ -3,113 +3,108 @@
 <img src="docs/media/hero.png" alt="Screenwall — Belgeni ver, verini verme" width="880">
 
 [![tests](https://img.shields.io/badge/tests-337%20passing-2F6B4F)](backend/tests)
-[![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#-benchmark--iddia-değil-sayı)
+[![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#testler-neyi-test-ediyor)
 [![python](https://img.shields.io/badge/python-3.12-6B675C)](backend/pyproject.toml)
-[![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-6B675C)](#-kurulum)
-[![local](https://img.shields.io/badge/%C3%A7al%C4%B1%C5%9Fma-%25100%20yerel-1C1B18)](#neden-screenwall)
+[![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-6B675C)](#kurulum)
 
-<img src="docs/media/demo.gif" alt="Screenwall demo — tespit, maskeleme ve onay" width="820">
+<img src="docs/media/demo.gif" alt="Screenwall demo" width="820">
 
-**[▶ 42 saniyelik tanıtım videosu](screenwall-promo.mp4)** · **[📽 Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)**
+[▶ 42 saniyelik tanıtım videosu](screenwall-promo.mp4) · [Yatırımcı sunumu (PPTX)](Screenwall-Yatirimci-Sunum.pptx)
 
 </div>
 
 ---
 
-## Neden Screenwall?
+## Bu ne işe yarıyor?
 
-Bir sözleşmeyi, bordroyu ya da sağlık raporunu ChatGPT'ye yapıştırdığın an, içindeki
-TCKN'ler, IBAN'lar, adlar ve tanılar **geri alınamaz şekilde** dışarı çıkar. KVKK yalnız
-şirketlerin sorunu değil: müvekkilinin, müşterinin, çalışanının verisi senin sorumluluğunda.
+Bir sözleşmeyi ya da bordroyu ChatGPT'ye yapıştırdığınızda içindeki TC kimlik numaraları,
+adlar, IBAN'lar da gidiyor ve geri alma şansınız yok. Screenwall bunun önüne geçmek için
+yazıldı: belge kendi bilgisayarınızda taranıyor, kişisel veriler `<PERSON_1>` gibi etiketlerle
+değiştiriliyor ve dışarıya yalnızca bu maskelenmiş kopya çıkıyor.
 
-Screenwall aradaki perdedir: belge **senin makinende** taranır, kişisel veriler deterministik
-`<PERSON_1>` etiketlerine çevrilir, yalnız onaylı anonim kopya dışarı çıkar. Sistem emin
-olamadığında **otomatik onaylamaz** — belge sana düşer. Güvenlik ayar değil, varsayılandır.
+Sistemin bir huyu var, bilerek böyle: emin olamadığı belgeyi onaylamıyor, size soruyor.
+Yanlışlıkla bir şey maskelediyse de tek tıkla geri alabiliyorsunuz.
 
-Ve piyasadaki araçların aksine **"bize güven" demiyoruz — sayı veriyoruz** (aşağıda).
+PDF, Word ve Excel destekleniyor; tablolar, üstbilgi/altbilgiler, hücre açıklamaları ve
+taranmış sayfalar (OCR ile) dahil. Türkçe için ayrıca uğraştık: TCKN checksum doğrulaması,
+GSM/IBAN/plaka kalıpları, sağlık ve engellilik ifadeleri, İ/ı büyük-küçük harf tuzakları.
 
-## ✨ Özellikler
+## Hangi teknolojiler kullanılıyor?
 
-- 📄 **PDF · DOCX · XLSX** — yapı korunarak: tablolar, üstbilgi/altbilgi, açıklamalar, taranmış sayfalar (OCR)
-- 🔍 **3 aşamalı tespit** — Presidio (TR+EN) + 15 özel Türkçe tanıyıcı + yerel Privacy Filter modeli
-- 🇹🇷 **Türkçe'ye gerçekten hazır** — checksum'lı TCKN, IBAN, GSM, plaka, sağlık/engellilik terimleri, adres kalıpları, İ/ı-güvenli normalizasyon
-- 🔁 **Denetim döngüsü** — kalıntı bulunursa geri beslenir (max 3); şüphede insana düşer (*fail-closed*)
-- ↩️ **Tek tıkla geri alma** — yanlış maskelenen terimi UI'dan geri al; belge yeniden taranır
-- 🗄 **5 katmanlı depo** — yalnız onaylı anonim katman paylaşılabilir; *destructive* modda orijinal hiç diske yazılmaz (KVKK m.3 anonimleştirme)
-- 🔌 **%100 yerel** — onaydan önce tek bir dış çağrı yok; internet bile gerekmez
-- 💬 **Onay sonrası sohbet** — anonim kopya üzerinden istediğin LLM'e sor (OpenAI/Anthropic/Ollama)
-
-## 📊 Benchmark — iddia değil, sayı
-
-<img src="docs/media/metrics.jpg" alt="Ölçülmüş güvenlik" width="640">
-
-| Ölçüm | Sonuç | Bu ne demek? |
+| Katman | Ne kullandık | Ne için |
 |---|---|---|
-| Stres testi | **0 / 72** | Kişisel veriyi *bilerek saklamaya çalışan* 72 tuzaklı belge hazırladık — satır sonunda bölünmüş numaralar, gizli Excel sayfaları, taranmış (fotoğraf) sayfalar, bozuk dosyalar. **Hiçbirinden tek bir kritik bilgi sızmadı.** |
-| Kritik veri yakalama | **%100*** | Sistemin daha önce *hiç görmediği*, cevap anahtarı kilitli tutulmuş belgelerde TCKN, ad, IBAN, sağlık bilgisi gibi kritik verilerin tamamı yakalandı. |
-| Belgenin işe yararlığı | **%98,9** | Maskeleme sonrası belge çöpe dönmüyor: belgeye sorulan 280 sorunun %98,9'u anonim kopyadan hâlâ cevaplanabiliyor. Gizlilik var, iş kaybı yok. |
-| Sahte kimlik probu | **16/16** | Belgelere 16 sahte kimlik/hesap/anahtar yerleştirdik ("kanarya" yöntemi — madencinin kanaryası gibi erken uyarı). Hepsi, yanında ipucu kelime olmasa bile yakalandı. |
-| Otomatik test | **337 yeşil** | Her kod değişikliğinde 337 otomatik kontrol çalışıyor; biri bile kırılırsa değişiklik yayınlanmaz. |
+| Tespit 1 | [Microsoft Presidio](https://microsoft.github.io/presidio/) + [spaCy](https://spacy.io) | Kural + istatistik tabanlı PII tespiti (İngilizce `en_core_web_sm`, çok dilli `xx_ent_wiki_sm`) |
+| Tespit 2 | 15 özel Türkçe tanıyıcı (bu repoda) | TCKN, IBAN, GSM, plaka, adres, maaş bandı, sağlık/engellilik… Presidio'nun Türkçe'de göremediklerini kapatıyor |
+| Tespit 3 | [OpenMed Privacy Filter](https://huggingface.co/OpenMed) (transformers/torch, tamamen yerel) | Bağlamdan anlayan model — kural tabanlıların kaçırdığı serbest metin adları için |
+| Denetçi | Qwen 2.5 ([Ollama](https://ollama.com) üzerinden, yerel) + deterministik kontroller | Maskelenmiş kopyada kalıntı var mı diye ikinci göz |
+| Belge işleme | PyMuPDF, python-docx, openpyxl, Tesseract (OCR) | PDF/DOCX/XLSX okuma-yazma, taranmış sayfa metni |
+| Backend | Python 3.12, FastAPI, uv | API ve işlem hattı |
+| Arayüz | React 18 + Vite + TypeScript | Yükleme, inceleme, geri alma, sohbet ekranları |
 
-<details>
-<summary><b>Nasıl ölçüyoruz?</b> (terimlerin açıklaması)</summary>
+Hepsi yerelde çalışıyor; belge onaylanmadan önce hiçbir dış servise istek atılmıyor.
 
-- **GoldBench:** 240 gerçekçi ama tamamen sentetik belge (sözleşme, bordro, sağlık raporu…) —
-  içindeki her kişisel verinin yeri önceden işaretli. Sistem ne bulması gerektiğini "bilmeden"
-  taranır, sonuç cevap anahtarıyla karşılaştırılır.
-- **Mühürlü holdout:** Sınavın bir bölümünün cevap anahtarı kilitli tutulur ve sistem
-  geliştirilirken o bölüme *hiç bakılmaz*. Böylece "ezberledi mi, gerçekten öğrendi mi"
-  sorusu dürüstçe cevaplanır. (*%100 bu bölümün alt-kümesinde ölçüldü — dipnotsuz
-  yuvarlamıyoruz.*)
-- **Stres korpusu:** Kötü niyetli ya da şanssız gerçek dünya vakalarının simülasyonu:
-  bir telefon numarasının iki hücreye bölünmesi, PII'ın sayfa altbilgisine saklanması,
-  zip-bomb gibi bozuk dosyalar. Amaç: sistemin "emin değilsem onaylamam" refleksini sınamak.
-- **Kanarya probu:** Belgeye bilerek sahte kimlik yerleştirip kaçıp kaçmadığına bakmak.
-- **Aşırı-maskeleme probu:** Tersi de ölçülür — kişisel veri İÇERMEYEN 40 sıradan iş cümlesi
-  sisteme verilir; gereksiz yere karartılan her cümle hata sayılır (bizde 11/40 — açık kusur,
-  aşağıda).
-- **Deney günlüğü:** Her iyileştirme denemesi, başarısızlar dahil, ölçümüyle kayıt altında:
-  [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md).
+## Testler neyi test ediyor?
 
-</details>
+Bu bölümü biraz uzun tuttuk çünkü "%100 başarı" tek başına bir şey ifade etmiyor —
+neyin üzerinde ölçüldüğünü bilmek gerekiyor.
 
-### İki bağımsız sistem, aynı sınav
+### Test belgeleri (korpus) nereden geliyor?
 
-Kendi sınavımızı kendimiz geçmiş olmayalım diye: bağımsız geliştirilen ikinci bir sistem
-(**Sol**) aynı belgeler, aynı sabit kurallar ve bağımsız bir puanlayıcıyla koşuldu.
+Gerçek insanların belgelerini test için kullanamayız; bu yüzden **240 sentetik belge**
+ürettik. Sentetik ama gelişigüzel değil: altı gerçek belge türünü taklit ediyorlar —
+iş sözleşmesi, İK özlük dosyası, sağlık raporu, banka yazışması, kamu dilekçesi ve müşteri
+e-postası. İçlerindeki kişiler, TCKN'ler (checksum'ı tutan sahte numaralar), adresler,
+tanılar üretici tarafından yerleştiriliyor ve **her birinin yeri önceden işaretli**. Yani
+elimizde cevap anahtarı var: sistem belgeyi tarayınca neyi bulup neyi kaçırdığını kesin
+olarak sayabiliyoruz.
 
-| Test | Screenwall | Sol | Kim önde? |
-|---|---|---|---|
-| Kritik veri yakalama | **1.00*** | 0.68 (kural-eşit: 0.86) | Screenwall |
-| Aşırı-maskeleme | 0/90 | 0/90 | Berabere |
-| Stres kritik sızıntı | **0/72** | 9/72 | Screenwall |
-| Gereksiz maskeleme probu | 11/40 | **3/40** | **Sol** — açıkça yazıyoruz |
+Bu 240 belgenin 60'ı "mühürlü" tutuluyor: sistemi geliştirirken o bölüme hiç bakmıyoruz,
+yalnızca ara sıra not vermek için açıyoruz. Okuldaki deneme sınavı / gerçek sınav ayrımı
+gibi — sistem soruları ezberlemiş mi, gerçekten öğrenmiş mi, bunu ancak hiç görmediği
+belgeler söyler.
 
-Sol'un önde olduğu satırı saklamıyoruz; tersine yol haritamıza hedef olarak koyduk.
-Sol'un yakalama skoru iki kuralla verildi çünkü Sol kendini bizden daha sert bir kuralla
-puanladı; adil karşılaştırma için ikisi de tabloda. Tüm dürüstlük notları (ev-sahibi avantajı,
-kural farkları, henüz "ölçülmedi" durumundaki saldırı-direnci testi):
-[`docs/CALIBRATION.md`](backend/docs/CALIBRATION.md).
+### Testlerin gerçek hayattaki karşılığı
 
-## 🏗 Nasıl çalışır?
+| Test | Gerçek iş ortamında neye denk geliyor | Sonuç |
+|---|---|---|
+| Stres testi (72 belge) | Ofiste her gün olan kazalar: telefon numarası Excel'de iki hücreye bölünmüş, TCKN sayfanın altbilgisinde, sözleşme taranmış fotoğraf olarak gelmiş, biri bozuk dosya yollamış, Excel'de gizli sayfa unutulmuş. Bu belgeleri bilerek bu şekilde hazırlayıp sisteme verdik. | Kritik sızıntı: **0/72** |
+| Kritik veri yakalama | Yarın masanıza gelecek, sistemin daha önce görmediği yeni bir belge. Mühürlü 60 belge tam olarak bunu temsil ediyor. | **%100*** |
+| Belgenin işe yararlığı | Maskelenmiş sözleşmeyi avukatınıza ya da yapay zekâya verdiğinizde işinize yarıyor mu? Belgelere 280 gerçekçi soru sorduk ("ceza koşulu ne kadar?", "hangi tarihte teslim?"); maskelemeden sonra bu soruların %98,9'u hâlâ cevaplanabiliyordu. | **%98,9** |
+| Sahte kimlik denemesi | Belgelerin içine 16 sahte kimlik, hesap numarası ve API anahtarı sakladık; sistem hepsini kendiliğinden buldu. Madencilerin kanaryası gibi bir erken uyarı düzeneği: bir gün biri kaçarsa ilk buradan görürüz. | **16/16** |
+| Gereksiz karartma denemesi | Madalyonun öteki yüzü: içinde hiç kişisel veri olmayan 40 sıradan iş cümlesi verdik ("Faaliyet raporu bağımsız denetimden geçmiştir." gibi). İyi bir sistem bunlara dokunmamalı. Bizimki 40 cümlenin 11'inde gereksiz karartma yaptı — bu bizim bilinen kusurumuz, aşağıda yol haritasında. | 11/40 hata |
 
-Teknik olmayan özet — dört adım:
+\* Mühürlü bölümün alt-kümesinde ölçüldü; ayrıntı [`backend/docs/CALIBRATION.md`](backend/docs/CALIBRATION.md).
 
-1. **Yükle:** PDF/Word/Excel belgeni bırakırsın. Belge bilgisayarından çıkmaz.
-2. **Tara & maskele:** Üç ayrı dedektör (kural tabanlı + iki yapay zekâ modeli) kişisel
-   verileri bulur ve `<PERSON_1>` gibi etiketlerle değiştirir. Biri kaçırırsa diğeri yakalar.
-3. **Denetle:** Bağımsız bir denetçi maskeli kopyayı kontrol eder. Kalıntı bulursa sistem
-   baştan maskeleyerek tekrar dener (en çok 3 tur). **Hâlâ emin değilse onaylamaz — sana
-   sorar.** Otomatik onay ancak denetim temizse gerçekleşir.
-4. **Kullan:** Onaylı anonim kopyayı PDF olarak indirir ya da üstünden yapay zekâya soru
-   sorarsın. Dışarı yalnız bu anonim kopya çıkar; yanlış maskelenen bir şey olursa tek tıkla
-   geri alırsın.
+### Sınavı bir de başkası çözsün: bağımsız karşılaştırma
 
-Teknik akış:
+Kendi hazırladığımız sınavda kendimize iyi not vermiş olmayalım diye, bağımsız geliştirilen
+ikinci bir sistem (Sol) aynı belgeler ve aynı kurallarla, ayrı bir puanlayıcı üzerinden koşuldu:
+
+| Test | Screenwall | Sol |
+|---|---|---|
+| Kritik veri yakalama | 1.00* | 0.68 (kural eşitlenince 0.86) |
+| Gereksiz karartma | 0/90 | 0/90 |
+| Stres testi sızıntısı | 0/72 | 9/72 |
+| Gereksiz karartma denemesi | 11/40 | 3/40 — **Sol burada bizden iyi** |
+
+Son satırı saklamıyoruz; Sol'un 3/40'ı bizim sonraki hedefimiz. Yakalama skorunun iki kural
+ile verilmesinin nedeni de şu: Sol kendini bizden daha sert bir kuralla puanladı, adil olsun
+diye ikisini de yazdık. Deney günlüğünün tamamı (başarısız denemeler dahil)
+[`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
+
+## Nasıl çalışıyor?
+
+1. Belgeyi yüklüyorsunuz. Belge makinenizden çıkmıyor.
+2. Üç dedektör sırayla tarıyor; bulunan kişisel veriler etiketlerle değiştiriliyor.
+   Biri kaçırırsa çoğu zaman diğeri yakalıyor.
+3. Ayrı bir denetçi maskeli kopyayı kontrol ediyor. Kalıntı bulursa sistem en fazla üç tur
+   baştan deniyor; hâlâ emin değilse belgeyi onaylamayıp size bırakıyor.
+4. Onaylı kopyayı PDF olarak indiriyor ya da üzerinden yapay zekâya soru soruyorsunuz.
+   Yanlış maskelenen bir terim varsa arayüzden tek tıkla geri alıyorsunuz.
 
 ```
 Yükle ─▶ Doğrula ─▶ Çıkar (yapı korunur) ─▶ ┌── Denetim döngüsü (max 3) ──┐
-                                            │  3-aşamalı tespit → maskele  │
+                                            │  3 aşamalı tespit → maskele  │
                                             │  Denetçi temiz mi? ──hayır──┘
                                             └──── evet ▼
                               ONAYLANDI ◀── insan incelemesi (şüphede)
@@ -117,7 +112,7 @@ Yükle ─▶ Doğrula ─▶ Çıkar (yapı korunur) ─▶ ┌── Denetim d
                     anonim PDF indir · onay-sonrası sohbet (yalnız anonim katman)
 ```
 
-## 🚀 Kurulum
+## Kurulum
 
 ```bash
 git clone https://github.com/EminKolac/screenwall.git && cd screenwall
@@ -132,10 +127,13 @@ uv run uvicorn app.main:app --reload
 cd frontend && npm install && npm run dev
 ```
 
-Tarayıcıda `http://localhost:5173`. Opsiyonel güçlendirmeler (yerel denetçi LLM, Privacy
-Filter, sohbet sağlayıcıları): [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+Tarayıcıda `http://localhost:5173`. Yerel denetçi LLM, Privacy Filter ve sohbet sağlayıcıları
+gibi opsiyonel parçalar için: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-## 🧪 Ölçümleri kendin koş
+## Ölçümleri kendiniz koşun
+
+Yukarıdaki sayıların hiçbiri "bize güvenin" diye durmuyor; korpuslar sabit tohumla üretildiği
+için aynı komutlar sizde de aynı sonucu verir:
 
 ```bash
 cd backend
@@ -144,18 +142,15 @@ uv run python -m evaluation.goldbench.run_stress --mode mapping --tag benim
 uv run python scripts/measure_canary.py
 ```
 
-Korpuslar deterministik üretilir (aynı seed → aynı byte'lar); benchmark kuralları dış
-sistemler için de sabittir — bağımsız Sol koşusu bu kurallarla yapıldı.
+## Yol haritası
 
-## 🗺 Yol haritası
+- Çift tıkla kurulum (şu an kurulum terminal istiyor, bu B2C hedefiyle çelişiyor)
+- UYAP UDF desteği — avukatların gerçekte kullandığı format
+- Kalite modundaki yavaşlığı azaltmak (Privacy Filter açıkken belge başına ~10 sn)
+- Gereksiz karartmayı 11/40'tan Sol'un seviyesine (3/40) indirmek
+- Saldırı-direnci (TRIR) testi — paketi hazır, henüz koşulmadı; koşulmadığı sürece
+  raporlarda "ölçülmedi" olarak geçiyor, geçer not saymıyoruz
 
-- [ ] Çift-tıkla kurulum (teknik bilgi gerektirmeyen başlatıcı)
-- [ ] UYAP **UDF** desteği (avukatların gerçek formatı)
-- [ ] Kalite modunun 38× yavaşlığını kapatan model optimizasyonu
-- [ ] Gereksiz maskeleme: 11/40 → 3/40 (Sol'un çıtası)
-- [ ] TRIR saldırı-direnci koşusu (paket hazır, gate dürüstçe "ölçülmedi")
+## Lisans
 
-## 📜 Lisans
-
-Henüz lisans seçilmedi — kod inceleme için açıktır; yeniden kullanım izni lisans eklenene
-kadar saklıdır. (Yakında.)
+Henüz lisans seçmedik. Kod incelemeye açık; yeniden kullanım izni lisans eklenene kadar saklı.
