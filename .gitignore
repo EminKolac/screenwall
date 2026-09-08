@@ -16,6 +16,7 @@ __pycache__/
 /data/**
 !/data/**/.gitkeep
 
+
 # Models / large artifacts (root-level only — must not match backend/app/models/)
 *.gguf
 /models/
@@ -32,7 +33,18 @@ frontend/.vite/
 *.log
 
 # runtime storage created when running from backend/
-/backend/data/
+/backend/data/*
+# İSTİSNA — GoldBench test korpusu commit EDİLİR: dosyalar tamamen sentetiktir
+# (üretici: backend/evaluation/goldbench/generate.py), gerçek kişisel veri içermez.
+# Benchmark'ın üçüncü taraflarca korpus yeniden üretilmeden doğrulanabilmesi için gerekli.
+# Kademeli açma: git yok sayılan bir dizinin İÇİNE bakmadığı için önce dizini, sonra
+# içindekileri açmak gerekiyor. work/ ve results/ (işlenmiş belge + koşu çıktısı) KAPALI kalır.
+!/backend/data/goldbench/
+/backend/data/goldbench/*
+!/backend/data/goldbench/docs/
+!/backend/data/goldbench/gold/
+!/backend/data/goldbench/holdout_gold/
+!/backend/data/goldbench/inference/
 
 # deney yedekleri (gecici)
 thoughts/.backup/
