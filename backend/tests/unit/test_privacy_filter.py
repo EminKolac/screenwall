@@ -131,7 +131,7 @@ def test_enabled_and_required_fails_closed(pf_cache, monkeypatch):
 def test_firstname_span_masks_into_person_family(monkeypatch):
     """A value only the Privacy Filter catches must land in the SAME <PERSON_n> family Presidio
     uses — the deterministic same-value=same-token invariant across detectors."""
-    import app.anonymization.presidio_engine as pe
+    import app.anonymization.engine as pe  # the engine reads get_privacy_filter from here
 
     name = "Rumpelstiltskin"
 

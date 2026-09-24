@@ -111,7 +111,7 @@ def test_privacy_filter_span_wins_overlap_by_score():
 
 
 def test_privacy_filter_detector_spans_masked_and_counted(monkeypatch):
-    import app.anonymization.presidio_engine as pe
+    import app.anonymization.engine as pe  # the engine reads get_privacy_filter from here
 
     class FakePF:  # a made-up brand NER wouldn't catch; PF "detects" it
         def detect(self, text):

@@ -1,138 +1,265 @@
-"""Anonymization engine interface (Presidio orchestration).
+"""The anonymization engine (Faz 1).
 
-Concrete implementation lands in Phase 3: per-language Presidio AnalyzerEngine (EN spaCy +
-TR transformers NER) + custom TR/EN recognizers, applied block-by-block with a shared
-`PlaceholderMapper`. `extra_deny_terms` lets the iteration loop feed back items the auditor
-still flagged.
+Presidio stays the recognizer framework (analyzer.py); this module orchestrates the passes:
 
-Codex Phase-1 review:
-- `EntitySpan` + `resolve_spans` give a deterministic overlap-resolution contract so partial /
-  nested matches replace stably (HIGH).
-- The placeholder mapping is a separate sensitive artifact excluded from serialization so it
-  can never be returned by an API, logged, or forwarded to a provider (HIGH).
-- Mixed documents route per block: `block.language` overrides the document default (HIGH).
+  1. table pre-masking — values split across neighbouring cells (tables.py)
+  2. detection per unit — Presidio en + tr, a line-wrap pass, always-mask terms, never-mask filter,
+     orthographic gates, overlap resolution (resolve.py)
+  3. variant propagation — spelling variants of masked values (propagate.py)
+
+Every pass works on the CURRENT text of a unit exactly as before Faz 1, and each unit's
+`EditBuffer` records the replacements in ORIGINAL coordinates. The masked output is therefore
+byte-identical to the pre-Faz-1 engine (tests/parity), and `AnonymizationOutput.edits` ties every
+placeholder to its original range for the review screen.
+
+Each text block is analysed as BOTH "en" and "tr" regardless of its detected language; the union
+maximizes recall. Per-block language routing is a measured Faz 2 experiment, not a refactor.
 """
 from __future__ import annotations
 
+import threading
+from dataclasses import dataclass, field
+
 from pydantic import BaseModel, Field
 
-from app.extraction.base import ExtractedContent
+from app.anonymization.analyzer import get_analyzer
+from app.anonymization.gates import implausible_person_ner, lowercase_initial_ner
+from app.anonymization.lists import deny_spans, is_allowed, term_ranges
+from app.anonymization.placeholders import PlaceholderMapper
+from app.anonymization.propagate import VariantPools, find_variants
+from app.anonymization.resolve import resolve_spans
+from app.anonymization.spans import EditBuffer, EntitySpan, MaskEdit
+from app.anonymization.tables import premask_table
+from app.anonymization.types import ADJACENCY_SAFE, family
+from app.extraction.base import Block, BlockType, ExtractedContent
 from app.models.document import Language
 
+__all__ = [
+    "AnonymizationEngine", "AnonymizationOutput", "Engine", "EntitySpan", "MaskEdit",
+    "resolve_spans", "get_privacy_filter",
+]
 
-class EntitySpan(BaseModel):
-    start: int
-    end: int
-    entity_type: str
-    score: float = 0.0
-    source: str = ""  # recognizer name (for debugging / calibration)
-
-    @property
-    def length(self) -> int:
-        return self.end - self.start
+# Serialize access to the shared, cached AnalyzerEngine (spaCy pipelines are not thread-safe).
+_ANALYZE_LOCK = threading.Lock()
+_LANGS = ("en", "tr")
 
 
-# Deterministic, format/checksum-validated pattern recognizers. Their spans cover the ENTIRE
-# matched value (an IBAN, a phone number) by construction, unlike statistical NER which can emit
-# short fragments. Tier 0: always outranks tier 2 on overlap, regardless of score.
-_TRUSTED_PATTERN_TYPES = frozenset({
-    "TR_IBAN", "TR_TCKN", "TR_GSM", "TR_PHONE",
-    "IBAN_CODE", "CREDIT_CARD", "EMAIL_ADDRESS",
-    "US_SSN", "UK_PHONE", "IP_ADDRESS", "URL",
-})
-# spaCy NER guesses — no format validation, uniform 0.85 confidence regardless of correctness
-# (see nlp.py). Tier 2: always outranked by tier 0, and by anything else (tier 1) on overlap.
-_STATISTICAL_NER_TYPES = frozenset({
-    "PERSON", "LOCATION", "ORGANIZATION", "NRP", "DATE_TIME",
-})
-
-
-def _trust_tier(entity_type: str) -> int:
-    if entity_type in _TRUSTED_PATTERN_TYPES:
-        return 0
-    if entity_type in _STATISTICAL_NER_TYPES:
-        return 2
-    return 1
-
-
-def resolve_spans(spans: list[EntitySpan]) -> list[EntitySpan]:
-    """Deterministically pick non-overlapping spans by PRIORITY, not position.
-
-    Accept highest-value spans first — trust tier first (validated pattern > everything else >
-    statistical NER guess), then score desc, then length desc, then earliest start, then
-    entity_type for stability — and reject any span overlapping an already-accepted one.
-
-    The trust tier exists because spaCy NER carries no real confidence signal: every hit is
-    hard-coded to the same 0.85 score (see nlp.py) whether or not it is correct, and it can emit a
-    SHORT FRAGMENT of a longer value (e.g. a "date-shaped" sub-span inside a phone number). Pure
-    score ordering let a 0.85 fragment beat a 0.5-0.7 but format/checksum-VALIDATED pattern match
-    (TR_GSM, TR_IBAN, TR_TCKN, …), leaving the unmatched middle of the real value unmasked — a
-    partial-PII leak, not just a wrong label. Tiering the trusted pattern types ahead of
-    statistical NER closes that gap; a high-confidence long entity (e.g. a full IBAN) still wins
-    over an earlier-starting lower-value NER span within the same tier, exactly as before.
-    """
-    ordered = sorted(
-        spans,
-        key=lambda s: (_trust_tier(s.entity_type), -s.score, -s.length, s.start, s.entity_type),
-    )
-    accepted: list[EntitySpan] = []
-    for s in ordered:
-        # KAPSAMA (containment) genişletmesi — ölçümle bulunan bir sızıntının düzeltmesi.
-        # Eski sürüm çakışan span'i tamamen atıyordu; bu yüzden KISA ama yüksek skorlu bir
-        # tespit, KENDİSİNİ İÇEREN uzun bir span'i bastırıp geri kalanını AÇIKTA bırakıyordu
-        # (somut ölçüm: 20 karakterlik tam maskeli bir kişi adı, 0.99 skorlu 4 karakterlik bir
-        # parça eklenince 4 karaktere düşüyordu — adın %80'i açığa çıkıyor). Sonuç: yeni bir
-        # dedektör EKLEMEK kapsamı DÜŞÜREBİLİYORDU (Privacy Filter açıkken TAB'da doğrudan-
-        # tanımlayıcı recall 0.638 → 0.574).
-        #
-        # Genişletme YALNIZ kapsama durumunda yapılır (kabul edilen span, reddedileni tamamen
-        # içinde barındırıyorsa). KOŞULSUZ birleştirme denendi ve BİLEREK reddedildi: kısmi
-        # çakışmada da birleştirmek, yanlış pozitif bir NER span'inin gerçek bir IBAN'ın
-        # maskesini geriye doğru büyütmesine yol açıyor (regresyon testi
-        # `test_resolve_spans_priority_prevents_partial_leak` bunu yakaladı) — yani aşırı-
-        # maskelemeyi geri getiriyordu. Kapsama şartı, ölçülen sızıntıyı tam olarak kapatır ve
-        # kısmi-çakışma semantiğini olduğu gibi bırakır.
-        blocking = [a for a in accepted if not (s.end <= a.start or s.start >= a.end)]
-        if not blocking:
-            accepted.append(s)
-            continue
-        for a in blocking:
-            # reddedilen `s`, kabul edilen `a`yı tamamen içeriyorsa `a` onun kapsamına genişler
-            if s.start <= a.start and s.end >= a.end:
-                accepted[accepted.index(a)] = a.model_copy(
-                    update={"start": s.start, "end": s.end})
-    accepted.sort(key=lambda s: s.start)
-    return accepted
-
-
-class SensitiveMapping(BaseModel):
-    """Placeholder↔original map. Persisted ONLY to storage layer 2. Never returned by anonymization
-    APIs (excluded from serialization) and never logged."""
-    model_config = {"extra": "forbid"}
-    pairs: dict[str, str] = Field(default_factory=dict, exclude=True, repr=False)
+def get_privacy_filter():
+    """Optional local contextual detector (off by default). Module-level so tests can patch it."""
+    from app.anonymization.privacy_filter import get_privacy_filter as _get
+    return _get()
 
 
 class AnonymizationOutput(BaseModel):
-    content: ExtractedContent                 # structure-preserving, anonymized
+    content: ExtractedContent  # structure-preserving, anonymized
     entity_count: int = 0
     placeholders_used: dict[str, int] = Field(default_factory=dict)
-    # Masked-span count per detection stage (e.g. {"presidio": N, "privacy_filter": M, "deny": K}).
-    by_source: dict[str, int] = Field(default_factory=dict)
+    by_source: dict[str, int] = Field(default_factory=dict)  # masked spans per detection stage
     # Excluded from model_dump()/JSON so it cannot leak via API responses or logs.
     mapping: dict[str, str] = Field(default_factory=dict, exclude=True, repr=False)
+    # unit id → replacements with original and masked offsets (positions only, never values).
+    # Unit id: block_id for text blocks, "<block_id>:r<row>c<col>" for table cells.
+    edits: dict[str, list[MaskEdit]] = Field(default_factory=dict)
 
 
 class AnonymizationEngine:
-    """Phase-3 implementation target. Declared here so the pipeline depends on the interface."""
+    """Interface the pipeline depends on."""
 
-    def anonymize(
-        self,
-        content: ExtractedContent,
-        language: Language,
-        *,
-        extra_deny_terms: list[str] | None = None,
-        extra_allow_terms: list[str] | None = None,
-    ) -> AnonymizationOutput:
-        # Per-block: use block.language if set, else `language`. For mixed, run EN + TR analyzers
-        # and merge spans via resolve_spans before applying deterministic placeholders.
-        raise NotImplementedError("Implemented in Phase 3 (Presidio engine).")
+    def anonymize(self, content: ExtractedContent, language: Language, *,
+                  extra_deny_terms: list[str] | None = None,
+                  extra_allow_terms: list[str] | None = None) -> AnonymizationOutput:
+        raise NotImplementedError
+
+
+@dataclass
+class _Run:
+    """State of one anonymize()/detect() call."""
+    analyzer: object
+    detector: object
+    deny: list[str]
+    allow: list[str]
+    mapper: PlaceholderMapper = field(default_factory=PlaceholderMapper)
+    pools: VariantPools = field(default_factory=VariantPools)
+    cache: dict[str, list[EntitySpan]] = field(default_factory=dict)
+    units: list[tuple[str, EditBuffer]] = field(default_factory=list)
+    unit_ids: set[str] = field(default_factory=set)
+    by_source: dict[str, int] = field(default_factory=dict)
+    total: int = 0
+
+    def add_unit(self, unit_id: str, buf: EditBuffer) -> None:
+        uid, n = unit_id, 1
+        while uid in self.unit_ids:  # duplicate cell coordinates get a stable suffix
+            n += 1
+            uid = f"{unit_id}#{n}"
+        self.unit_ids.add(uid)
+        self.units.append((uid, buf))
+
+
+def _clean(terms: list[str] | None) -> list[str]:
+    return [t.strip() for t in (terms or []) if t and t.strip()]
+
+
+def _cell_id(block: Block, row: int, col: int) -> str:
+    return f"{block.block_id}:r{row}c{col}"
+
+
+def _source_category(source: str) -> str:
+    return "presidio" if source in _LANGS else (source or "presidio")
+
+
+class Engine(AnonymizationEngine):
+    def __init__(self, score_threshold: float | None = None) -> None:
+        self._threshold = score_threshold
+
+    @property
+    def threshold(self) -> float:
+        if self._threshold is not None:
+            return self._threshold
+        from app.config import get_settings
+        return get_settings().anonymizer_score_threshold
+
+    # ---------------------------------------------------------------- public API
+
+    def anonymize(self, content: ExtractedContent, language: Language, *,
+                  extra_deny_terms: list[str] | None = None,
+                  extra_allow_terms: list[str] | None = None) -> AnonymizationOutput:
+        run = self._new_run(extra_deny_terms, extra_allow_terms)
+        layout: list[tuple[Block, list[tuple[object, EditBuffer]] | EditBuffer]] = []
+        for block in content.blocks:
+            if block.type == BlockType.table:
+                layout.append((block, self._mask_table(block, run)))
+            else:
+                buf = EditBuffer(block.text)
+                self._mask_unit(buf, run)
+                run.add_unit(block.block_id, buf)
+                layout.append((block, buf))
+        self._propagate(run)
+        blocks = [self._render_block(block, part) for block, part in layout]
+        return AnonymizationOutput(
+            content=content.model_copy(update={"blocks": blocks}),
+            entity_count=run.total,
+            placeholders_used=run.mapper.counts(),
+            by_source=run.by_source,
+            mapping=dict(run.mapper.mapping),
+            edits={uid: buf.edits() for uid, buf in run.units},
+        )
+
+    def detect(self, text: str, *, extra_deny_terms: list[str] | None = None,
+               extra_allow_terms: list[str] | None = None) -> list[EntitySpan]:
+        """Resolved spans on the ORIGINAL text, without placeholders — the detection half of
+        anonymize(), scored directly by the evaluation harness."""
+        run = self._new_run(extra_deny_terms, extra_allow_terms)
+        return self._detect(text, run, cached=False)
+
+    # ---------------------------------------------------------------- masking passes
+
+    def _new_run(self, deny: list[str] | None, allow: list[str] | None) -> _Run:
+        return _Run(analyzer=get_analyzer(), detector=get_privacy_filter(),
+                    deny=_clean(deny), allow=_clean(allow))
+
+    def _mask_table(self, block: Block, run: _Run) -> list[tuple[object, EditBuffer]]:
+        premask = premask_table(
+            block, lambda text, cached: self._detect(text, run, cached=cached), run.mapper)
+        cells: list[tuple[object, EditBuffer]] = []
+        for cell in block.cells:
+            buf = EditBuffer(cell.text)
+            for start, end, replacement, entity_type in premask.get((cell.row, cell.col), []):
+                buf.apply_original(start, end, replacement, entity_type, "adjacency")
+            self._mask_unit(buf, run)
+            run.add_unit(_cell_id(block, cell.row, cell.col), buf)
+            cells.append((cell, buf))
+        return cells
+
+    def _mask_unit(self, buf: EditBuffer, run: _Run) -> None:
+        src = buf.text()
+        kept = self._detect(src, run, cached=True)
+        for s in sorted(kept, key=lambda s: -s.start):  # right to left keeps offsets valid
+            token = run.mapper.placeholder_for(family(s.entity_type), src[s.start:s.end])
+            buf.apply(s.start, s.end, token, s.entity_type, s.source)
+        run.total += len(kept)
+        for s in kept:
+            cat = _source_category(s.source)
+            run.by_source[cat] = run.by_source.get(cat, 0) + 1
+        run.pools.collect(src, kept)
+
+    def _propagate(self, run: _Run) -> None:
+        surfaces = run.pools.surfaces()
+        if not surfaces:
+            return
+        for _uid, buf in run.units:
+            text = buf.text()
+            hits = find_variants(text, surfaces)
+            for start, end, fam, mode in sorted(hits, key=lambda h: -h[0]):
+                token = run.mapper.placeholder_for(fam, text[start:end])
+                buf.apply(start, end, token, fam, f"propagation:{mode}")
+
+    @staticmethod
+    def _render_block(block: Block, part) -> Block:
+        if isinstance(part, EditBuffer):
+            return block.model_copy(update={"text": part.text()})
+        cells = [cell.model_copy(update={"text": buf.text()}) for cell, buf in part]
+        # The raw sheet name is un-audited; the audited name travels as a heading block.
+        return block.model_copy(update={"cells": cells, "sheet": None})
+
+    # ---------------------------------------------------------------- detection
+
+    def _detect(self, text: str, run: _Run, *, cached: bool) -> list[EntitySpan]:
+        """All detection stages + overlap resolution. Shared by anonymize() and detect() so the
+        production path and the evaluated path cannot drift apart. The per-document cache is exact:
+        detection depends only on the text and the two term lists, fixed within one call."""
+        if not text or not text.strip():
+            return []
+        if cached and text in run.cache:
+            return run.cache[text]
+        spans = self._analyze(text, run) + self._linewrap(text, run)
+        spans += deny_spans(text, run.deny)
+        if run.detector is not None:
+            spans.extend(run.detector.detect(text))
+        # Never-mask filtering and the orthographic gates run BEFORE resolution: removing a span
+        # afterwards could not resurrect a real span it had suppressed through overlap.
+        if run.allow:
+            ranges = term_ranges(text, run.allow)
+            if ranges:
+                spans = [s for s in spans if not is_allowed(s, ranges)]
+        spans = [s for s in spans
+                 if not lowercase_initial_ner(s, text) and not implausible_person_ner(s, text)]
+        kept = resolve_spans(spans)
+        if cached:
+            run.cache[text] = kept
+        return kept
+
+    def _analyze(self, text: str, run: _Run) -> list[EntitySpan]:
+        spans: list[EntitySpan] = []
+        with _ANALYZE_LOCK:
+            for lang in _LANGS:
+                for r in run.analyzer.analyze(text=text, language=lang,
+                                              score_threshold=self.threshold):
+                    spans.append(EntitySpan(start=r.start, end=r.end, entity_type=r.entity_type,
+                                            score=r.score, source=lang))
+        return spans
+
+    def _linewrap(self, text: str, run: _Run) -> list[EntitySpan]:
+        """Second pass on the text with '\\n' removed: a PDF can wrap a URL or key inside one block
+        (stress pdf-split_run_pii-07). Only structural types, only spans that really cross a line
+        break, and never across sentence punctuation ("açıklama.\\nİkinci" once became a URL)."""
+        if "\n" not in text:
+            return []
+        keep = [i for i, ch in enumerate(text) if ch != "\n"]
+        collapsed = "".join(text[i] for i in keep)
+        spans: list[EntitySpan] = []
+        with _ANALYZE_LOCK:
+            for lang in _LANGS:
+                for r in run.analyzer.analyze(text=collapsed, language=lang,
+                                              score_threshold=self.threshold):
+                    if r.entity_type not in ADJACENCY_SAFE:
+                        continue
+                    start, end = keep[r.start], keep[r.end - 1] + 1
+                    seg = text[start:end]
+                    if "\n" not in seg:
+                        continue
+                    if any(seg[k] == "\n" and k > 0 and seg[k - 1] in ".!?:;,"
+                           for k in range(len(seg))):
+                        continue
+                    spans.append(EntitySpan(start=start, end=end, entity_type=r.entity_type,
+                                            score=r.score, source=lang))
+        return spans

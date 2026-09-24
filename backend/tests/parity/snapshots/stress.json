@@ -1,0 +1,1644 @@
+{
+"docx-comment-02.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"cmt3": "cep: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"cmt3": "cep: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+}
+},
+"docx-comment-10.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"cmt3": "Müşteri No: <ACCOUNT_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"cmt3": "Müşteri No: <ACCOUNT_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+}
+},
+"docx-comment-18.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"cmt3": "cep: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"cmt3": "cep: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Bu satır hakkında not düşüldü."
+}
+}
+},
+"docx-corrupt_ooxml-05.docx": {
+"rejected": "UploadRejected"
+},
+"docx-corrupt_ooxml-13.docx": {
+"rejected": "UploadRejected"
+},
+"docx-corrupt_ooxml-21.docx": {
+"rejected": "UploadRejected"
+},
+"docx-external_link-04.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"docx-external_link-12.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"docx-external_link-20.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"docx-format_variants-07.docx": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "e-posta: <EMAIL_1>",
+"p3": "e-posta: <EMAIL_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "e-posta: <EMAIL_1>",
+"p3": "e-posta: <EMAIL_1>"
+}
+}
+},
+"docx-format_variants-15.docx": {
+"allow": {
+"entity_count": 3,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "link: <URL_1>",
+"p3": "link: <URL_1>",
+"p4": "link: <URL_1>"
+}
+},
+"noallow": {
+"entity_count": 3,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "link: <URL_1>",
+"p3": "link: <URL_1>",
+"p4": "link: <URL_1>"
+}
+}
+},
+"docx-format_variants-23.docx": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "e-posta: <EMAIL_1>",
+"p3": "e-posta: <EMAIL_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "e-posta: <EMAIL_1>",
+"p3": "e-posta: <EMAIL_1>"
+}
+}
+},
+"docx-header_footer-01.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"header2": "IP: <IP_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"header2": "IP: <IP_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-header_footer-09.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"header2": "tel: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"header2": "tel: <PHONE_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-header_footer-17.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"header2": "IP: <IP_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"header2": "IP: <IP_1>",
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-metadata-03.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-metadata-11.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-metadata-19.docx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"docx-split_run_pii-00.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "a101fa41b16f2bee"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "phone: <PHONE_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "a101fa41b16f2bee"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "phone: <PHONE_1>"
+}
+}
+},
+"docx-split_run_pii-08.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "e7bbf61ad752ef91"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "secret: <SECRET_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "e7bbf61ad752ef91"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "secret: <SECRET_1>"
+}
+}
+},
+"docx-split_run_pii-16.docx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "a101fa41b16f2bee"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "phone: <PHONE_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "a101fa41b16f2bee"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1": "GoldBench stres belgesi — sentetik içerik.",
+"p2": "phone: <PHONE_1>"
+}
+}
+},
+"docx-zip_bomb-06.docx": {
+"rejected": "UploadRejected"
+},
+"docx-zip_bomb-14.docx": {
+"rejected": "UploadRejected"
+},
+"docx-zip_bomb-22.docx": {
+"rejected": "UploadRejected"
+},
+"pdf-external_link-03.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"pdf-external_link-10.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"pdf-external_link-17.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Ayrıntılar için bağlantıya bakınız."
+}
+}
+},
+"pdf-format_variants-06.pdf": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "eff72c17a8eb650e",
+"<LOCATION_2>": "6aa6c7d73dc5368e",
+"<LOCATION_3>": "5b94b5e74797b674"
+},
+"placeholders_used": {
+"LOCATION": 3
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "adres: <LOCATION_1>adres: <LOCATION_2>\nadres: <LOCATION_3>\nadres: <LOCATION_2>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "eff72c17a8eb650e",
+"<LOCATION_2>": "6aa6c7d73dc5368e",
+"<LOCATION_3>": "5b94b5e74797b674"
+},
+"placeholders_used": {
+"LOCATION": 3
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "adres: <LOCATION_1>adres: <LOCATION_2>\nadres: <LOCATION_3>\nadres: <LOCATION_2>"
+}
+}
+},
+"pdf-format_variants-13.pdf": {
+"allow": {
+"entity_count": 3,
+"mapping": {
+"<IBAN_1>": "1fe5ccae8ebc53aa",
+"<IBAN_2>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "IBAN: <IBAN_2>\nIBAN: <IBAN_1>\nIBAN: <IBAN_1>"
+}
+},
+"noallow": {
+"entity_count": 3,
+"mapping": {
+"<IBAN_1>": "1fe5ccae8ebc53aa",
+"<IBAN_2>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "IBAN: <IBAN_2>\nIBAN: <IBAN_1>\nIBAN: <IBAN_1>"
+}
+}
+},
+"pdf-format_variants-20.pdf": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<CARD_1>": "9bbef19476623ca5",
+"<CARD_2>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "kart: <CARD_2>\nkart: <CARD_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<CARD_1>": "9bbef19476623ca5",
+"<CARD_2>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "kart: <CARD_2>\nkart: <CARD_1>"
+}
+}
+},
+"pdf-header_footer-01.pdf": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1-b1": "tel: <PHONE_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "tel: <PHONE_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1-b1": "tel: <PHONE_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "tel: <PHONE_1>"
+}
+}
+},
+"pdf-header_footer-08.pdf": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1-b1": "phone: <PHONE_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "phone: <PHONE_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p1-b1": "phone: <PHONE_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "phone: <PHONE_1>"
+}
+}
+},
+"pdf-header_footer-15.pdf": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1-b1": "e-posta: <EMAIL_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "e-posta: <EMAIL_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p1-b1": "e-posta: <EMAIL_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "e-posta: <EMAIL_1>"
+}
+}
+},
+"pdf-header_footer-22.pdf": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p1-b1": "adres: <LOCATION_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "adres: <LOCATION_1>"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p1-b1": "adres: <LOCATION_1>",
+"p1-b2": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b3": "adres: <LOCATION_1>"
+}
+}
+},
+"pdf-metadata-02.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"pdf-metadata-09.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"pdf-metadata-16.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"pdf-metadata-23.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik."
+}
+}
+},
+"pdf-pdf_form_annotation-05.pdf": {
+"allow": {
+"entity_count": 3,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "passport: <PASSPORT_1>",
+"p1-b3": "<PASSPORT_1>",
+"p1-b4": "passport: <PASSPORT_1>"
+}
+},
+"noallow": {
+"entity_count": 3,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "passport: <PASSPORT_1>",
+"p1-b3": "<PASSPORT_1>",
+"p1-b4": "passport: <PASSPORT_1>"
+}
+}
+},
+"pdf-pdf_form_annotation-12.pdf": {
+"allow": {
+"entity_count": 3,
+"mapping": {
+"<PERSON_1>": "fe8b9c63a1cd815c",
+"<PERSON_2>": "3e9af6a39fc2e8ac"
+},
+"placeholders_used": {
+"PERSON": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "<PERSON_1>",
+"p1-b3": "<PERSON_2>",
+"p1-b4": "<PERSON_1>"
+}
+},
+"noallow": {
+"entity_count": 3,
+"mapping": {
+"<PERSON_1>": "fe8b9c63a1cd815c",
+"<PERSON_2>": "3e9af6a39fc2e8ac"
+},
+"placeholders_used": {
+"PERSON": 2
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "<PERSON_1>",
+"p1-b3": "<PERSON_2>",
+"p1-b4": "<PERSON_1>"
+}
+}
+},
+"pdf-pdf_form_annotation-19.pdf": {
+"allow": {
+"entity_count": 3,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Mr.: <PERSON_1>",
+"p1-b3": "<PERSON_1>",
+"p1-b4": "Mr.: <PERSON_1>"
+}
+},
+"noallow": {
+"entity_count": 3,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "Mr.: <PERSON_1>",
+"p1-b3": "<PERSON_1>",
+"p1-b4": "Mr.: <PERSON_1>"
+}
+}
+},
+"pdf-scanned_image-04.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+}
+},
+"pdf-scanned_image-11.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+}
+},
+"pdf-scanned_image-18.pdf": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {}
+}
+},
+"pdf-split_run_pii-00.pdf": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "6c7627baa67a6a2c"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "secret bilgisi: <SECRET_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "6c7627baa67a6a2c"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "secret bilgisi: <SECRET_1>"
+}
+}
+},
+"pdf-split_run_pii-07.pdf": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "a3c89a2d156db568"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "link bilgisi: <URL_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "a3c89a2d156db568"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "link bilgisi: <URL_1>"
+}
+}
+},
+"pdf-split_run_pii-14.pdf": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "54b10898c1be0b5c"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "plaka bilgisi: <PLATE_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "54b10898c1be0b5c"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "plaka bilgisi: <PLATE_1>"
+}
+}
+},
+"pdf-split_run_pii-21.pdf": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "f801a46a4844d1bd"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "passport bilgisi: <PASSPORT_1>"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "f801a46a4844d1bd"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p1-b1": "GoldBench stres belgesi — sentetik içerik.",
+"p1-b2": "passport bilgisi: <PASSPORT_1>"
+}
+}
+},
+"xlsx-comment-02.xlsx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"cmt-0": "A3: Müşteri No: <ACCOUNT_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"cmt-0": "A3: Müşteri No: <ACCOUNT_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-comment-12.xlsx": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1398b376fdcce25c",
+"<PERSON_1>": "fe8b9c63a1cd815c"
+},
+"placeholders_used": {
+"LOCATION": 1,
+"PERSON": 1
+},
+"units": {
+"cmt-0": "<LOCATION_1>: <PERSON_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1398b376fdcce25c",
+"<PERSON_1>": "fe8b9c63a1cd815c"
+},
+"placeholders_used": {
+"LOCATION": 1,
+"PERSON": 1
+},
+"units": {
+"cmt-0": "<LOCATION_1>: <PERSON_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-comment-22.xlsx": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7",
+"<LOCATION_2>": "1398b376fdcce25c"
+},
+"placeholders_used": {
+"LOCATION": 2
+},
+"units": {
+"cmt-0": "<LOCATION_2>: adres: <LOCATION_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7",
+"<LOCATION_2>": "1398b376fdcce25c"
+},
+"placeholders_used": {
+"LOCATION": 2
+},
+"units": {
+"cmt-0": "<LOCATION_2>: adres: <LOCATION_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Not eklendi",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-corrupt_ooxml-07.xlsx": {
+"rejected": "UploadRejected"
+},
+"xlsx-corrupt_ooxml-17.xlsx": {
+"rejected": "UploadRejected"
+},
+"xlsx-external_link-06.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Bağlantı",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Bağlantı",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-external_link-16.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Bağlantı",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Bağlantı",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-format_variants-09.xlsx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "IP: <IP_1>",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "IP: <IP_1>",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-format_variants-19.xlsx": {
+"allow": {
+"entity_count": 2,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62",
+"<PERSON_2>": "a006b9f9ed482df2"
+},
+"placeholders_used": {
+"PERSON": 2
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r3c0": "Mr.: <PERSON_2>",
+"sheet-Veri:r4c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r5c0": "Mr.: <PERSON_2>",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 2,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62",
+"<PERSON_2>": "a006b9f9ed482df2"
+},
+"placeholders_used": {
+"PERSON": 2
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r2c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r3c0": "Mr.: <PERSON_2>",
+"sheet-Veri:r4c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r5c0": "Mr.: <PERSON_2>",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-header_footer-01.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-header_footer-11.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-header_footer-21.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-hidden_sheet-03.xlsx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"sheet-Ek:r0c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"sheet-Ek:r0c0": "Mr.: <PERSON_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-hidden_sheet-13.xlsx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"sheet-Ek:r0c0": "IBAN: <IBAN_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"sheet-Ek:r0c0": "IBAN: <IBAN_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-hidden_sheet-23.xlsx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"sheet-Ek:r0c0": "link: <URL_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"sheet-Ek:r0c0": "link: <URL_1>",
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Ek": "Ek",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-metadata-05.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-metadata-15.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-sheet_name-04.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-sheet_name-14.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-split_run_pii-00.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "secret (bölünmüş)",
+"sheet-Veri:r2c0": "<SECRET_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "secret (bölünmüş)",
+"sheet-Veri:r2c0": "<SECRET_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-split_run_pii-10.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "cep (bölünmüş)",
+"sheet-Veri:r2c0": "<PHONE_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "cep (bölünmüş)",
+"sheet-Veri:r2c0": "<PHONE_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-split_run_pii-20.xlsx": {
+"allow": {
+"entity_count": 0,
+"mapping": {
+"<CARD_1>": "0f765525f5882476"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "kart (bölünmüş)",
+"sheet-Veri:r2c0": "<CARD_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+},
+"noallow": {
+"entity_count": 0,
+"mapping": {
+"<CARD_1>": "0f765525f5882476"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"sheet-Veri:r0c0": "GoldBench stres belgesi — sentetik içerik.",
+"sheet-Veri:r1c0": "kart (bölünmüş)",
+"sheet-Veri:r2c0": "<CARD_1>",
+"sheet-Veri:r2c1": "",
+"sheet-h-Veri": "Veri"
+}
+}
+},
+"xlsx-zip_bomb-08.xlsx": {
+"rejected": "UploadRejected"
+},
+"xlsx-zip_bomb-18.xlsx": {
+"rejected": "UploadRejected"
+}
+}
