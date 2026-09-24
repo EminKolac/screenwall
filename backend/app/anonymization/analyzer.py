@@ -9,21 +9,43 @@ Two settings shape NER, both unchanged from before Faz 1 (the parity snapshots p
   Presidio's SpacyRecognizer has no context words, so this switches them off entirely. They were
   the two largest over-masking families on real reports and are not identifiers in our schema.
 - DATE_TIME is ignored: date-shaped fragments inside phone numbers used to outrank real patterns.
+
+The registry is Presidio's predefined set minus `_UNUSED` (recognizers that never fired on the dev
+set, the stress corpus or 30 real BIST documents; thoughts/EXPERIMENTS.md, Faz 1 inventory), with
+the e-mail recognizer swapped for an offline one. US/UK recognizers that DID fire stay until a
+Faz 2 measurement decides.
 """
 from __future__ import annotations
 
 import logging
 from functools import lru_cache
 
+import tldextract
 from presidio_analyzer import AnalyzerEngine
 from presidio_analyzer.context_aware_enhancers import LemmaContextAwareEnhancer
 from presidio_analyzer.nlp_engine import NlpArtifacts, NlpEngineProvider
+from presidio_analyzer.predefined_recognizers import EmailRecognizer
 
 from app.anonymization.recognizers.english import english_recognizers
 from app.anonymization.recognizers.turkish import turkish_recognizers
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+_UNUSED = frozenset({"CryptoRecognizer", "MacAddressRecognizer", "MedicalLicenseRecognizer",
+                     "NhsRecognizer", "UsItinRecognizer", "UsLicenseRecognizer"})
+
+# tldextract's bundled public-suffix snapshot only: the default extractor downloads the list from
+# publicsuffix.org on first use, a network call from a tool that promises nothing leaves the
+# machine.
+_OFFLINE_TLDS = tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None)
+
+
+class OfflineEmailRecognizer(EmailRecognizer):
+    """Presidio's e-mail recognizer (same pattern, score and context) with an offline TLD check."""
+
+    def validate_result(self, pattern_text: str) -> bool:
+        return _OFFLINE_TLDS(pattern_text).fqdn != ""
 
 _NER_MAPPING = {
     "PER": "PERSON", "PERSON": "PERSON",
@@ -76,8 +98,13 @@ def get_analyzer() -> AnalyzerEngine:
     nlp_engine = NlpEngineProvider(nlp_configuration=configuration).create_engine()
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en", "tr"],
                               context_aware_enhancer=SurfaceFormContextAwareEnhancer())
+    registry = analyzer.registry
+    registry.recognizers = [r for r in registry.recognizers
+                            if r.name not in _UNUSED and not isinstance(r, EmailRecognizer)]
+    for lang in ("en", "tr"):
+        registry.add_recognizer(OfflineEmailRecognizer(supported_language=lang))
     for rec in turkish_recognizers() + english_recognizers():
-        analyzer.registry.add_recognizer(rec)
+        registry.add_recognizer(rec)
     logger.info("Presidio analyzer ready (en=%s, tr=%s)",
                 s.spacy_en_model, s.spacy_multilingual_model)
     return analyzer

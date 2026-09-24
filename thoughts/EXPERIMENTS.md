@@ -606,3 +606,22 @@ snapshot'lar üç kasıtlı değişikliği içeriyor, 74 farklı kaydın hepsi a
   Kurulu'nun"); bitişik ek kapsanmıyor ("Kaya" → "Kayaoğlu" açılmaz). Tam kapsamanın gerçek
   belgelerde getirdiği artışın yaklaşık üçte birini geri aldı: BİM 2013'te liste açıkken
   maskelenen varlık 297 (eski) → 405 (tam kapsama) → 366 (kesme işareti kuralıyla).
+
+## Faz 1 envanteri — hangi Presidio tanıyıcısı gerçekten çalışıyor (2026-09-24)
+
+Korpus: parity seti (72 stres, 30 gold, 72 probe, 6 gerçek belge) + 60 holdout metni + taban
+skor kartının 30 gerçek BIST belgesi. Her metin biriminde, eşik üstündeki her analyzer sonucu
+tanıyıcı adıyla sayıldı; son `detect()` span'iyle örtüşen sonuç "hayatta kaldı" sayıldı.
+
+- **Hiç tetiklenmeyen 6 hazır tanıyıcı kayıttan çıktı:** Crypto, MacAddress, MedicalLicense,
+  Nhs, UsItin, UsLicense. Parity farkı 0.
+- **Kalanlar:** UsSsn, UsBank ve UsPassport kayıtta kalıyor. UsBank ve UsPassport tetiklendi
+  ama hiç son span'e ulaşmadı. UsSsn'in yalnız satır sonu geçişinde tetiklenme ihtimali açık.
+  Atılıp atılmayacaklarına Faz 2 ölçümle karar verecek.
+- **Gerçek belgedeki hacim:** 30 belgede SpacyRecognizer PERSON 18.840 kez tetiklendi, 7.625'i
+  son span'e ulaştı; LOCATION 4.847 / 3.600. TR_PLATE gerçek belgelerde 91 kez tetiklendi.
+  Bunlar büyük ihtimalle yanlış pozitif; hedefleri deney 9.
+- **E-posta:** Presidio'nun hazır e-posta tanıyıcısı `tldextract.extract()`'ı varsayılan
+  ayarla çağırıyor. Bu ayar, ilk kullanımda listeyi publicsuffix.org'dan indirmeye çalışıyor.
+  Tanıyıcı artık paketle gelen soneki listesini kullanan bir alt sınıf (`OfflineEmailRecognizer`);
+  desen, puan ve bağlam aynı. Bir test, kontrolün soket açmadığını doğruluyor.
