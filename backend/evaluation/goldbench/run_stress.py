@@ -32,7 +32,6 @@ import re
 import time
 from pathlib import Path
 
-from app.config import Settings
 from app.export.render_pdf import render_content_pdf
 from app.extraction.base import ExtractionFailed, UploadRejected
 from app.extraction.dispatcher import extract
@@ -47,6 +46,16 @@ from evaluation.goldbench.stress import (
     SAFE_OUTPUT,
     StressCase,
     build_corpus,
+)
+from evaluation.llm_flag import (
+    LLM_DEFAULT,
+    LLMModeMismatchError,
+    LLMUnavailableError,
+    add_llm_argument,
+    build_settings,
+    check_resume,
+    ensure_llm_ready,
+    llm_config,
 )
 
 DATA = Path("data/goldbench")
@@ -68,10 +77,11 @@ def _norm(text: str) -> str:
     return _WS.sub(" ", text or "")
 
 
-def _repo(mode: str):
+def _repo(mode: str, llm: str = LLM_DEFAULT):
     """Mod başına İZOLE storage kökü — modlar arası karışma sızıntı sonucunu anlamsızlaştırır."""
     root = DATA / "work" / f"stress-{mode}" / "storage"
-    settings = Settings(storage_root=root, auditor_provider="mlx", anonymization_mode=mode)
+    settings = build_settings(llm, storage_root=root, anonymization_mode=mode)
+    ensure_llm_ready(settings)
     return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
 
@@ -146,8 +156,9 @@ def _process(case: StressCase, data: bytes, settings, repo, mode: str) -> tuple[
     return doc.status.value, leaked
 
 
-def run_mode(mode: str, corpus: list[tuple[StressCase, bytes]], out_path: Path) -> None:
-    settings, repo = _repo(mode)
+def run_mode(mode: str, corpus: list[tuple[StressCase, bytes]], out_path: Path,
+             llm: str = LLM_DEFAULT) -> None:
+    settings, repo = _repo(mode, llm)
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     todo = [(c, d) for c, d in corpus if c.case_id not in already]
@@ -234,7 +245,15 @@ def main(argv=None) -> int:
     ap.add_argument("--mode", choices=["mapping", "destructive", "both"], default="mapping")
     ap.add_argument("--tag", default="run1", help="sonuç alt dizini taban etiketi")
     ap.add_argument("--limit", type=int, default=0, help="işlenecek maksimum belge (0 = hepsi)")
+    add_llm_argument(ap)
     args = ap.parse_args(argv)
+    llm_settings = build_settings(args.llm)
+    try:
+        ensure_llm_ready(llm_settings)
+    except LLMUnavailableError as e:
+        print(f"HATA: {e}")
+        return 2
+    print(f"LLM denetçisi: {args.llm} ({llm_settings.auditor_provider})")
 
     corpus = build_corpus()
     if args.limit:
@@ -246,10 +265,20 @@ def main(argv=None) -> int:
     modes = ["mapping", "destructive"] if args.mode == "both" else [args.mode]
     for mode in modes:
         outdir = OUT / f"{args.tag}-{mode}"
+        try:
+            check_resume(outdir, args.llm)
+        except LLMModeMismatchError as e:
+            print(f"HATA: {e}")
+            return 2
         outdir.mkdir(parents=True, exist_ok=True)
+        run_cfg = {"tag": args.tag, "mode": mode, "limit": args.limit,
+                   **llm_config(args.llm, llm_settings)}
+        (outdir / "run_config.json").write_text(
+            json.dumps(run_cfg, ensure_ascii=False, indent=2), encoding="utf-8")
         out_path = outdir / "stress.jsonl"
-        run_mode(mode, corpus, out_path)
+        run_mode(mode, corpus, out_path, llm=args.llm)
         s = summarize(out_path)
+        s["llm"] = llm_config(args.llm, llm_settings)
         (outdir / "summary.json").write_text(
             json.dumps(s, ensure_ascii=False, indent=2), encoding="utf-8")
         _print_summary(mode, s)

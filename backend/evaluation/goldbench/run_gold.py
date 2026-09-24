@@ -31,6 +31,16 @@ from evaluation.corpus_bist10.verify_mode import check_destructive_mode, check_m
 from evaluation.goldbench.generate import DOCS, GOLD_DIR, HOLDOUT_GOLD_DIR
 from evaluation.goldbench.schema import GoldMention
 from evaluation.goldbench.score import Span, aggregate, evaluate_document
+from evaluation.llm_flag import (
+    LLM_DEFAULT,
+    LLMModeMismatchError,
+    LLMUnavailableError,
+    add_llm_argument,
+    build_settings,
+    check_resume,
+    ensure_llm_ready,
+    llm_config,
+)
 
 OUT = Path("data/goldbench/results")
 
@@ -64,15 +74,16 @@ def done_ids(path: Path) -> set[str]:
     return out
 
 
-def _repo(sub: str):
+def _repo(sub: str, llm: str = LLM_DEFAULT):
     root = Path("data/goldbench/work") / sub / "storage"
-    return Settings(storage_root=root, auditor_provider="mlx"), \
-        StorageDocumentRepository(LocalStorageBackend(root))
+    settings = build_settings(llm, storage_root=root)
+    ensure_llm_ready(settings)
+    return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
 
 def run_mode(rows: list[dict], mode: str, formats: tuple[str, ...], out_path: Path,
-             limit: int = 0) -> None:
-    settings, repo = _repo(mode)
+             limit: int = 0, llm: str = LLM_DEFAULT) -> None:
+    settings, repo = _repo(mode, llm)
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     max_bytes = settings.max_upload_mb * 1024 * 1024
@@ -155,7 +166,14 @@ def main(argv=None) -> int:
                     help="virgülle: dev,public,holdout (holdout mühürlü — açıkça isteyin)")
     ap.add_argument("--formats", default="pdf,docx,xlsx")
     ap.add_argument("--limit", type=int, default=0, help="mod başına en fazla belge-format")
+    add_llm_argument(ap)
     args = ap.parse_args(argv)
+    llm_settings = build_settings(args.llm)
+    try:
+        ensure_llm_ready(llm_settings)
+    except LLMUnavailableError as e:
+        print(f"HATA: {e}")
+        return 2
 
     splits = {s.strip() for s in args.split.split(",") if s.strip()}
     formats = tuple(f.strip() for f in args.formats.split(",") if f.strip())
@@ -171,15 +189,20 @@ def main(argv=None) -> int:
     modes = ["mapping", "destructive"] if args.mode == "both" else [args.mode]
     for mode in modes:
         outdir = OUT / f"{args.tag}-{mode}"
+        try:
+            check_resume(outdir, args.llm)
+        except LLMModeMismatchError as e:
+            print(f"HATA: {e}")
+            return 2
         outdir.mkdir(parents=True, exist_ok=True)
         (outdir / "run_config.json").write_text(json.dumps({
             "tag": args.tag, "mode": mode, "splits": sorted(splits), "formats": list(formats),
             "documents": len(rows), "limit": args.limit,
-            "auditor_provider": "mlx (deterministic heuristic)",
+            **llm_config(args.llm, llm_settings),
             "use_privacy_filter": Settings().use_privacy_filter,
             "anonymizer_score_threshold": Settings().anonymizer_score_threshold,
         }, ensure_ascii=False, indent=2), encoding="utf-8")
-        run_mode(rows, mode, formats, outdir / "results.jsonl", args.limit)
+        run_mode(rows, mode, formats, outdir / "results.jsonl", args.limit, llm=args.llm)
         print(f"[{mode}] sonuçlar → {outdir}")
     return 0
 

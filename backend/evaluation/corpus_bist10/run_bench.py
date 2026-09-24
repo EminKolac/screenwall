@@ -38,6 +38,16 @@ from evaluation.corpus_bist10.verify_mode import (
     check_mapping_mode,
     full_tree_pii_sweep,
 )
+from evaluation.llm_flag import (
+    LLM_DEFAULT,
+    LLMModeMismatchError,
+    LLMUnavailableError,
+    add_llm_argument,
+    build_settings,
+    check_resume,
+    ensure_llm_ready,
+    llm_config,
+)
 
 DATA = Path("data/corpus_bist10")
 MANIFEST = Path("evaluation/corpus_bist10/manifest/corpus_manifest.jsonl")
@@ -65,10 +75,11 @@ def done_ids(path: Path) -> set[str]:
     return out
 
 
-def _repo(sub: str):
+def _repo(sub: str, llm: str = LLM_DEFAULT):
     root = DATA / "work" / sub / "storage"
-    return Settings(storage_root=root, auditor_provider="mlx"), \
-        StorageDocumentRepository(LocalStorageBackend(root))
+    settings = build_settings(llm, storage_root=root)
+    ensure_llm_ready(settings)
+    return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
 
 def page_count(path: Path, fmt: str) -> int:
@@ -96,8 +107,9 @@ def _skip_reason(path: Path, d: dict, max_pages: int, max_mb: int) -> str:
 
 def run_operational(
     docs: list[dict], out_path: Path, max_mb: int, mode: str, max_pages: int,
+    llm: str = LLM_DEFAULT,
 ) -> None:
-    settings, repo = _repo(f"operational-{mode}")
+    settings, repo = _repo(f"operational-{mode}", llm)
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     todo = [d for d in docs if d["id"] not in already]
@@ -162,11 +174,12 @@ def run_operational(
 
 def run_canary(
     docs: list[dict], out_path: Path, checks_path: Path, limit: int, mode: str, max_pages: int,
+    llm: str = LLM_DEFAULT,
 ) -> list[str]:
     """Returns the raw canary VALUES injected this run (in-memory only, never written to
     `out_path`/`checks_path`) — the caller needs them for the destructive-mode D1 full-tree sweep,
     run once after all documents are processed rather than per-document (see module docstring)."""
-    settings, repo = _repo(f"canary-{mode}")
+    settings, repo = _repo(f"canary-{mode}", llm)
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     pool = [d for d in docs if d["format"] in ("pdf", "docx", "xlsx")][:limit]
@@ -241,23 +254,26 @@ def run_canary(
 
 def _run_one_mode(mode: str, docs: list[dict], args) -> Path:
     outdir = OUT / f"{args.tag}-{mode}"
+    check_resume(outdir, args.llm)
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "run_config.json").write_text(json.dumps({
         "track": args.track, "mode": mode, "limit": args.limit,
         "canary_limit": args.canary_limit, "max_pages": args.max_pages,
-        "corpus_docs": len(docs), "auditor_provider": "mlx (deterministic heuristic)",
+        "corpus_docs": len(docs), **llm_config(args.llm, build_settings(args.llm)),
         "use_privacy_filter": Settings().use_privacy_filter,
         "anonymizer_score_threshold": Settings().anonymizer_score_threshold,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
 
     sel = docs[:args.limit] if args.limit else docs
     if args.track in ("operational", "both"):
-        run_operational(sel, outdir / "operational.jsonl", args.max_mb, mode, args.max_pages)
+        run_operational(sel, outdir / "operational.jsonl", args.max_mb, mode, args.max_pages,
+                        llm=args.llm)
     if args.track in ("canary", "both"):
         checks_path = outdir / "mode_checks.jsonl"
         checks_path.touch(exist_ok=True)
         all_values = run_canary(
             docs, outdir / "canary.jsonl", checks_path, args.canary_limit, mode, args.max_pages,
+            llm=args.llm,
         )
         if mode == "destructive" and all_values:
             # D1 — the acceptance gate: sweep the storage root this run EXCLUSIVELY used for
@@ -286,7 +302,13 @@ def main(argv=None) -> int:
     ap.add_argument("--max-pages", type=int, default=60,
                     help="skip a PDF over this many pages (OCR cost bound; 0 = no limit)")
     ap.add_argument("--tag", default="run1", help="results subdirectory base tag")
+    add_llm_argument(ap)
     args = ap.parse_args(argv)
+    try:
+        ensure_llm_ready(build_settings(args.llm))
+    except LLMUnavailableError as e:
+        print(f"HATA: {e}")
+        return 2
 
     docs = load_corpus()
     if not docs:
@@ -296,7 +318,11 @@ def main(argv=None) -> int:
 
     modes = ["mapping", "destructive"] if args.mode == "both" else [args.mode]
     for mode in modes:
-        _run_one_mode(mode, docs, args)
+        try:
+            _run_one_mode(mode, docs, args)
+        except LLMModeMismatchError as e:
+            print(f"HATA: {e}")
+            return 2
     return 0
 
 

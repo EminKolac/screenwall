@@ -20,7 +20,6 @@ import json
 import time
 from pathlib import Path
 
-from app.config import Settings
 from app.extraction.dispatcher import extract
 from app.pipeline.runner import run_pipeline
 from app.services.storage_repository import StorageDocumentRepository
@@ -31,6 +30,14 @@ from evaluation.goldbench.inference_set import (
     InferenceScenario,
     UtilityQuestion,
     score_utility,
+)
+from evaluation.llm_flag import (
+    LLM_DEFAULT,
+    LLMUnavailableError,
+    add_llm_argument,
+    build_settings,
+    ensure_llm_ready,
+    llm_config,
 )
 
 OUT = Path("data/goldbench/results")
@@ -53,15 +60,16 @@ def load_scenarios() -> list[InferenceScenario]:
     return out
 
 
-def _repo(sub: str):
+def _repo(sub: str, llm: str = LLM_DEFAULT):
     root = Path("data/goldbench/work") / f"inference-{sub}" / "storage"
-    return Settings(storage_root=root, auditor_provider="mlx"), \
-        StorageDocumentRepository(LocalStorageBackend(root))
+    settings = build_settings(llm, storage_root=root)
+    ensure_llm_ready(settings)
+    return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
 
 def run_mode(scenarios: list[InferenceScenario], mode: str, fmt: str, outdir: Path,
-             limit: int = 0) -> None:
-    settings, repo = _repo(mode)
+             limit: int = 0, llm: str = LLM_DEFAULT) -> None:
+    settings, repo = _repo(mode, llm)
     outdir.mkdir(parents=True, exist_ok=True)
     out_path = outdir / "utility.jsonl"
     anon_path = outdir / "anon_texts.jsonl"  # saldırı paketi için (ham PII yok — anonim metin)
@@ -129,7 +137,14 @@ def main(argv=None) -> int:
     ap.add_argument("--tag", default="v4")
     ap.add_argument("--format", default="docx", help="taşıyıcı formatı (fayda formattan bağımsız)")
     ap.add_argument("--limit", type=int, default=0)
+    add_llm_argument(ap)
     args = ap.parse_args(argv)
+    llm_settings = build_settings(args.llm)
+    try:
+        ensure_llm_ready(llm_settings)
+    except LLMUnavailableError as e:
+        print(f"HATA: {e}")
+        return 2
 
     scenarios = load_scenarios()
     if not scenarios:
@@ -141,7 +156,12 @@ def main(argv=None) -> int:
     modes = ["mapping", "destructive"] if args.mode == "both" else [args.mode]
     for mode in modes:
         outdir = OUT / f"{args.tag}-inference-{mode}"
-        run_mode(scenarios, mode, args.format, outdir, args.limit)
+        outdir.mkdir(parents=True, exist_ok=True)
+        (outdir / "run_config.json").write_text(json.dumps({
+            "tag": args.tag, "mode": mode, "format": args.format, "limit": args.limit,
+            **llm_config(args.llm, llm_settings),
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
+        run_mode(scenarios, mode, args.format, outdir, args.limit, llm=args.llm)
         print(f"[{mode}] sonuçlar → {outdir}")
     return 0
 
