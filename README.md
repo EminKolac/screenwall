@@ -58,10 +58,12 @@ tanılar üretici tarafından yerleştiriliyor ve **her birinin yeri önceden i�
 elimizde cevap anahtarı var: sistem belgeyi tarayınca neyi bulup neyi kaçırdığını kesin
 olarak sayabiliyoruz.
 
-Bu 240 belgenin 60'ı "mühürlü" tutuluyor: sistemi geliştirirken o bölüme hiç bakmıyoruz,
-yalnızca ara sıra not vermek için açıyoruz. Okuldaki deneme sınavı / gerçek sınav ayrımı
-gibi — sistem soruları ezberlemiş mi, gerçekten öğrenmiş mi, bunu ancak hiç görmediği
-belgeler söyler.
+Bu 240 belgenin 60'ı ayrı tutulan bir sınav bölümüydü. Okuldaki deneme sınavı / gerçek
+sınav ayrımı gibi: sistem soruları ezberlemiş mi, gerçekten öğrenmiş mi, bunu ancak hiç
+görmediği belgeler söyler. Dürüst olmak gerekirse o 60 belge önceki çalışmalarda kural ayarlamak
+için de kullanıldı; artık "geliştirme seti" sayılıyor. Yerine farklı şablonlar, farklı isimler ve
+farklı iş terimleriyle, kuralları yazan modelden bağımsız hazırlanacak yeni bir mühürlü set
+geliyor.
 
 ### Testlerin gerçek hayattaki karşılığı
 
@@ -73,7 +75,9 @@ belgeler söyler.
 | Sahte kimlik denemesi | Belgelerin içine 16 sahte kimlik, hesap numarası ve API anahtarı sakladık; sistem hepsini kendiliğinden buldu. Madencilerin kanaryası gibi bir erken uyarı düzeneği: bir gün biri kaçarsa ilk buradan görürüz. | **16/16** |
 | Gereksiz karartma denemesi | Madalyonun öteki yüzü: içinde hiç kişisel veri olmayan 40 sıradan iş cümlesi verdik ("Faaliyet raporu bağımsız denetimden geçmiştir." gibi). İyi bir sistem bunlara dokunmamalı. Bizimki 40 cümlenin 11'inde gereksiz karartma yaptı — bu bizim bilinen kusurumuz, aşağıda yol haritasında. | 11/40 hata |
 
-\* Mühürlü bölümün alt-kümesinde ölçüldü; ayrıntı [`backend/docs/CALIBRATION.md`](backend/docs/CALIBRATION.md).
+\* Fable'ın kendi puanlayıcısıyla 60 belgenin tamamında, listeler kapalı ve canlı denetçiyle
+(1555/1555). Screenwall V2'nin daha katı puanlayıcısıyla aynı belgelerde 472/489 (%96,5).
+Bütün sayılar ve nasıl ölçüldükleri: [`docs/SCORECARD.md`](docs/SCORECARD.md).
 
 ### Sınavı bir de başkası çözsün: bağımsız karşılaştırma
 
@@ -84,15 +88,20 @@ sürüm **ChatGPT (Codex)** ile. İkisi de aynı belgeler ve aynı kurallarla, a
 
 | Test | Screenwall Claude | Screenwall ChatGPT |
 |---|---|---|
-| Kritik veri yakalama | 1.00* | 0.68 (kural eşitlenince 0.86) |
-| Gereksiz karartma | 0/90 | 0/90 |
-| Stres testi sızıntısı | 0/72 | 9/72 |
-| Gereksiz karartma denemesi | 11/40 | 3/40 — ChatGPT sürümü burada bizden iyi |
+| Kritik veri yakalama (katı puanlayıcı) | 472/489 | 438/489 |
+| Sahte kimlik kaçağı (düşük iyi) | 0/32 | 7/32 |
+| Stres testi sızıntısı (canlı denetçi) | 0/72 | 0/72 |
+| Güvenli belgenin teslimi | 59/62 | 28/62 |
+| Korunması gereken iş terimleri (yüksek iyi) | 10/90 | 38/90 |
+| Gereksiz karartma denemesi (düşük iyi) | 11/40 | 21/40 |
 
-Son satırı saklamıyoruz; ChatGPT sürümünün 3/40'ı bizim sonraki hedefimiz. Yakalama skorunun
-iki kural ile verilmesinin nedeni de şu: ChatGPT sürümü kendini bizden daha sert bir kuralla
-puanladı, adil olsun diye ikisini de yazdık. Deney günlüğünün tamamı (başarısız denemeler
-dahil) [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
+Tablo, iki sürümün aynı puanlayıcıyla (ChatGPT sürümünün kendi puanlayıcısı) ve ikisi de
+hiçbir terim listesi olmadan çalıştırıldığı ölçümden geliyor. Bu tablonun önceki hâlinde
+"Gereksiz karartma" satırında iki sürüm için de 0/90 yazıyordu. O sayı bizim tarafta ölçülen
+90 terimin hepsini içeren bir allow-list'ten geliyordu, yani bir test sızıntısıydı. Listesiz
+dürüst sayı yukarıdaki 10/90. Korunması gereken terimlerde iki sürüm de zayıf; bu, şu anki
+çalışmanın ana hedefi. Deney günlüğünün tamamı (başarısız denemeler dahil)
+[`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
 
 ## Nasıl çalışıyor?
 

@@ -1,0 +1,1258 @@
+{
+  "schema": "fable-scorecard/1",
+  "run_id": "2026-09-24-faz0-taban",
+  "started_at": "2026-09-24T14:26:54+03:00",
+  "finished_at": "2026-09-24T16:01:27+03:00",
+  "complete": true,
+  "skipped": [],
+  "config": {
+    "tag": "faz0-taban",
+    "llm": "on",
+    "sections": [
+      "gold",
+      "strict",
+      "stress",
+      "real"
+    ],
+    "limit": 0,
+    "llm_applies_to": [
+      "gold",
+      "stress"
+    ],
+    "real": 30,
+    "real_max_pages": 60,
+    "corpus": "~/bist10-benchmark",
+    "corpus_sha256": {
+      "goldbench-holdout.json": "22a17d9d01d542de554eef48243cfbe2f052c3848532e013ba7384fe97bc3a25",
+      "probes.json": "7b77807804d25c185f3a2e9e0ec2c09f9d8aec07892a811da252530693565910",
+      "stress-manifest.json": "6987daa6221960cd2b7a4887c4f272db5b02106ef0f698bd09c8b65db2ef4104"
+    },
+    "llm_settings": {
+      "llm": "on",
+      "auditor_provider": "ollama",
+      "require_llm_auditor": true,
+      "auditor_model": "qwen3.5:4b",
+      "ollama_base_url": "http://localhost:11434"
+    },
+    "pipeline_settings_overrides": {
+      "term_lists": false,
+      "allow_terms": "",
+      "deny_terms": ""
+    },
+    "env": {
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "USE_PRIVACY_FILTER": "false"
+    },
+    "python": "3.12.13",
+    "git": {
+      "commit": "7d81d93f21a2576245c7fd722e4df62959d46c16",
+      "branch": "fable-v2",
+      "uncommitted_paths": 71
+    },
+    "app_source_sha256": "82dfbc6ca608ca2e685c298534873216062823e9a178fef0182018c300c5eb4b",
+    "evaluation_source_sha256": "66d3507bffa8c1c460aea225217fe6138ef688134939f6d9ce49244c2a77eaf6"
+  },
+  "gates": [
+    {
+      "gate": "Katı kritik recall (60 belge, allow-list yok)",
+      "target": ">= 472/489",
+      "value": "472/489",
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "gate": "Fable skorlayıcısı, holdout kritik recall: Faz 0 tabanından geri gidiş yok",
+      "target": ">= taban",
+      "value": "1555/1555 (60/60 belge)",
+      "verdict": "NOT_MEASURED",
+      "note": "otomatik taban yok; Faz 0 taban skor kartıyla karşılaştırın"
+    },
+    {
+      "gate": "v5 20-belge alt kümesinde kritik recall (Fable skorlayıcısı)",
+      "target": "1.0",
+      "value": "596/596",
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "gate": "Canary kaçağı (bare + contextual)",
+      "target": "0/32",
+      "value": "0/32",
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "gate": "Stres: onaylı çıktıya sızıntı (canlı LLM)",
+      "target": "0/72",
+      "value": "0/72",
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "gate": "Stres: güvenli teslim (canlı LLM)",
+      "target": ">= 59/62",
+      "value": "59/62",
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "gate": "LLM denetçisi gerçekten çalıştı (süre + sıfır LLM hatası)",
+      "target": ">= 1.0 sn medyan ve 0 LLM hatası",
+      "value": "gold 19.62 sn, 0 LLM hatası, stress 15.56 sn, 0 LLM hatası",
+      "verdict": "PASS",
+      "note": ""
+    }
+  ],
+  "sections": {
+    "gold": {
+      "llm": "on",
+      "mode": "mapping",
+      "formats": [
+        "pdf",
+        "docx",
+        "xlsx"
+      ],
+      "complete": true,
+      "full": {
+        "documents": 60,
+        "expected_documents": 60,
+        "records": 180,
+        "processed": 180,
+        "errors": 0,
+        "critical_recall": {
+          "numerator": 1555,
+          "denominator": 1555,
+          "rate": 1.0
+        },
+        "critical_false_negatives": 0,
+        "critical_not_located": 5,
+        "mention_recall": 0.8829,
+        "entity_recall": 0.8589,
+        "char_recall": 0.8923,
+        "char_precision_approx": 0.7898,
+        "f2": 0.8697,
+        "partial_leaks": 69,
+        "leaked_in_export": 231,
+        "not_located": 7,
+        "no_mask_violations": {
+          "numerator": 210,
+          "denominator": 270,
+          "rate": 0.7778
+        },
+        "status_counts": {
+          "approved": 180
+        },
+        "mode_check_passed": {
+          "numerator": 24,
+          "denominator": 180,
+          "rate": 0.1333
+        },
+        "mode_checks": {
+          "M1_mapping_complete": {
+            "numerator": 180,
+            "denominator": 180,
+            "rate": 1.0
+          },
+          "M2_roundtrip_complete": {
+            "numerator": 24,
+            "denominator": 180,
+            "rate": 0.1333
+          },
+          "M3_mapping_contained": {
+            "numerator": 60,
+            "denominator": 180,
+            "rate": 0.3333
+          }
+        },
+        "critical_recall_by_format": {
+          "pdf": {
+            "numerator": 515,
+            "denominator": 515,
+            "rate": 1.0
+          },
+          "docx": {
+            "numerator": 520,
+            "denominator": 520,
+            "rate": 1.0
+          },
+          "xlsx": {
+            "numerator": 520,
+            "denominator": 520,
+            "rate": 1.0
+          }
+        },
+        "llm_audits": {
+          "documents_audited": 180,
+          "audits": 180,
+          "llm_ok": 180,
+          "llm_failed": 0,
+          "without_llm": 0,
+          "documents_not_fully_llm_audited": 0
+        },
+        "median_seconds_per_file": 19.62
+      },
+      "subset20": {
+        "documents": 20,
+        "expected_documents": 20,
+        "records": 60,
+        "processed": 60,
+        "errors": 0,
+        "critical_recall": {
+          "numerator": 596,
+          "denominator": 596,
+          "rate": 1.0
+        },
+        "critical_false_negatives": 0,
+        "critical_not_located": 4,
+        "mention_recall": 1.0,
+        "entity_recall": 1.0,
+        "char_recall": 0.9994,
+        "char_precision_approx": 0.7544,
+        "f2": 0.9384,
+        "partial_leaks": 0,
+        "leaked_in_export": 0,
+        "not_located": 4,
+        "no_mask_violations": {
+          "numerator": 90,
+          "denominator": 150,
+          "rate": 0.6
+        },
+        "status_counts": {
+          "approved": 60
+        },
+        "mode_check_passed": {
+          "numerator": 24,
+          "denominator": 60,
+          "rate": 0.4
+        },
+        "mode_checks": {
+          "M1_mapping_complete": {
+            "numerator": 60,
+            "denominator": 60,
+            "rate": 1.0
+          },
+          "M2_roundtrip_complete": {
+            "numerator": 24,
+            "denominator": 60,
+            "rate": 0.4
+          },
+          "M3_mapping_contained": {
+            "numerator": 60,
+            "denominator": 60,
+            "rate": 1.0
+          }
+        },
+        "critical_recall_by_format": {
+          "pdf": {
+            "numerator": 196,
+            "denominator": 196,
+            "rate": 1.0
+          },
+          "docx": {
+            "numerator": 200,
+            "denominator": 200,
+            "rate": 1.0
+          },
+          "xlsx": {
+            "numerator": 200,
+            "denominator": 200,
+            "rate": 1.0
+          }
+        },
+        "llm_audits": {
+          "documents_audited": 60,
+          "audits": 60,
+          "llm_ok": 60,
+          "llm_failed": 0,
+          "without_llm": 0,
+          "documents_not_fully_llm_audited": 0
+        },
+        "median_seconds_per_file": 17.3,
+        "rule": "first 20 documents of holdout_gold/gold.jsonl = run_gold --split holdout --formats pdf,docx,xlsx --limit 60 (the limit counts document x format pairs); finance-* and legal-* only, no health/hr/public/correspondence",
+        "ids": [
+          "finance-003",
+          "finance-007",
+          "finance-011",
+          "finance-015",
+          "finance-019",
+          "finance-023",
+          "finance-027",
+          "finance-031",
+          "finance-035",
+          "finance-039",
+          "legal-003",
+          "legal-007",
+          "legal-011",
+          "legal-015",
+          "legal-019",
+          "legal-023",
+          "legal-027",
+          "legal-031",
+          "legal-035",
+          "legal-039"
+        ],
+        "rule_matches_holdout_order": true
+      },
+      "term_lists": {
+        "allow": 0,
+        "deny": 0,
+        "sha256": "65e47d39248a74932fcdeb5f9c4f4a321c3a9b46df90076350e46395177cf8e3",
+        "source": "app.pipeline.terms.effective_terms(settings)",
+        "term_lists_setting": false
+      },
+      "measured_by": {
+        "critical_recall": "pipeline: value absent from run_pipeline output (term lists off: no allow-list, no deny-list, no user lists)",
+        "critical_not_located": "critical mentions whose value is not in the extracted text; excluded from critical_recall because they cannot be scored",
+        "mention_recall": "pipeline",
+        "entity_recall": "pipeline",
+        "partial_leaks": "pipeline",
+        "leaked_in_export": "pipeline export (PDF render + re-extract)",
+        "char_recall": "detect: engine.detect() on the original text (no propagation, no table passes, no allow-list)",
+        "char_precision_approx": "detect",
+        "f2": "detect",
+        "no_mask_violations": "pipeline with term lists off: no allow-list protects the NO_MASK (must_keep) terms, so this is the pipeline's own, honest over-masking of them; strict must_keep_kept asks the same question of the bare engine"
+      },
+      "llm_evidence": {
+        "median_seconds_per_file": 19.62,
+        "plausible": true,
+        "audits": 180,
+        "llm_failures": 0,
+        "documents_not_fully_llm_audited": 0,
+        "every_audit_had_llm": true,
+        "passed": true,
+        "expected": "~5-7 s/file with qwen3.5:4b; ~0.1 s/file without an LLM; 0 LLM failures"
+      },
+      "raw_results": "data/scorecard/2026-09-24-faz0-taban/gold/results.jsonl",
+      "status": "ok",
+      "elapsed_seconds": 4072.02
+    },
+    "strict": {
+      "complete": true,
+      "limit": 0,
+      "documents": 60,
+      "critical_recall": {
+        "numerator": 472,
+        "denominator": 489,
+        "rate": 0.9652
+      },
+      "literal_critical_recall": {
+        "numerator": 488,
+        "denominator": 489,
+        "rate": 0.998
+      },
+      "recall": {
+        "numerator": 527,
+        "denominator": 629,
+        "rate": 0.8378
+      },
+      "canary_escapes": {
+        "numerator": 0,
+        "denominator": 32,
+        "rate": 0.0
+      },
+      "canary_escapes_bare": {
+        "numerator": 0,
+        "denominator": 16,
+        "rate": 0.0
+      },
+      "canary_escapes_contextual": {
+        "numerator": 0,
+        "denominator": 16,
+        "rate": 0.0
+      },
+      "canary_escapes_critical": {
+        "numerator": 0,
+        "denominator": 28,
+        "rate": 0.0
+      },
+      "neutral_changed": {
+        "numerator": 11,
+        "denominator": 40,
+        "rate": 0.275
+      },
+      "must_keep_kept": {
+        "numerator": 10,
+        "denominator": 90,
+        "rate": 0.1111
+      },
+      "unprocessed_documents": [],
+      "by_type": {
+        "ADDRESS": {
+          "numerator": 43,
+          "denominator": 50,
+          "rate": 0.86
+        },
+        "CARD": {
+          "numerator": 10,
+          "denominator": 10,
+          "rate": 1.0
+        },
+        "DISABILITY": {
+          "numerator": 20,
+          "denominator": 20,
+          "rate": 1.0
+        },
+        "EDUCATION": {
+          "numerator": 0,
+          "denominator": 20,
+          "rate": 0.0
+        },
+        "EMAIL": {
+          "numerator": 60,
+          "denominator": 60,
+          "rate": 1.0
+        },
+        "EMPLOYER": {
+          "numerator": 30,
+          "denominator": 30,
+          "rate": 1.0
+        },
+        "HEALTH": {
+          "numerator": 20,
+          "denominator": 20,
+          "rate": 1.0
+        },
+        "IBAN": {
+          "numerator": 40,
+          "denominator": 40,
+          "rate": 1.0
+        },
+        "LEGAL": {
+          "numerator": 0,
+          "denominator": 10,
+          "rate": 0.0
+        },
+        "LOCATION": {
+          "numerator": 9,
+          "denominator": 10,
+          "rate": 0.9
+        },
+        "OCCUPATION": {
+          "numerator": 0,
+          "denominator": 40,
+          "rate": 0.0
+        },
+        "PERSON": {
+          "numerator": 169,
+          "denominator": 179,
+          "rate": 0.9441
+        },
+        "PHONE": {
+          "numerator": 50,
+          "denominator": 50,
+          "rate": 1.0
+        },
+        "SALARY": {
+          "numerator": 16,
+          "denominator": 20,
+          "rate": 0.8
+        },
+        "TCKN": {
+          "numerator": 60,
+          "denominator": 60,
+          "rate": 1.0
+        },
+        "UNION": {
+          "numerator": 0,
+          "denominator": 10,
+          "rate": 0.0
+        }
+      },
+      "allow_list": "none (engine called directly, no extra_allow_terms)",
+      "term_lists": {
+        "allow": 0,
+        "deny": 0,
+        "sha256": "65e47d39248a74932fcdeb5f9c4f4a321c3a9b46df90076350e46395177cf8e3",
+        "source": "engine.anonymize without extra_allow_terms / extra_deny_terms (evaluation/strict/run.py)"
+      },
+      "external_network": "blocked",
+      "scorer_sha256": "bd4a6816969109a9cc5c96695c70e8adb8ac1b3cbefeb1e7274fa3d1d9c9253b",
+      "corpus_sha256": {
+        "goldbench-holdout.json": "22a17d9d01d542de554eef48243cfbe2f052c3848532e013ba7384fe97bc3a25",
+        "stress-manifest.json": "6987daa6221960cd2b7a4887c4f272db5b02106ef0f698bd09c8b65db2ef4104",
+        "probes.json": "7b77807804d25c185f3a2e9e0ec2c09f9d8aec07892a811da252530693565910"
+      },
+      "seconds_per_item": 0.196,
+      "raw_results": "data/scorecard/2026-09-24-faz0-taban/strict/run",
+      "status": "ok",
+      "elapsed_seconds": 26.27
+    },
+    "stress": {
+      "files": 72,
+      "leaks_approved": {
+        "numerator": 0,
+        "denominator": 72,
+        "rate": 0.0
+      },
+      "leaked_any_status": {
+        "numerator": 0,
+        "denominator": 72,
+        "rate": 0.0
+      },
+      "safe_delivery": {
+        "numerator": 59,
+        "denominator": 62,
+        "rate": 0.9516
+      },
+      "fail_closed_respected": {
+        "numerator": 10,
+        "denominator": 10,
+        "rate": 1.0
+      },
+      "routed_to_review": 3,
+      "actually_tested_pass": {
+        "numerator": 55,
+        "denominator": 55,
+        "rate": 1.0
+      },
+      "architecturally_safe": 17,
+      "verdicts": {
+        "pass": 72
+      },
+      "status_counts": {
+        "approved": 59,
+        "needs_human_review": 3,
+        "rejected:invalid": 10
+      },
+      "llm_audits": {
+        "documents_audited": 59,
+        "audits": 59,
+        "llm_ok": 59,
+        "llm_failed": 0,
+        "without_llm": 0,
+        "documents_not_fully_llm_audited": 0
+      },
+      "median_seconds_per_file": 15.56,
+      "llm": "on",
+      "mode": "mapping",
+      "corpus": {
+        "manifest_sha256": "6987daa6221960cd2b7a4887c4f272db5b02106ef0f698bd09c8b65db2ef4104",
+        "files_sha256": "2ec0cb1380e2c6813f66d60775b171946aff7b9d8b2203163a6761aa6e158ef0",
+        "files": 72
+      },
+      "complete": true,
+      "term_lists": {
+        "allow": 0,
+        "deny": 0,
+        "sha256": "65e47d39248a74932fcdeb5f9c4f4a321c3a9b46df90076350e46395177cf8e3",
+        "source": "app.pipeline.terms.effective_terms(settings)",
+        "term_lists_setting": false
+      },
+      "llm_evidence": {
+        "median_seconds_per_file": 15.56,
+        "plausible": true,
+        "audits": 59,
+        "llm_failures": 0,
+        "documents_not_fully_llm_audited": 0,
+        "every_audit_had_llm": true,
+        "passed": true,
+        "expected": "~5-7 s/file with qwen3.5:4b; ~0.1 s/file without an LLM; 0 LLM failures"
+      },
+      "raw_results": "data/scorecard/2026-09-24-faz0-taban/stress/stress.jsonl",
+      "status": "ok",
+      "elapsed_seconds": 978.45
+    },
+    "real": {
+      "documents": 30,
+      "measured": 30,
+      "errors": 0,
+      "empty_extraction": 0,
+      "extracted_chars": 1020713,
+      "placeholders": 12497,
+      "redaction_density": 12.2434,
+      "redaction_density_median_doc": 13.368,
+      "families": {
+        "PERSON": 8404,
+        "LOCATION": 3315,
+        "URL": 203,
+        "ORG": 169,
+        "PHONE": 152,
+        "DATE": 130,
+        "PLATE": 108,
+        "EMAIL": 15,
+        "SSN": 1
+      },
+      "family_share": {
+        "PERSON": 0.6725,
+        "LOCATION": 0.2653,
+        "URL": 0.0162,
+        "ORG": 0.0135,
+        "PHONE": 0.0122,
+        "DATE": 0.0104,
+        "PLATE": 0.0086,
+        "EMAIL": 0.0012,
+        "SSN": 0.0001
+      },
+      "median_seconds_per_file": 9.635,
+      "requested": 30,
+      "complete": true,
+      "skipped": [
+        {
+          "file": "AKBNK-01012008_Akbank_2Ç2023_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:91"
+        },
+        {
+          "file": "AKBNK-1f2bfa9d_Akbank_2020_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:398"
+        },
+        {
+          "file": "AKBNK-3539e0f8_Akbank_2020_Entegre_Raporu.pdf",
+          "reason": "too_many_pages:109"
+        },
+        {
+          "file": "AKBNK-476a070b_Akbank_2021_Entegre_Raporu.pdf",
+          "reason": "too_many_pages:586"
+        },
+        {
+          "file": "AKBNK-55b086d1_Akbank_2022_Entegre_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:266"
+        },
+        {
+          "file": "AKBNK-586edfff_Akbank_2024_Entegre_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:295"
+        },
+        {
+          "file": "AKBNK-5d6e97c9_Akbank_4Ç2022_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:124"
+        },
+        {
+          "file": "AKBNK-83eb427b_Akbank_4Ç2024_Konsolide_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:129"
+        },
+        {
+          "file": "AKBNK-843f0897_Akbank_2Ç2024_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:92"
+        },
+        {
+          "file": "AKBNK-8c7a029a_Akbank_2025_Entegre_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:332"
+        },
+        {
+          "file": "AKBNK-9e439490_Akbank_2023_Entegre_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:281"
+        },
+        {
+          "file": "AKBNK-cedb8ce3_Akbank_4Ç2024_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:127"
+        },
+        {
+          "file": "AKBNK-d1900960_Akbank_4Ç2023_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:125"
+        },
+        {
+          "file": "AKBNK-ea4587be_Akbank_2Ç2025_Konsolide_Olmayan_Finansal_Tablolar_ve_Dipnotlar.pdf",
+          "reason": "too_many_pages:94"
+        },
+        {
+          "file": "BIMAS-042b9d98_BİM_2023-Q4_Dönemsel_Finansal_Sonuçlar.pdf",
+          "reason": "too_many_pages:65"
+        },
+        {
+          "file": "BIMAS-05ed4208_BİM_2013_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:88"
+        },
+        {
+          "file": "BIMAS-076cd385_BİM_2022-Q4_Dönemsel_Finansal_Sonuçlar.pdf",
+          "reason": "too_many_pages:67"
+        },
+        {
+          "file": "BIMAS-0cebdbb1_BİM_2023_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:107"
+        },
+        {
+          "file": "BIMAS-3c4ebbc0_BİM_2015_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:112"
+        },
+        {
+          "file": "BIMAS-579e99c7_BİM_2017_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:108"
+        },
+        {
+          "file": "BIMAS-60017b69_BİM_2024-Q4_Dönemsel_Finansal_Sonuçlar.pdf",
+          "reason": "too_many_pages:66"
+        },
+        {
+          "file": "BIMAS-8e5858ca_BİM_2018_Faaliyet_Raporu.pdf",
+          "reason": "too_many_pages:128"
+        }
+      ],
+      "selection_rule": "PDFs in data/corpus_bist10/raw sorted by NFC filename; skip files over --real-max-pages pages or the upload size limit; measure the first N left",
+      "max_pages": 60,
+      "path": "ingest + engine.anonymize (no allow-list, no deny-list, no auditor)",
+      "term_lists": {
+        "allow": 0,
+        "deny": 0,
+        "sha256": "65e47d39248a74932fcdeb5f9c4f4a321c3a9b46df90076350e46395177cf8e3",
+        "source": "engine.anonymize without extra_allow_terms / extra_deny_terms (evaluation/scorecard_real.py)"
+      },
+      "llm": "n/a (engine only)",
+      "per_document": [
+        {
+          "file": "AKBNK-08eadcbe_Akbank_2025_Olağan_Genel_Kurul_Toplantısı_Zaptı.pdf",
+          "sha256_16": "f0951627ab116eba",
+          "pages": 7,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 13379,
+          "placeholders": 174,
+          "redaction_density": 13.0055,
+          "families": {
+            "DATE": 4,
+            "LOCATION": 42,
+            "ORG": 3,
+            "PERSON": 110,
+            "PHONE": 13,
+            "URL": 2
+          },
+          "seconds": 24.53
+        },
+        {
+          "file": "AKBNK-0dde8262_Akbank_2024_TSRS_Uyumlu_Sürdürülebilirlik_Raporu.pdf",
+          "sha256_16": "3ed9750277f3a141",
+          "pages": 27,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 149497,
+          "placeholders": 1519,
+          "redaction_density": 10.1607,
+          "families": {
+            "EMAIL": 1,
+            "LOCATION": 514,
+            "ORG": 5,
+            "PERSON": 989,
+            "PHONE": 6,
+            "URL": 4
+          },
+          "seconds": 65.86
+        },
+        {
+          "file": "AKBNK-26e47adc_Akbank_2019_Genel_Kurul_Toplantısı_Tutanağı.pdf",
+          "sha256_16": "a698ce4e168797a1",
+          "pages": 5,
+          "result": "processed",
+          "language": "tr",
+          "extracted_chars": 15883,
+          "placeholders": 217,
+          "redaction_density": 13.6624,
+          "families": {
+            "DATE": 10,
+            "LOCATION": 65,
+            "ORG": 4,
+            "PERSON": 129,
+            "PHONE": 9
+          },
+          "seconds": 3.95
+        },
+        {
+          "file": "AKBNK-302ced4d_Akbank_Bilgilendirme_Dokümanı_2022_GK_.pdf",
+          "sha256_16": "981586e70dd50604",
+          "pages": 8,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 15290,
+          "placeholders": 266,
+          "redaction_density": 17.397,
+          "families": {
+            "DATE": 5,
+            "LOCATION": 50,
+            "ORG": 3,
+            "PERSON": 194,
+            "PHONE": 7,
+            "URL": 7
+          },
+          "seconds": 5.61
+        },
+        {
+          "file": "AKBNK-3150a1a1_Akbank_Bilgilendirme_Dokümanı_2019_GK_.pdf",
+          "sha256_16": "ea182ea90dd7e1d7",
+          "pages": 7,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 13586,
+          "placeholders": 254,
+          "redaction_density": 18.6957,
+          "families": {
+            "DATE": 3,
+            "LOCATION": 51,
+            "ORG": 3,
+            "PERSON": 183,
+            "PHONE": 7,
+            "URL": 7
+          },
+          "seconds": 5.1
+        },
+        {
+          "file": "AKBNK-3d51f2ce_Akbank_Kurumsal_Yönetim_İlkelerine_Uyum_Raporu.pdf",
+          "sha256_16": "facf2705aa719891",
+          "pages": 17,
+          "result": "processed",
+          "language": "tr",
+          "extracted_chars": 59568,
+          "placeholders": 699,
+          "redaction_density": 11.7345,
+          "families": {
+            "DATE": 14,
+            "EMAIL": 1,
+            "LOCATION": 225,
+            "PERSON": 400,
+            "PHONE": 2,
+            "URL": 57
+          },
+          "seconds": 27.3
+        },
+        {
+          "file": "AKBNK-487ed5b2_Akbank_Toplantı_Çağrısı_ve_Gündem_2025_GK_.pdf",
+          "sha256_16": "61757b5714a7186d",
+          "pages": 2,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 4596,
+          "placeholders": 72,
+          "redaction_density": 15.6658,
+          "families": {
+            "LOCATION": 17,
+            "PERSON": 52,
+            "URL": 3
+          },
+          "seconds": 1.27
+        },
+        {
+          "file": "AKBNK-592a201d_Akbank_2025_Olağan_Genel_Kurul_Toplantısı_Hazirun_Cetveli.pdf",
+          "sha256_16": "7f5d14580ab9f030",
+          "pages": 10,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 40839,
+          "placeholders": 187,
+          "redaction_density": 4.579,
+          "families": {
+            "DATE": 1,
+            "LOCATION": 22,
+            "PERSON": 125,
+            "PHONE": 3,
+            "URL": 36
+          },
+          "seconds": 14.63
+        },
+        {
+          "file": "AKBNK-5d2816fa_Akbank_Bilgilendirme_Dokümanı_2021_GK_.pdf",
+          "sha256_16": "66f3de3ef46fdd8a",
+          "pages": 6,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 13985,
+          "placeholders": 257,
+          "redaction_density": 18.3768,
+          "families": {
+            "DATE": 2,
+            "LOCATION": 54,
+            "ORG": 3,
+            "PERSON": 185,
+            "PHONE": 6,
+            "URL": 7
+          },
+          "seconds": 5.84
+        },
+        {
+          "file": "AKBNK-63a7f8f8_Akbank_Bilgilendirme_Dokümanı_2023_GK_.pdf",
+          "sha256_16": "e12584fd5300f4a0",
+          "pages": 18,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 39238,
+          "placeholders": 673,
+          "redaction_density": 17.1517,
+          "families": {
+            "DATE": 7,
+            "LOCATION": 141,
+            "ORG": 9,
+            "PERSON": 508,
+            "PHONE": 2,
+            "URL": 6
+          },
+          "seconds": 13.25
+        },
+        {
+          "file": "AKBNK-88058b31_Akbank_Toplantı_Çağrısı_ve_Vekaletname_2020_GK_.pdf",
+          "sha256_16": "06327a861971b38e",
+          "pages": 6,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 13038,
+          "placeholders": 166,
+          "redaction_density": 12.732,
+          "families": {
+            "DATE": 2,
+            "LOCATION": 50,
+            "PERSON": 111,
+            "URL": 3
+          },
+          "seconds": 4.95
+        },
+        {
+          "file": "AKBNK-a292d114_Akbank_22.03.2024_Olağan_Genel_Kurul_Toplantısı_Zaptı.pdf",
+          "sha256_16": "f69331d0ae40d634",
+          "pages": 8,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 16556,
+          "placeholders": 199,
+          "redaction_density": 12.0198,
+          "families": {
+            "DATE": 9,
+            "LOCATION": 36,
+            "ORG": 3,
+            "PERSON": 133,
+            "PHONE": 18
+          },
+          "seconds": 20.52
+        },
+        {
+          "file": "AKBNK-a2ffff8f_Akbank_Genel_Kurul_İç_Yönergesi.pdf",
+          "sha256_16": "036de9dc507ba5ed",
+          "pages": 6,
+          "result": "processed",
+          "language": "tr",
+          "extracted_chars": 17883,
+          "placeholders": 170,
+          "redaction_density": 9.5062,
+          "families": {
+            "DATE": 1,
+            "LOCATION": 42,
+            "PERSON": 127
+          },
+          "seconds": 6.88
+        },
+        {
+          "file": "AKBNK-ab60e842_Akbank_Bilgilendirme_Dokümanı_2020_GK_.pdf",
+          "sha256_16": "f0bffcc75380ae10",
+          "pages": 12,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 29130,
+          "placeholders": 452,
+          "redaction_density": 15.5166,
+          "families": {
+            "DATE": 4,
+            "LOCATION": 114,
+            "ORG": 3,
+            "PERSON": 316,
+            "PHONE": 8,
+            "URL": 7
+          },
+          "seconds": 11.89
+        },
+        {
+          "file": "AKBNK-cc8a5e68_Akbank_Kurumsal_Sunum_Corporate_Presentation_.pdf",
+          "sha256_16": "fa70bbc743b3ae9c",
+          "pages": 49,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 42745,
+          "placeholders": 231,
+          "redaction_density": 5.4041,
+          "families": {
+            "DATE": 11,
+            "EMAIL": 8,
+            "LOCATION": 115,
+            "PERSON": 92,
+            "PHONE": 1,
+            "SSN": 1,
+            "URL": 3
+          },
+          "seconds": 207.71
+        },
+        {
+          "file": "AKBNK-d447ce0d_Akbank_Bilgilendirme_Dokümanı_2025_GK_.pdf",
+          "sha256_16": "8232c5a715619eff",
+          "pages": 12,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 36682,
+          "placeholders": 664,
+          "redaction_density": 18.1015,
+          "families": {
+            "DATE": 8,
+            "LOCATION": 146,
+            "ORG": 9,
+            "PERSON": 491,
+            "PHONE": 3,
+            "URL": 7
+          },
+          "seconds": 9.94
+        },
+        {
+          "file": "AKBNK-f96a1ba9_Akbank_Bilgilendirme_Dokümanı_2024_GK_.pdf",
+          "sha256_16": "4b2fdec7ba6f670d",
+          "pages": 16,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 34243,
+          "placeholders": 581,
+          "redaction_density": 16.967,
+          "families": {
+            "DATE": 4,
+            "LOCATION": 119,
+            "ORG": 10,
+            "PERSON": 442,
+            "URL": 6
+          },
+          "seconds": 11.53
+        },
+        {
+          "file": "BIMAS-036de2b3_BİM_2013_Kurumsal_Yönetim_İlkeleri_Uyum_Raporu.pdf",
+          "sha256_16": "c5ccd7c6c34fa089",
+          "pages": 12,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 53739,
+          "placeholders": 611,
+          "redaction_density": 11.3698,
+          "families": {
+            "DATE": 4,
+            "EMAIL": 2,
+            "LOCATION": 163,
+            "ORG": 21,
+            "PERSON": 393,
+            "PHONE": 5,
+            "PLATE": 12,
+            "URL": 11
+          },
+          "seconds": 9.85
+        },
+        {
+          "file": "BIMAS-0a24c03a_BİM_Yatırımcı_Sunumu_-_1Ç26.pdf",
+          "sha256_16": "741540137e1492ff",
+          "pages": 26,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 11748,
+          "placeholders": 166,
+          "redaction_density": 14.1301,
+          "families": {
+            "LOCATION": 52,
+            "PERSON": 108,
+            "PHONE": 5,
+            "PLATE": 1
+          },
+          "seconds": 8.78
+        },
+        {
+          "file": "BIMAS-21582cc2_BİM_Yatırımcı_Sunumu_-_2025_Finansal_Sonuçları.pdf",
+          "sha256_16": "e3955da8d1902df6",
+          "pages": 32,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 18060,
+          "placeholders": 346,
+          "redaction_density": 19.1584,
+          "families": {
+            "LOCATION": 103,
+            "PERSON": 198,
+            "PHONE": 10,
+            "PLATE": 35
+          },
+          "seconds": 13.75
+        },
+        {
+          "file": "BIMAS-229cb996_BİM_2021-Q1_Çeyrek_Faaliyet_Raporu.pdf",
+          "sha256_16": "cc031f1aac9989f7",
+          "pages": 8,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 15505,
+          "placeholders": 185,
+          "redaction_density": 11.9316,
+          "families": {
+            "DATE": 1,
+            "LOCATION": 50,
+            "ORG": 8,
+            "PERSON": 118,
+            "PHONE": 4,
+            "URL": 4
+          },
+          "seconds": 5.89
+        },
+        {
+          "file": "BIMAS-24b3cc4b_BİM_Yatırımcı_Sunumu_-_2022_Finansal_Sonuçları.pdf",
+          "sha256_16": "258ac81982c666b9",
+          "pages": 33,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 17110,
+          "placeholders": 286,
+          "redaction_density": 16.7154,
+          "families": {
+            "DATE": 3,
+            "LOCATION": 113,
+            "PERSON": 143,
+            "PHONE": 5,
+            "PLATE": 22
+          },
+          "seconds": 20.16
+        },
+        {
+          "file": "BIMAS-2e447039_BİM_2023_Kurumsal_Yönetim_İlkeleri_Uyum_Raporu.pdf",
+          "sha256_16": "2518bc23bc9b4a00",
+          "pages": 6,
+          "result": "processed",
+          "language": "tr",
+          "extracted_chars": 33684,
+          "placeholders": 431,
+          "redaction_density": 12.7954,
+          "families": {
+            "DATE": 10,
+            "EMAIL": 1,
+            "LOCATION": 92,
+            "PERSON": 319,
+            "PHONE": 1,
+            "URL": 8
+          },
+          "seconds": 14.42
+        },
+        {
+          "file": "BIMAS-3e8b7af7_BİM_2026-Q1_Dönemsel_Finansal_Sonuçlar.pdf",
+          "sha256_16": "d016ed1c27900093",
+          "pages": 58,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 178614,
+          "placeholders": 1801,
+          "redaction_density": 10.0832,
+          "families": {
+            "LOCATION": 452,
+            "ORG": 72,
+            "PERSON": 1252,
+            "PHONE": 23,
+            "URL": 2
+          },
+          "seconds": 41.39
+        },
+        {
+          "file": "BIMAS-40e2bb46_BİM_2024-Q1_Çeyrek_Faaliyet_Raporu.pdf",
+          "sha256_16": "2cef87aa2a908861",
+          "pages": 9,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 15921,
+          "placeholders": 174,
+          "redaction_density": 10.929,
+          "families": {
+            "DATE": 3,
+            "EMAIL": 1,
+            "LOCATION": 37,
+            "ORG": 12,
+            "PERSON": 115,
+            "PHONE": 2,
+            "URL": 4
+          },
+          "seconds": 3.99
+        },
+        {
+          "file": "BIMAS-498b2395_BİM_Yatırımcı_Sunumu_-_1Ç25.pdf",
+          "sha256_16": "d1bcf1c1602dcc78",
+          "pages": 26,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 11277,
+          "placeholders": 147,
+          "redaction_density": 13.0354,
+          "families": {
+            "LOCATION": 44,
+            "PERSON": 100,
+            "PHONE": 2,
+            "PLATE": 1
+          },
+          "seconds": 5.03
+        },
+        {
+          "file": "BIMAS-5d276b85_BİM_Yatırımcı_Sunumu_-_2024_Finansal_Sonuçları.pdf",
+          "sha256_16": "42f5ec03f435d758",
+          "pages": 32,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 18522,
+          "placeholders": 320,
+          "redaction_density": 17.2768,
+          "families": {
+            "DATE": 1,
+            "LOCATION": 113,
+            "PERSON": 165,
+            "PHONE": 5,
+            "PLATE": 36
+          },
+          "seconds": 8.23
+        },
+        {
+          "file": "BIMAS-7f9f6604_BİM_Yatırımcı_Sunumu_-_2Ç24.pdf",
+          "sha256_16": "d24c9cd471aaa22e",
+          "pages": 26,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 15122,
+          "placeholders": 228,
+          "redaction_density": 15.0774,
+          "families": {
+            "LOCATION": 80,
+            "PERSON": 146,
+            "PHONE": 1,
+            "PLATE": 1
+          },
+          "seconds": 6.44
+        },
+        {
+          "file": "BIMAS-83850078_BİM_2019_Kurumsal_Yönetim_İlkeleri_Uyum_Raporu.pdf",
+          "sha256_16": "d8582ccab1865636",
+          "pages": 18,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 38942,
+          "placeholders": 546,
+          "redaction_density": 14.0209,
+          "families": {
+            "DATE": 13,
+            "LOCATION": 121,
+            "ORG": 1,
+            "PERSON": 398,
+            "PHONE": 3,
+            "URL": 10
+          },
+          "seconds": 9.42
+        },
+        {
+          "file": "BIMAS-a72cb7cd_BİM_2025_Kurumsal_Yönetim_İlkeleri_Uyum_Raporu.pdf",
+          "sha256_16": "b22e17df6ba2290d",
+          "pages": 5,
+          "result": "processed",
+          "language": "mixed",
+          "extracted_chars": 36331,
+          "placeholders": 475,
+          "redaction_density": 13.0742,
+          "families": {
+            "DATE": 10,
+            "EMAIL": 1,
+            "LOCATION": 92,
+            "PERSON": 362,
+            "PHONE": 1,
+            "URL": 9
+          },
+          "seconds": 7.91
+        }
+      ],
+      "raw_results": "data/scorecard/2026-09-24-faz0-taban/real/real.jsonl",
+      "status": "ok",
+      "elapsed_seconds": 596.41
+    }
+  },
+  "work_dir": "data/scorecard/2026-09-24-faz0-taban",
+  "pii_scan": {
+    "values_checked": 506,
+    "sources": {
+      "goldbench_holdout": 468,
+      "v2_corpus": 506
+    },
+    "min_length": 6,
+    "hits": 0
+  }
+}

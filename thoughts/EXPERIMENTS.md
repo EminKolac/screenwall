@@ -556,3 +556,37 @@ dökülmüyor; API oturum çerezi ve CSRF belirteci istiyor.
 **Ölçüm notu.** "Holdout kritik recall 1.0" sayısı holdout'un dosya sırasına göre ilk 20
 belgesinden geliyordu ve bunlar yalnız finance ve legal belgeleri. Skor kartı bu alt kümeyi
 `V5_SUBSET_IDS` adıyla ayrı gösteriyor; 60 belgenin tamamı ayrı satırda.
+
+## Faz 2 teşhisi — aşırı maskeleme nereden geliyor (2026-09-24)
+
+Taban: `2026-09-24-faz0-taban` (docs/SCORECARD.md). Katı panellerde motor listesiz çalıştırılıp
+her hatanın sorumlu span'i döküldü (tanıyıcı adı Presidio'nun `recognition_metadata`'sından).
+
+**Nötr cümleler (11/40 değişti).** 11'inin 11'i de bağlamsız SpacyRecognizer isabeti, sabit 0,85:
+- LOCATION, cümle başındaki tek kelime: Şirket, Faaliyet, Bilanço, Yürütmeyi, Fazla, Oryantasyon (6).
+- PERSON, Title-Case terim: Vergi Usul Kanunu, Dönem Karı, Temyiz Kanun, Disiplin Kurulu,
+  İmar Durumu (5).
+
+**must_keep (80/90 kayıp).** 80'inin 80'i de bağlamsız SpacyRecognizer PERSON isabeti (60'ı
+İngilizce model, 20'si Türkçe). Terimler: Teslim Tarihi (20), Yönetim Kurulu, Sözleşme Bedeli,
+Risk Değerlendirmesi, Kalite Kontrol, Gider Pusulası, Fatura Dönemi (10'ar). Korunan 10 geçiş
+Ödeme Planı.
+
+**Etiket kuralının kapsamı.** V2'nin satır başı kuralı `(?m)^\s*[^\W\d_][^:\n]{0,35}:[ \t]*`,
+must_keep geçişlerinin 30/90'ını kapsıyor (Fatura Dönemi 10, Sözleşme Bedeli 10, Teslim Tarihi
+10). Gold'da hiçbir must_mask değeri bir etiketin içinde değil, yani dev setinde recall riski
+yok. Kalan 50 geçiş metin içinde ("Gider Pusulası ekte sunulmuştur").
+
+**Gerçek kişi adları nasıl bulunuyor (179 PERSON mention).** 70'i yalnız NER ile ve etiket ya
+da hitap olmadan ("Hesap sahibi Elif Demir", "bir tarafta Cem Koç"). Yani "yalnız NER, bağlam
+yok" tek başına yanlış pozitifi gerçek addan ayıramıyor; ayıran şey ilk kelimenin bir isim
+olması. Kişi kanıtı için isim sözlüğü şart (deney 4).
+
+**Dil başına analiz tek başına kaldıraç değil.** must_keep yanlış pozitiflerinin yalnız 6'sı
+sadece İngilizce modelden, 54'ü iki modelden birden geliyor. Türkçe belgelerdeki 11 gerçek kişi
+adını ise ("Zeynep Hanım", "Cem Bey", "C. Koç") yalnız İngilizce model buluyor.
+
+**Gerçek belgede span taşması.** Satır sonu kaldırılarak yapılan ikinci geçiş (`_linewrap`),
+"için\nnalan.ozdemir@…" metnini "içinnalan…" diye birleştirip e-posta span'ine önceki kelimeyi
+katıyor. Aynı ekranda "adınız Ali Çetin" ve "Adresinizi Fevzi Çakmak…" da span'e fazladan
+kelime almış. Deney 3'ün (span sınırı) ilk hedefleri bunlar.
