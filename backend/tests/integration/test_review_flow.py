@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.services.deps import get_repository
 from tests.conftest import make_docx, make_pdf
+from tests.fixtures.llm_auditor import llm_clean  # noqa: F401 — pytest fixture
 
 client = TestClient(app)
 _DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -31,7 +32,8 @@ def _review(doc_id: str) -> dict:
 
 
 def _to_review(doc_id: str) -> None:
-    """Force the document into review (a clean test document is auto-approved)."""
+    """Force the document into review (a no-op without an LLM: nothing is auto-approved then;
+    kept so the tests do not depend on how the upload was routed)."""
     repo = get_repository()
     doc = repo.get_document(doc_id)
     from app.models.document import DocumentStatus
@@ -105,7 +107,7 @@ def test_invalid_selection_is_rejected() -> None:
     assert r.json()["detail"] == "invalid_decision"
 
 
-def test_open_finding_blocks_approval_until_decided() -> None:
+def test_open_finding_blocks_approval_until_decided(llm_clean) -> None:  # noqa: F811
     doc = _upload(["Rapor Kuzey Grubu tarafından hazırlandı."])
     _to_review(doc["id"])
     repo = get_repository()

@@ -1,5 +1,5 @@
 // A fetch-compatible handler implementing every route of the contract against in-memory state.
-import type { AppSettings, ChatPreviewRequest, ChatRequest, DecisionRequest, ErrorCode, RejectRequest } from "../contract";
+import type { AppSettings, ApproveRequest, ChatPreviewRequest, ChatRequest, DecisionRequest, DocStatus, ErrorCode, RejectRequest } from "../contract";
 import { answer, preview, PROVIDERS } from "./chat";
 import { applyDecision } from "./decisions";
 import { pageMarks, pageSvg } from "./pages";
@@ -18,6 +18,10 @@ const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve,
 const latency = (base: number) => wait(base + Math.round(Math.random() * base * 0.5));
 const body = <T>(init: RequestInit): T => JSON.parse(typeof init.body === "string" ? init.body : "{}") as T;
 const approved = (doc: MockDoc) => statusOf(doc) === "approved";
+/** The client pinned a revision and the document has moved on since (span ids are positional). */
+const stale = (doc: MockDoc, expected: number | undefined) => expected !== undefined && expected !== doc.revision;
+/** Like the backend: no delete while it works on a document; a queued one is dropped (its job skipped). */
+const BUSY: ReadonlySet<DocStatus> = new Set(["extracting", "masking", "auditing"]);
 
 function withDoc(handler: (doc: MockDoc, match: RegExpMatchArray, init: RequestInit) => Promise<Response> | Response): Handler {
   return (match, init) => {
@@ -47,6 +51,7 @@ const routes: Array<[string, RegExp, Handler]> = [
   }],
   ["GET", /^\/api\/documents\/([^/]+)$/, withDoc((doc) => json(200, toSummary(doc)))],
   ["DELETE", /^\/api\/documents\/([^/]+)$/, withDoc(async (doc) => {
+    if (BUSY.has(statusOf(doc))) return fail(409, "document_busy");
     await latency(200);
     dropDoc(doc.id);
     return new Response(null, { status: 204 });
@@ -72,16 +77,19 @@ const routes: Array<[string, RegExp, Handler]> = [
   })],
   ["POST", /^\/api\/documents\/([^/]+)\/decisions$/, withDoc(async (doc, _m, init) => {
     if (statusOf(doc) !== "needs_review") return fail(409, "not_in_review");
+    const request = body<DecisionRequest>(init);
+    if (stale(doc, request.expected_revision)) return fail(409, "stale_revision");
     const settings = getSettings();
-    const result = applyDecision(doc, body<DecisionRequest>(init), settings);
+    const result = applyDecision(doc, request, settings);
     if (!result.ok) return fail(result.error === "original_not_stored" ? 409 : 400, result.error);
     await latency(200);
     putDoc(result.doc);
     saveSettings({ ...settings, ...result.lists });
     return json(200, toPayload(result.doc));
   })],
-  ["POST", /^\/api\/documents\/([^/]+)\/approve$/, withDoc(async (doc) => {
+  ["POST", /^\/api\/documents\/([^/]+)\/approve$/, withDoc(async (doc, _m, init) => {
     if (statusOf(doc) !== "needs_review") return fail(409, "not_in_review");
+    if (stale(doc, body<ApproveRequest>(init).expected_revision)) return fail(409, "stale_revision");
     if (doc.items.some((i) => i.status === "open")) return fail(409, "unresolved_items");
     await latency(260);
     const next: MockDoc = { ...doc, status: "approved", updatedAt: Date.now() };

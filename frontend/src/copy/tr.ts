@@ -6,14 +6,18 @@ import type { DocStatus, ErrorCode, FileKind, Mode, ProviderId } from "../api/co
 /** Exhaustive: adding a code to the contract without a sentence here fails the type check. */
 export const errorText = {
   document_not_found: "Belge bulunamadı. Silinmiş olabilir.",
+  document_busy: "Belge şu anda işleniyor. İşlem bitince tekrar deneyin.",
   unsupported_file_type: "Bu dosya türü desteklenmiyor. PDF, Word (.docx) ya da Excel (.xlsx) yükleyin.",
   file_too_large: "Dosya çok büyük. Daha küçük bir dosya deneyin.",
   invalid_file: "Dosya okunamadı. Bozuk ya da parola korumalı olabilir.",
   extraction_failed: "Belgeden metin çıkarılamadı.",
   not_in_review: "Belge şu anda incelemede değil.",
   not_approved: "Bu işlem için belgenin önce onaylanması gerekiyor.",
+  no_content: "Belgenin maskeli metni bulunamadı; onaylanamaz.",
   unresolved_items: "Karar bekleyen öğeler var. Onaydan önce hepsine karar verin.",
+  audit_not_clean: "Denetim yeni bir uyarı verdi. Gözden geçirip yeniden onaylayın.",
   invalid_decision: "Bu karar uygulanamadı. Seçimi kontrol edip tekrar deneyin.",
+  stale_revision: "Belge bu arada değişti. Güncel hâlini yükleyip tekrar deneyin.",
   original_not_stored: "Bu belgenin orijinali saklanmadı; maske kaldırılamaz.",
   page_not_found: "Sayfa bulunamadı.",
   session_required: "Oturum sona erdi. Sayfayı yenileyin.",
@@ -243,6 +247,8 @@ export const tr = {
       approved: "Belge onaylandı",
       rejected: "Belge reddedildi",
       deleted: "Belge silindi",
+      staleReloaded: "Belge bu arada değişti; güncel hâli yüklendi.",
+      auditNotClean: "Denetim yeni bir uyarı verdi; gözden geçirip yeniden onaylayın.",
     },
     panes: {
       original: "Orijinal",

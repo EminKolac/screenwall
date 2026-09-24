@@ -4,14 +4,15 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.fixtures.llm_auditor import llm_clean  # noqa: F401 — pytest fixture
 
 client = TestClient(app)
 _DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
-def test_pipeline_anonymizes_turkish_and_exposes_no_pii(docx_tr):
+def test_pipeline_anonymizes_turkish_and_exposes_no_pii(docx_tr, llm_clean):  # noqa: F811
     j = client.post("/api/documents", files={"file": ("s.docx", docx_tr, _DOCX_MIME)}).json()
-    assert j["status"] == "approved"
+    assert j["status"] == "approved"  # a working LLM audited it clean
     gid = j["id"]
 
     anon = client.get(f"/api/documents/{gid}/masked")

@@ -15,7 +15,10 @@ export interface Call {
 
 type Reply = unknown | ((body: unknown) => unknown) | Response;
 
-/** Routes "METHOD /path" to canned JSON; records every call; /api/session is built in. */
+/**
+ * Routes "METHOD /path" to canned JSON; records every call; /api/session is built in.
+ * A function reply runs per call and may return a Response (e.g. a 409) instead of JSON.
+ */
 export function stubApi(routes: Record<string, Reply>) {
   const calls: Call[] = [];
   setTransport(async (url, init) => {
@@ -27,7 +30,7 @@ export function stubApi(routes: Record<string, Reply>) {
     if (reply === undefined) return Response.json({ detail: "internal_error" }, { status: 500 });
     if (reply instanceof Response) return reply;
     const value = typeof reply === "function" ? (reply as (b: unknown) => unknown)(body) : reply;
-    return Response.json(value);
+    return value instanceof Response ? value : Response.json(value);
   });
   return calls;
 }
@@ -53,6 +56,7 @@ export function summary(overrides: Partial<DocumentSummary> = {}): DocumentSumma
     mode: "mapping",
     language: "tr",
     status: "needs_review",
+    revision: 1,
     created_at: "2026-09-24T09:00:00Z",
     updated_at: "2026-09-24T09:00:00Z",
     pages: null,

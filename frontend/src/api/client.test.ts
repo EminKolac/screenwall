@@ -56,6 +56,17 @@ describe("api client", () => {
     await expect(api.approve("d1")).rejects.toMatchObject({ code: "session_required", status: 401 });
   });
 
+  it("sends approve's ApproveRequest as JSON, an empty object by default", async () => {
+    const fetch = mockFetch(ok({ csrf_token: "a" }), ok({ status: "approved" }), ok({ status: "approved" }));
+    await api.approve("d1", { expected_revision: 4 });
+    await api.approve("d1");
+    const [, pinned, plain] = fetch.mock.calls.map(([, init]) => init);
+    expect(header(pinned, "Content-Type")).toBe("application/json");
+    expect(pinned?.body).toBe(JSON.stringify({ expected_revision: 4 }));
+    expect(header(plain, "Content-Type")).toBe("application/json");
+    expect(plain?.body).toBe("{}");
+  });
+
   it("turns failures into ApiError codes", async () => {
     mockFetch(ok({ csrf_token: "a" }), detail("unresolved_items", 409), ok({ detail: [{ msg: "x" }] }, 422), new TypeError("offline"));
     const conflict = await api.approve("d1").catch((e: unknown) => e);

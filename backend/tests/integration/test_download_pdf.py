@@ -7,9 +7,14 @@ produce a valid RFC 5987 header instead of a 500.
 from __future__ import annotations
 
 import fitz
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.fixtures.llm_auditor import llm_clean  # noqa: F401 — pytest fixture
+
+# Approval needs a successful LLM audit (review hardening A1/A3): a scripted clean local LLM.
+pytestmark = pytest.mark.usefixtures("llm_clean")
 
 client = TestClient(app)
 _DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -27,7 +32,8 @@ def _pdf_text(data: bytes) -> str:
 def _approve_if_needed(doc_id: str) -> None:
     status = client.get(f"/api/documents/{doc_id}").json()["status"]
     if status != "approved":
-        client.post(f"/api/documents/{doc_id}/approve")
+        r = client.post(f"/api/documents/{doc_id}/approve")
+        assert r.status_code == 200, r.text
 
 
 def test_download_returns_masked_pdf(docx_tr):
@@ -92,7 +98,7 @@ def test_partial_extraction_stays_downloadable(monkeypatch, xlsx_tr):
     j = client.post("/api/documents", files={"file": ("m.xlsx", xlsx_tr, _XLSX_MIME)}).json()
     assert j["status"] != "approved"            # blocking warning routed it to review
     doc_id = j["id"]
-    client.post(f"/api/documents/{doc_id}/approve")
+    assert client.post(f"/api/documents/{doc_id}/approve").status_code == 200
     r = client.get(f"/api/documents/{doc_id}/download")
     assert r.status_code == 200 and r.content[:4] == b"%PDF"
 

@@ -36,6 +36,9 @@ export interface DocumentSummary {
   mode: Mode;
   language: Lang;
   status: DocStatus;
+  // Bumped on every (re-)anonymization. A review payload's spans, items and offsets belong to its
+  // document.revision; decisions and approval echo it back as expected_revision.
+  revision: number;
   created_at: string; // ISO 8601
   updated_at: string;
   pages: number | null; // PDF page count, else null
@@ -151,8 +154,16 @@ export interface DecisionRequest {
   op: DecisionOp; // mask: hide it; unmask: a masked span was wrong; keep: an item is not personal data
   target: DecisionTarget;
   scope: DecisionScope; // occurrence | all occurrences in this document | global list (Settings)
+  // The revision of the payload the decision was made on. Span ids are positional, so when given
+  // and the document has moved on, the backend answers 409 stale_revision instead of guessing.
+  expected_revision?: number;
 }
 // POST /api/documents/{id}/decisions -> ReviewPayload
+
+export interface ApproveRequest {
+  expected_revision?: number; // the revision the person reviewed; 409 stale_revision when it moved on
+}
+// POST /api/documents/{id}/approve -> DocumentSummary
 
 export interface RejectRequest {
   reason?: string;
@@ -247,14 +258,18 @@ export interface HealthResponse {
 
 export type ErrorCode =
   | "document_not_found"
+  | "document_busy"
   | "unsupported_file_type"
   | "file_too_large"
   | "invalid_file"
   | "extraction_failed"
   | "not_in_review"
   | "not_approved"
+  | "no_content"
   | "unresolved_items"
+  | "audit_not_clean"
   | "invalid_decision"
+  | "stale_revision"
   | "original_not_stored"
   | "page_not_found"
   | "session_required"
@@ -282,12 +297,18 @@ export type ErrorCode =
 // GET    /api/documents                       -> DocumentList
 // POST   /api/documents   multipart file, mode? -> 202 DocumentSummary (status "queued")
 // GET    /api/documents/{id}                  -> DocumentSummary
-// DELETE /api/documents/{id}                  -> 204
+// DELETE /api/documents/{id}                  -> 204  (409 document_busy while extracting/masking/auditing;
+//                                                  a queued document is deleted and its job skipped)
 // GET    /api/documents/{id}/review           -> ReviewPayload
 // GET    /api/documents/{id}/pages/{n}        -> image/png (mapping mode only)
 // GET    /api/documents/{id}/pages/{n}/marks  -> PageMarks
-// POST   /api/documents/{id}/decisions        -> ReviewPayload
-// POST   /api/documents/{id}/approve          -> DocumentSummary  (409 unresolved_items)
+// POST   /api/documents/{id}/decisions  DecisionRequest -> ReviewPayload  (409 stale_revision)
+// POST   /api/documents/{id}/approve    ApproveRequest  -> DocumentSummary
+//          409 not_in_review | stale_revision | no_content (nothing anonymized)
+//          409 unresolved_items (open items; also when a fresh LLM audit just located a residual:
+//              it is stored as a new finding and the revision is bumped)
+//          409 audit_not_clean (a fresh LLM audit found something: look again, approve again)
+//          503 ollama_unreachable (the LLM auditor is unavailable; nothing was approved)
 // POST   /api/documents/{id}/reject           -> DocumentSummary
 // GET    /api/documents/{id}/masked           -> text/plain (needs_review or approved)
 // GET    /api/documents/{id}/download         -> application/pdf (approved only)

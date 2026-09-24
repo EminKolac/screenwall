@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import type { DecisionRequest, DocumentSummary, ReviewPayload } from "../../api/contract";
-import { ApiError } from "../../api/client";
 import { useDecide } from "../../api/queries";
-import { errorMessage, tr } from "../../copy/tr";
+import { tr } from "../../copy/tr";
 import { useToast } from "../../ui/Toast";
 import { buildModel, type ReviewModel } from "./model";
+import { reviewFailureToast } from "./reviewToast";
 
 /** Where a selection came from: every other surface scrolls to it, the origin stays put. */
 export type SelectSource = "pane" | "panel" | "keys" | "page";
@@ -18,6 +18,9 @@ export interface Selection {
   nonce: number;
 }
 
+/** What callers decide; the provider pins it to the revision of the payload on screen. */
+export type ReviewDecision = Omit<DecisionRequest, "expected_revision">;
+
 interface ReviewState {
   doc: DocumentSummary;
   payload: ReviewPayload;
@@ -28,7 +31,7 @@ interface ReviewState {
   selection: Selection;
   select: (id: string | null, source: SelectSource) => void;
   selectFromPane: (id: string) => void;
-  decide: (request: DecisionRequest) => Promise<boolean>;
+  decide: (request: ReviewDecision) => Promise<boolean>;
   deciding: boolean;
   view: ViewMode;
   setView: (view: ViewMode) => void;
@@ -85,10 +88,12 @@ export function ReviewProvider({ doc, payload, children }: ProviderProps) {
 
   const selectFromPane = useCallback((id: string) => select(id, "pane"), [select]);
 
+  // Every decision carries the revision its span/item ids were read from, so none can hit the wrong span.
+  const revision = payload.document.revision;
   const decide = useCallback(
-    async (request: DecisionRequest) => {
+    async (request: ReviewDecision) => {
       try {
-        const next = await mutation.mutateAsync(request);
+        const next = await mutation.mutateAsync({ ...request, expected_revision: revision });
         toast.show(tr.common.saved);
         if ("item_id" in request.target) {
           // Guide the person to the next open decision.
@@ -97,12 +102,11 @@ export function ReviewProvider({ doc, payload, children }: ProviderProps) {
         }
         return true;
       } catch (error) {
-        const code = error instanceof ApiError ? error.code : "unknown_error";
-        toast.show({ message: errorMessage(code), tone: "error" });
+        toast.show(reviewFailureToast(error));
         return false;
       }
     },
-    [mutation, toast],
+    [mutation, toast, revision],
   );
 
   const focusUnit = useCallback((unitId: string) => {

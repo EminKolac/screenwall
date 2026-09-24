@@ -94,12 +94,32 @@ class EditBuffer:
         """Does an ORIGINAL range touch any recorded replacement?"""
         return any(e.start < end and start < e.end for e in self._edits)
 
+    def union_range(self, start: int, end: int) -> tuple[int, int]:
+        """[start, end) widened to every recorded replacement it touches (ORIGINAL offsets)."""
+        for e in self._edits:
+            if e.start < end and start < e.end:
+                start, end = min(start, e.start), max(end, e.end)
+        return start, end
+
     # ---------------------------------------------------------------- mutation
 
     def apply_original(self, start: int, end: int, text: str,
                        entity_type: str, source: str) -> None:
         """Record a replacement given in ORIGINAL coordinates (used for table pre-masking)."""
         self._insert(_Edit(start, end, text, entity_type, source))
+
+    def force_original(self, start: int, end: int, text: str,
+                       entity_type: str, source: str) -> tuple[int, int]:
+        """Replace ORIGINAL [start, end) together with every recorded replacement it touches: one
+        edit over their union (a reviewer's mask wins over what is already there). Returns the
+        union's original range."""
+        hit = [e for e in self._edits if e.start < end and start < e.end]
+        if hit:
+            start = min(start, *(e.start for e in hit))
+            end = max(end, *(e.end for e in hit))
+            self._edits = [e for e in self._edits if not any(e is h for h in hit)]
+        self._insert(_Edit(start, end, text, entity_type, source))
+        return start, end
 
     def apply(self, cur_start: int, cur_end: int, text: str, entity_type: str, source: str) -> None:
         """Replace [cur_start, cur_end) of the CURRENT text."""

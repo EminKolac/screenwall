@@ -17,6 +17,7 @@ from app.config import Settings
 from app.models.document import DocumentStatus
 from app.pipeline.runner import process_job
 from app.review.reasons import REVIEW_REASONS
+from app.services.locks import document_lock
 from app.services.repository import DocumentRepository
 
 logger = logging.getLogger(__name__)
@@ -55,22 +56,35 @@ class Worker:
         return bool(self._thread and self._thread.is_alive())
 
     def recover(self) -> int:
-        """Re-queue interrupted documents; returns how many were re-queued."""
+        """Re-queue interrupted documents; returns how many were re-queued. An unreadable
+        document is skipped (repo.list_documents logs it), so it cannot block startup."""
         repo = self._repo()
         requeued = 0
-        for doc in repo.list_documents():
-            if not doc.status.processing:
-                continue
+        for listed in repo.list_documents():
+            if listed.status.processing and self._recover_one(repo, listed.id):
+                requeued += 1
+        return requeued
+
+    def _recover_one(self, repo: DocumentRepository, doc_id: str) -> bool:
+        """Under the document's lock, on the document as stored now: re-queue it (True) when its
+        original is stored, else mark it FAILED."""
+        with document_lock(doc_id):
+            try:
+                doc = repo.get_document(doc_id)
+            except Exception as e:  # noqa: BLE001 — one broken record must not block startup
+                logger.warning("skipping unreadable document %s: %s", doc_id, type(e).__name__)
+                return False
+            if doc is None or not doc.status.processing:
+                return False
             if doc.mode == "mapping" and repo.get_original(doc.id) is not None:
                 doc.transition(DocumentStatus.QUEUED)
                 repo.save_document(doc)
                 self.submit(Job(doc.id, None))
-                requeued += 1
-            else:
-                doc.add_reason("processing_interrupted", REVIEW_REASONS["processing_interrupted"])
-                doc.transition(DocumentStatus.FAILED)
-                repo.save_document(doc)
-        return requeued
+                return True
+            doc.add_reason("processing_interrupted", REVIEW_REASONS["processing_interrupted"])
+            doc.transition(DocumentStatus.FAILED)
+            repo.save_document(doc)
+            return False
 
     def _loop(self) -> None:
         while True:

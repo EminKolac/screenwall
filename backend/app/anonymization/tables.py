@@ -11,12 +11,15 @@ cell alone (GoldBench stress `split_run_pii`). Two passes per row, both limited 
 2. Truncated edge: a structural span ending exactly at a cell's end may extend into the next clean
    cell, but only as the SAME type from the SAME start (stress xlsx-split_run_pii-00).
 
-Returns edits in ORIGINAL cell coordinates; the engine applies them to each cell's EditBuffer.
+Returns edits in ORIGINAL cell coordinates; the engine applies them to each cell's EditBuffer. A
+value with any fragment inside one of the reviewer's keep ranges ("leave this occurrence
+unmasked") is not pre-masked at all: the value is one entity, split across cells.
 """
 from __future__ import annotations
 
 from collections.abc import Callable
 
+from app.anonymization.lists import contained
 from app.anonymization.placeholders import PlaceholderMapper
 from app.anonymization.spans import EntitySpan
 from app.anonymization.types import ADJACENCY_SAFE, family
@@ -24,25 +27,30 @@ from app.extraction.base import Block
 
 CellEdit = tuple[int, int, str, str]  # (start, end, replacement, entity_type)
 Detect = Callable[[str, bool], list[EntitySpan]]  # (text, use_cache) -> resolved spans
+Ranges = list[tuple[int, int]]
 
 
-def premask_table(block: Block, detect: Detect, mapper: PlaceholderMapper
+def premask_table(block: Block, detect: Detect, mapper: PlaceholderMapper,
+                  keep: dict[tuple[int, int], Ranges] | None = None
                   ) -> dict[tuple[int, int], list[CellEdit]]:
+    """`keep`: the reviewer's keep ranges per (row, col), in original cell coordinates."""
     by_row: dict[int, list] = {}
     for cell in block.cells:
         by_row.setdefault(cell.row, []).append(cell)
     edits: dict[tuple[int, int], list[CellEdit]] = {}
     for row_cells in by_row.values():
         ordered = sorted(row_cells, key=lambda c: c.col)
-        per_cell = premask_row([c.text for c in ordered], detect, mapper)
+        kept = [(keep or {}).get((c.row, c.col), []) for c in ordered]
+        per_cell = premask_row([c.text for c in ordered], detect, mapper, kept)
         for cell, cell_edits in zip(ordered, per_cell, strict=True):
             edits[(cell.row, cell.col)] = cell_edits
     return edits
 
 
-def premask_row(texts: list[str], detect: Detect, mapper: PlaceholderMapper
-                ) -> list[list[CellEdit]]:
+def premask_row(texts: list[str], detect: Detect, mapper: PlaceholderMapper,
+                keep: list[Ranges] | None = None) -> list[list[CellEdit]]:
     edits: list[list[CellEdit]] = [[] for _ in texts]
+    keep = keep or [[] for _ in texts]
     if len(texts) < 2:
         return edits
     clean = [not (t.strip() and detect(t, True)) for t in texts]
@@ -55,17 +63,17 @@ def premask_row(texts: list[str], detect: Detect, mapper: PlaceholderMapper
         while j + 1 < n and clean[j + 1]:
             j += 1
         if j > i:
-            _merge_run(texts, edits, i, j, detect, mapper)
+            _merge_run(texts, edits, i, j, detect, mapper, keep)
         i = j + 1
     for k in range(n - 1):
         if clean[k] or not clean[k + 1] or edits[k] or edits[k + 1]:
             continue
-        _extend_truncated_edge(texts, edits, k, detect, mapper)
+        _extend_truncated_edge(texts, edits, k, detect, mapper, keep)
     return edits
 
 
 def _merge_run(texts: list[str], edits: list[list[CellEdit]], i: int, j: int,
-               detect: Detect, mapper: PlaceholderMapper) -> None:
+               detect: Detect, mapper: PlaceholderMapper, keep: list[Ranges]) -> None:
     offsets: list[tuple[int, int]] = []
     pos = 0
     for k in range(i, j + 1):
@@ -79,16 +87,18 @@ def _merge_run(texts: list[str], edits: list[list[CellEdit]], i: int, j: int,
             continue
         if s.entity_type not in ADJACENCY_SAFE:
             continue
+        parts = [(k, max(s.start, offsets[k][0]) - offsets[k][0],
+                  min(s.end, offsets[k][1]) - offsets[k][0]) for k in range(first, last + 1)]
+        parts = [(k, lo, hi) for k, lo, hi in parts if lo < hi]
+        if any(contained(lo, hi, keep[i + k]) for k, lo, hi in parts):
+            continue  # the reviewer left this value unmasked
         token = mapper.placeholder_for(family(s.entity_type), joined[s.start:s.end])
-        for k in range(first, last + 1):
-            a, b = offsets[k]
-            lo, hi = max(s.start, a) - a, min(s.end, b) - a
-            if lo < hi:
-                edits[i + k].append((lo, hi, token if k == first else "", s.entity_type))
+        for k, lo, hi in parts:
+            edits[i + k].append((lo, hi, token if k == first else "", s.entity_type))
 
 
 def _extend_truncated_edge(texts: list[str], edits: list[list[CellEdit]], k: int,
-                           detect: Detect, mapper: PlaceholderMapper) -> None:
+                           detect: Detect, mapper: PlaceholderMapper, keep: list[Ranges]) -> None:
     left = texts[k]
     edge = [s for s in detect(left, True)
             if s.entity_type in ADJACENCY_SAFE and s.end == len(left)]
@@ -98,6 +108,9 @@ def _extend_truncated_edge(texts: list[str], edits: list[list[CellEdit]], k: int
     joined = left + texts[k + 1]
     for s in detect(joined, False):
         if s.entity_type == e0.entity_type and s.start == e0.start and s.end > len(left):
+            if (contained(s.start, len(left), keep[k])
+                    or contained(0, s.end - len(left), keep[k + 1])):
+                return  # the reviewer left this value unmasked
             token = mapper.placeholder_for(family(s.entity_type), joined[s.start:s.end])
             edits[k].append((s.start, len(left), token, s.entity_type))
             edits[k + 1].append((0, s.end - len(left), "", s.entity_type))

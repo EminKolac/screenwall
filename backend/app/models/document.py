@@ -1,7 +1,7 @@
 """Document domain model + processing state machine.
 
 Codex Phase-1 review fixes:
-- Status enum values are machine-stable codes; UI labels are a separate display map (LOW).
+- Status enum values are machine-stable codes; UI labels live in the frontend (copy/tr.ts).
 - `transition()` centralizes status changes and bumps `updated_at` (LOW).
 - `chat_enabled` documents that the *runtime* gate (persisted approval + chat-context artifact)
   is enforced by `chat.service.ChatService`; this property is a necessary, not sufficient, check.
@@ -14,9 +14,15 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.findings import AuditResult
+
+# Reason a pre-v2 document stored mid-iteration carries after loading (reasons.REVIEW_REASONS).
+LEGACY_STATUS_TEXT = "Bu belge eski bir sürümde işlenmişti; yeniden yükleyin."
+# 2: `audited_revision` counts only SUCCESSFUL LLM audits (review hardening). Before it, a
+# heuristic-only audit set it too, so a document stored without the field is not LLM-audited.
+AUDIT_SCHEME = 2
 
 
 class Language(str, Enum):
@@ -42,10 +48,6 @@ class DocumentStatus(str, Enum):
     FAILED = "failed"
 
     @property
-    def display(self) -> str:
-        return _DISPLAY_LABELS[self]
-
-    @property
     def api_value(self) -> str:
         return _API_VALUES.get(self, self.value)
 
@@ -53,18 +55,12 @@ class DocumentStatus(str, Enum):
     def processing(self) -> bool:
         return self in _PROCESSING
 
+    @property
+    def busy(self) -> bool:
+        """The worker is extracting, masking or auditing it right now (a queued document is not
+        busy yet: it may still be deleted, and the worker then skips it)."""
+        return self in _BUSY
 
-_DISPLAY_LABELS: dict[DocumentStatus, str] = {
-    DocumentStatus.QUEUED: "Sırada",
-    DocumentStatus.UPLOADED: "Sırada",
-    DocumentStatus.EXTRACTED: "Çıkarılıyor",
-    DocumentStatus.MASKING: "Maskeleniyor",
-    DocumentStatus.AUDITING: "Denetleniyor",
-    DocumentStatus.NEEDS_HUMAN_REVIEW: "İnceleme bekliyor",
-    DocumentStatus.APPROVED: "Onaylandı",
-    DocumentStatus.REJECTED: "Reddedildi",
-    DocumentStatus.FAILED: "İşlenemedi",
-}
 
 _API_VALUES: dict[DocumentStatus, str] = {
     DocumentStatus.UPLOADED: "queued",
@@ -74,19 +70,37 @@ _API_VALUES: dict[DocumentStatus, str] = {
 
 _PROCESSING = frozenset({DocumentStatus.QUEUED, DocumentStatus.UPLOADED, DocumentStatus.EXTRACTED,
                          DocumentStatus.MASKING, DocumentStatus.AUDITING})
+_BUSY = frozenset({DocumentStatus.EXTRACTED, DocumentStatus.MASKING, DocumentStatus.AUDITING})
 
-# Pre-v2 per-iteration states. A stored document still in one of them was interrupted mid-run.
-_LEGACY_TRANSIENT = {"presidio_pass_1", "qwen_audit_1", "presidio_pass_2", "qwen_audit_2",
-                     "presidio_pass_3", "qwen_audit_3"}
-
-
-def presidio_pass_status(iteration: int) -> DocumentStatus:
-    """Kept for callers of the old loop; every masking iteration is now the same state."""
-    return DocumentStatus.MASKING
+# Pre-v2 per-iteration states ("presidio_pass_<n>", "qwen_audit_<n>"). A stored document still in
+# one of them was interrupted mid-run; it cannot resume in place.
+_LEGACY_PREFIXES = ("presidio_pass_", "qwen_audit_")
 
 
-def qwen_audit_status(iteration: int) -> DocumentStatus:
-    return DocumentStatus.AUDITING
+def _legacy_to_failed(data: dict) -> dict:
+    """A legacy per-iteration status loads as FAILED with the `legacy_status` reason."""
+    reasons = [r for r in _as_list(data.get("reasons")) if _code(r) != "legacy_status"]
+    texts = [t for t in _as_list(data.get("review_reason")) if t != LEGACY_STATUS_TEXT]
+    return {**data, "status": DocumentStatus.FAILED.value,
+            "reasons": [*reasons, {"code": "legacy_status", "text": LEGACY_STATUS_TEXT}],
+            "review_reason": [*texts, LEGACY_STATUS_TEXT]}
+
+
+def _code(reason: object) -> object:
+    return reason.get("code") if isinstance(reason, dict) else getattr(reason, "code", None)
+
+
+def _as_list(value: object) -> list:
+    return value if isinstance(value, list) else []
+
+
+def upgrade_stored(data: object) -> object:
+    """A document.json stored before AUDIT_SCHEME: its audited_revision may come from a
+    heuristic-only audit, so it no longer counts — approval re-audits it with the LLM."""
+    if isinstance(data, dict) and data.get("audit_scheme") != AUDIT_SCHEME:
+        return {**data, "audited_revision": -1, "audited_digest": "",
+                "audit_scheme": AUDIT_SCHEME}
+    return data
 
 
 class ReviewReason(BaseModel):
@@ -123,7 +137,6 @@ class Document(BaseModel):
     # "mapping" (reversible, today's behaviour) vs "destructive" (irreversible — original/mapping
     # never persisted). See Settings.anonymization_mode for the full contract.
     mode: Literal["mapping", "destructive"] = "mapping"
-    current_iteration: int = 0
     # Belge NEDEN insan incelemesine düştü. Çıkarma aşamasında hesaplanıp atılıyordu; artık
     # saklanıyor, çünkü gözden geçiren kişi gerekçeyi görmeden karar veremez. PII taşımaz —
     # yalnız sabit uyarı kodlarından türetilmiş insan-okur cümleler.
@@ -133,33 +146,31 @@ class Document(BaseModel):
     reasons: list[ReviewReason] = Field(default_factory=list)
     reject_reason: str = ""
     page_count: int | None = None
-    # Bumped by every re-anonymization; the review screen and approval use it to notice changes.
+    # Identifies the review state (masked content, spans, findings); bumped by every
+    # re-anonymization and whenever a re-audit replaces the findings. Span and item ids are
+    # positional, so clients send it back (expected_revision) and a stale one is refused.
     revision: int = 0
-    # The LLM audit last ran on this revision (approval re-audits when it is stale).
+    # The revision a SUCCESSFUL LLM audit (llm_ok True) covered; -1 when none did. Heuristic-only
+    # audits never set it. Approval re-audits whenever it differs from `revision`.
     audited_revision: int = -1
+    # sha256 of the masked text that audit read: approval re-audits unless the stored layer 3 is
+    # exactly that text, whatever the revision bookkeeping says (a crash mid-write included).
+    audited_digest: str = ""
+    audit_scheme: int = AUDIT_SCHEME  # see upgrade_stored
     # Cached counts so the document list never has to open layer-3 files.
     masked_count: int = 0
     pending_count: int = 0
-    # Faz 3 — insan düzeltmesi. Bir gözden geçiren "bu maskeleme yanlıştı" dediğinde, geri alınan
-    # DEĞER buraya yazılır ve belge yeniden anonimleştirilirken allow-list'e eklenir. Böylece
-    # düzeltme kalıcıdır: aynı terim sonraki iterasyonlarda tekrar maskelenmez.
-    #
-    # Bu alan ham (maskelenmemiş) metin taşır — yalnızca insanın açıkça "bu PII değil" dediği
-    # terimler girer, dolayısıyla tanım gereği PII DEĞİLDİR. Yine de dışa açık yüzeylere sızmaması
-    # için `exclude=True`: API yanıtlarında ve layer-5 bağlamında görünmez (eşleme tablosunun
-    # `AnonymizationOutput.mapping` üzerindeki korumasıyla aynı desen).
-    allow_terms: list[str] = Field(default_factory=list, exclude=True)
     iterations: list[IterationRecord] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
 
-    @field_validator("status", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def _legacy_status(cls, value: object) -> object:
-        # A pre-v2 document stored mid-iteration was interrupted; it cannot resume in place.
-        if isinstance(value, str) and value in _LEGACY_TRANSIENT:
-            return DocumentStatus.FAILED.value
-        return value
+    def _legacy_status(cls, data: object) -> object:
+        status = data.get("status") if isinstance(data, dict) else None
+        if isinstance(status, str) and status.startswith(_LEGACY_PREFIXES):
+            return _legacy_to_failed(data)
+        return data
 
     def transition(self, new_status: DocumentStatus) -> None:
         """Single place that changes status, so timestamps/audit hooks stay consistent."""
@@ -173,9 +184,10 @@ class Document(BaseModel):
         if text not in self.review_reason:
             self.review_reason.append(text)
 
-    def clear_reasons(self) -> None:
-        self.reasons = []
-        self.review_reason = []
+    def drop_reasons(self, *codes: str) -> None:
+        """Remove the reasons with these codes; `review_reason` is rebuilt from what remains."""
+        self.reasons = [r for r in self.reasons if r.code not in codes]
+        self.review_reason = [r.text for r in self.reasons]
 
     @property
     def approved(self) -> bool:

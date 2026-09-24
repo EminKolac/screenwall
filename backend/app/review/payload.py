@@ -5,13 +5,13 @@ in mapping mode; in destructive mode the review works on the masked text alone.
 """
 from __future__ import annotations
 
-from app.anonymization.engine import iter_units
 from app.anonymization.lists import term_ranges
 from app.anonymization.spans import MaskEdit
-from app.anonymization.types import USER_PREFIX, family
+from app.anonymization.types import family
+from app.anonymization.units import iter_units
 from app.models.document import Document, DocumentStatus
 from app.review import reasons as R
-from app.review.findings import masked_to_original, original_to_masked
+from app.review.findings import original_range, original_to_masked
 from app.services.repository import DocumentRepository
 
 
@@ -31,6 +31,7 @@ def document_summary(doc: Document) -> dict:
         "mode": doc.mode,
         "language": doc.language.value,
         "status": doc.status.api_value,
+        "revision": doc.revision,
         "created_at": doc.created_at.isoformat(),
         "updated_at": doc.updated_at.isoformat(),
         "pages": doc.page_count,
@@ -51,6 +52,19 @@ def load_edits(repo: DocumentRepository, doc_id: str) -> dict[str, list[MaskEdit
 
 
 def build_review(doc: Document, repo: DocumentRepository) -> dict:
+    units, spans, items = review_parts(doc, repo)
+    return {
+        "document": document_summary(doc),
+        "units": units,
+        "spans": spans,
+        "items": items,
+        "pages": page_infos(doc, repo),
+    }
+
+
+def review_parts(doc: Document, repo: DocumentRepository) -> tuple[list, list, list]:
+    """(units, spans, items) of the review payload — what decision targets point at — without
+    rendering anything."""
     anon = repo.get_anonymized(doc.id)
     if anon is None:
         raise ReviewUnavailable
@@ -61,14 +75,7 @@ def build_review(doc: Document, repo: DocumentRepository) -> dict:
     units = [_unit(uid, block, cell, masked, originals, original is not None)
              for uid, block, cell, masked in iter_units(anon)]
     spans = _mask_spans(edits) + _kept_spans(units, edits, decisions)
-    items = _finding_items(repo.get_findings(doc.id), units, edits)
-    return {
-        "document": document_summary(doc),
-        "units": units,
-        "spans": spans,
-        "items": items,
-        "pages": page_infos(doc, repo),
-    }
+    return units, spans, _finding_items(repo.get_findings(doc.id), units, edits)
 
 
 def _unit(uid: str, block, cell, masked: str, originals: dict[str, str], has_original: bool
@@ -90,10 +97,12 @@ def _unit(uid: str, block, cell, masked: str, originals: dict[str, str], has_ori
 
 
 def _mask_spans(edits: dict[str, list[MaskEdit]]) -> list[dict]:
+    """Every edit. "added" is the reviewer's own mask on THIS document (source "user"); a global
+    always-mask term keeps its chosen family but is a list mask ("masked", source "deny")."""
     spans: list[dict] = []
     for uid, lst in edits.items():
         for i, e in enumerate(lst):
-            user = e.source == "user" or e.entity_type.startswith(USER_PREFIX)
+            user = e.source == "user"
             spans.append({
                 "id": f"{uid}~{i}",
                 "unit_id": uid,
@@ -147,12 +156,12 @@ def _finding_items(findings: list[dict], units: list[dict], edits: dict[str, lis
         uid = f["unit_id"]
         if uid not in masked_by_id:
             continue
-        unit_edits = edits.get(uid, [])
         ms, me = f["masked_start"], f["masked_end"]
+        start, end = original_range(edits.get(uid, []), ms, me)
         text = masked_by_id[uid][ms:me].casefold()
         items.append({
             "id": f["id"], "kind": "finding", "unit_id": uid,
-            "start": masked_to_original(unit_edits, ms), "end": masked_to_original(unit_edits, me),
+            "start": start, "end": end,
             "masked_start": ms, "masked_end": me, "family": None,
             "reason": R.FINDING_REASON, "occurrences": counts.get(text, 1),
             "status": f.get("status", "open"),

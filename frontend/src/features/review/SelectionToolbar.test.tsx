@@ -66,6 +66,7 @@ describe("selection toolbar", () => {
       op: "mask",
       target: { unit_id: "u1", start: 15, end: 20, family: "LOCATION" },
       scope: "document",
+      expected_revision: 1,
     });
   });
 

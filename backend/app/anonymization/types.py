@@ -14,6 +14,7 @@ snapshots in tests/parity prove it.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 
@@ -82,10 +83,17 @@ TYPES: dict[str, TypeInfo] = {
 
 
 USER_PREFIX = "USER:"  # a human decision: "USER:ORG" masks with the ORG family and always wins
+_FAMILY_NAME = re.compile(r"[A-Z][A-Z_]{1,19}")
 
 
 def user_type(family_name: str) -> str:
     return f"{USER_PREFIX}{family_name}"
+
+
+def valid_family(name: object) -> bool:
+    """A family a reviewer may choose: "ORG", "PERSON", ... (the WHOLE string must match, so
+    "ORG\\n" or "org" are refused)."""
+    return isinstance(name, str) and _FAMILY_NAME.fullmatch(name) is not None
 
 
 def info(entity_type: str) -> TypeInfo:

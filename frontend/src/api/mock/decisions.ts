@@ -118,5 +118,6 @@ export function applyDecision(doc: MockDoc, request: DecisionRequest, lists: Moc
         : request.op === "mask"
           ? decideSelection(doc, t, request.scope, lists)
           : fail("invalid_decision");
-  return result.ok ? { ...result, doc: { ...result.doc, updatedAt: Date.now() } } : result;
+  // Every applied decision re-anonymizes the document, so its spans belong to a new revision.
+  return result.ok ? { ...result, doc: { ...result.doc, revision: doc.revision + 1, updatedAt: Date.now() } } : result;
 }

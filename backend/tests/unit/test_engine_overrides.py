@@ -23,9 +23,18 @@ def test_mask_occurrence_uses_the_chosen_family() -> None:
     assert len(user) == 1 and (user[0].start, user[0].entity_type) == (start, "USER:ORG")
 
 
+def _masked_range(covering: int) -> tuple[int, int]:
+    """The original range of the mask covering `covering` — what the review screen shows as the
+    span, so what an "unmask this occurrence" decision stores as its keep range."""
+    edit = next(e for e in Engine().anonymize(_doc(), Language.tr).edits["p1"]
+                if e.start <= covering < e.end)
+    return edit.start, edit.end
+
+
 def test_keep_occurrence_leaves_only_that_occurrence_open() -> None:
-    first = TEXT.index("Ayşe Kaya")
-    ov = Overrides(keep_ranges={"p1": [(first, first + len("Ayşe Kaya"))]})
+    # Keep ranges use containment (review hardening C1): the stored range is the displayed span
+    # ("Sayın Ayşe Kaya" here), and only what lies inside it stays unmasked.
+    ov = Overrides(keep_ranges={"p1": [_masked_range(TEXT.index("Ayşe Kaya"))]})
     out = Engine().anonymize(_doc(), Language.tr, overrides=ov)
     masked = out.content.blocks[0].text
     assert masked.startswith("Sayın Ayşe Kaya ")  # kept occurrence
@@ -33,7 +42,9 @@ def test_keep_occurrence_leaves_only_that_occurrence_open() -> None:
 
 
 def test_document_wide_terms() -> None:
-    ov = Overrides(mask_terms={"Kuzey Grubu": "ORG"}, keep_terms=["Ayşe Kaya"])
+    # A keep term suppresses only spans fully inside its occurrences (containment, C1): the first
+    # detected span is "Sayın Ayşe Kaya", so the reviewer's keep is that displayed value.
+    ov = Overrides(mask_terms={"Kuzey Grubu": "ORG"}, keep_terms=["Sayın Ayşe Kaya", "Ayşe Kaya"])
     out = Engine().anonymize(_doc(), Language.tr, overrides=ov)
     masked = out.content.blocks[0].text
     assert masked.count("Ayşe Kaya") == 2

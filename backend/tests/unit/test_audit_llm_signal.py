@@ -169,4 +169,7 @@ def test_heuristic_only_pipeline_counts_audits_without_llm(tmp_path, monkeypatch
     repo = StorageDocumentRepository(LocalStorageBackend(settings.storage_root))
     doc = runner.run_pipeline(make_docx([TR_PARA]), "temiz.docx", settings, repo)
     assert llm_audit_counts(doc) == {"audits": 1, "llm_ok": 0, "llm_failed": 0}
-    assert "auditor_unavailable" not in _codes(doc)
+    # Fail-closed routing (review hardening A1): no LLM verdict means no approval, and the
+    # reviewer is told why — the heuristic alone never approves.
+    assert doc.status == DocumentStatus.NEEDS_HUMAN_REVIEW
+    assert "auditor_unavailable" in _codes(doc)

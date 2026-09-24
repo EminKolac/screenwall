@@ -25,6 +25,8 @@ function settle(doc: MockDoc, now: number): MockDoc {
   const done: MockDoc = {
     ...doc,
     status: doc.processing.outcome,
+    // A failed extraction never reaches anonymization, so it stays at revision 0.
+    revision: doc.processing.outcome === "failed" ? doc.revision : doc.revision + 1,
     processing: null,
     updatedAt: doc.processing.start + doc.processing.duration,
   };
@@ -73,6 +75,7 @@ export function toSummary(doc: MockDoc, now = Date.now()): DocumentSummary {
     mode: doc.mode,
     language: doc.language,
     status,
+    revision: doc.revision,
     created_at: iso(doc.createdAt),
     updated_at: iso(doc.updatedAt),
     pages: doc.kind === "pdf" ? pdfPages : null,

@@ -1,23 +1,22 @@
 import { useId, useRef, useState } from "react";
-import { ApiError } from "../../api/client";
-import { useApprove, useReject } from "../../api/queries";
-import { errorMessage, tr } from "../../copy/tr";
+import { reviewReload, useApprove, useReject } from "../../api/queries";
+import { tr } from "../../copy/tr";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
 import { useToast } from "../../ui/Toast";
 import { DeleteDialog } from "./DeleteDialog";
 import { useReview } from "./reviewContext";
+import { reviewFailureToast } from "./reviewToast";
 import { ShortcutsDialog } from "./ShortcutsDialog";
 import s from "./WorkspaceHeader.module.css";
 
 function useFail() {
   const toast = useToast();
-  return (error: unknown) =>
-    toast.show({ message: errorMessage(error instanceof ApiError ? error.code : "unknown_error"), tone: "error" });
+  return (error: unknown) => toast.show(reviewFailureToast(error));
 }
 
 function ApproveDialog() {
-  const { doc, dialog, setDialog } = useReview();
+  const { doc, payload, dialog, setDialog } = useReview();
   const approve = useApprove(doc.id);
   const toast = useToast();
   const fail = useFail();
@@ -26,10 +25,13 @@ function ApproveDialog() {
 
   const confirm = async () => {
     try {
-      await approve.mutateAsync();
+      // Approve exactly the revision the person has been looking at.
+      await approve.mutateAsync(payload.document.revision);
       close();
       toast.show(tr.review.toast.approved);
     } catch (error) {
+      // The review was reloaded (changed, or the fresh audit found something): look again first.
+      if (reviewReload(error)) close();
       fail(error);
     }
   };

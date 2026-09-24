@@ -80,29 +80,61 @@ function usePatchSummary() {
   };
 }
 
+/**
+ * 409s meaning the review on screen is out of date: the hooks reload it before rethrowing.
+ * unresolved_items too: approval's fresh LLM audit may just have stored new open findings.
+ */
+export type ReviewReload = "stale_revision" | "audit_not_clean" | "unresolved_items";
+const RELOADS: ReadonlySet<string> = new Set<ReviewReload>(["stale_revision", "audit_not_clean", "unresolved_items"]);
+const reloads = (code: string): code is ReviewReload => RELOADS.has(code);
+
+export function reviewReload(error: unknown): ReviewReload | null {
+  return error instanceof ApiError && reloads(error.code) ? error.code : null;
+}
+
+/** Refetches the review, its page marks and the library; resolves once the active ones are back. */
+function useReloadReview(id: string) {
+  const qc = useQueryClient();
+  return async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: keys.review(id) }),
+      qc.invalidateQueries({ queryKey: ["pageMarks", id] }),
+      qc.invalidateQueries({ queryKey: keys.documents }),
+    ]);
+  };
+}
+
+/** A decision pinned to the payload revision it was made on (span ids are positional). */
+export type RevisedDecision = DecisionRequest & { expected_revision: number };
+
 export function useDecide(id: string) {
   const qc = useQueryClient();
   const patch = usePatchSummary();
+  const reload = useReloadReview(id);
   return useMutation({
-    mutationFn: (body: DecisionRequest) => api.decide(id, body),
+    mutationFn: (body: RevisedDecision) => api.decide(id, body),
     onSuccess: (payload: ReviewPayload) => {
       qc.setQueryData(keys.review(id), payload);
       patch(payload.document);
       void qc.invalidateQueries({ queryKey: ["pageMarks", id] });
     },
+    // Returned, so mutateAsync rejects only after the current review is on screen.
+    onError: (error) => (reviewReload(error) ? reload() : undefined),
   });
 }
 
 export function useApprove(id: string) {
   const qc = useQueryClient();
   const patch = usePatchSummary();
+  const reload = useReloadReview(id);
   return useMutation({
-    mutationFn: () => api.approve(id),
+    mutationFn: (expectedRevision: number) => api.approve(id, { expected_revision: expectedRevision }),
     onSuccess: (summary) => {
       patch(summary);
       void qc.invalidateQueries({ queryKey: keys.review(id) });
       void qc.invalidateQueries({ queryKey: keys.documents });
     },
+    onError: (error) => (reviewReload(error) ? reload() : undefined),
   });
 }
 
@@ -126,6 +158,12 @@ export function useDeleteDocument() {
       qc.setQueryData<DocumentSummary[]>(keys.documents, (prev) => prev?.filter((d) => d.id !== id));
       qc.removeQueries({ queryKey: keys.review(id) });
       void qc.invalidateQueries({ queryKey: keys.documents });
+    },
+    onError: (error) => {
+      // The list still thought the document was settled: fetch its real (processing) status.
+      if (error instanceof ApiError && error.code === "document_busy") {
+        void qc.invalidateQueries({ queryKey: keys.documents });
+      }
     },
   });
 }

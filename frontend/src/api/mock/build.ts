@@ -117,6 +117,8 @@ export function buildDoc(def: DocDef): MockDoc {
     createdAt: def.createdAt,
     updatedAt: def.createdAt,
     status: def.status,
+    // Fixtures arrive anonymized once; uploads get their first revision when processing finishes.
+    revision: def.processing || def.status === "failed" ? 0 : 1,
     processing: def.processing ?? null,
     units,
     spans,

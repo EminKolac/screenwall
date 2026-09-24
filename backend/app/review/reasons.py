@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 
 from app.anonymization.types import USER_PREFIX
+from app.models.document import LEGACY_STATUS_TEXT
 
 _BY_TYPE = {
     "TR_TCKN": "TCKN doğrulandı",
@@ -96,12 +97,19 @@ def location_label(location: str) -> str:
 
 FINDING_REASON = "Denetim burada kişisel veri kalmış olabileceğini söylüyor"
 
+# Extraction reasons (no_text, ocr_unavailable, ...) live with their detection in services/ingest.
 REVIEW_REASONS = {
     "audit_residual": "Denetim maskeli metinde kişisel veri kalmış olabileceğini buldu.",
     "auditor_unavailable": "Yerel denetim modeli çalışmıyordu; belge otomatik onaylanmadı.",
     "processing_failed": "Belge işlenirken bir hata oluştu.",
     "processing_interrupted": "İşlem yarıda kaldı; belgeyi yeniden yükleyin.",
-    "no_text": "Belgeden hiç metin çıkarılamadı (büyük olasılıkla tamamı görüntü).",
-    "suggestions_pending": "Emin olunamayan öneriler var; karar sizin.",
     "changed_after_approval": "Onaydan sonra değişiklik yapıldı; yeniden onay gerekiyor.",
+    "legacy_status": LEGACY_STATUS_TEXT,
+    "settings_unreadable": ("Ayarlar dosyası okunamadı; 'her zaman maskele' listeniz bu belgeye "
+                            "uygulanmadı. Metni dikkatle inceleyin."),
 }
+
+
+def unlocated_reason(count: int) -> str:
+    return (f"Denetim {count} olası kalıntı bildirdi ama metinde yerini gösteremedi; lütfen "
+            "metni gözden geçirin.")

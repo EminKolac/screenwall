@@ -4,12 +4,17 @@ from __future__ import annotations
 import shutil
 from typing import Literal
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from app.config import get_settings
 from app.security.web import SESSION_COOKIE, SESSION_TTL_S
-from app.services.user_settings import UserSettings, load_user_settings, save_user_settings
+from app.services.user_settings import (
+    UserSettings,
+    UserSettingsUnreadable,
+    load_user_settings,
+    update_user_settings,
+)
 
 router = APIRouter(prefix="/api", tags=["system"])
 
@@ -34,7 +39,8 @@ def health(request: Request) -> dict:
         from app.audit.ollama_provider import OllamaProvider
 
         try:
-            reachable = OllamaProvider(s.ollama_base_url, s.auditor_model).is_available()
+            reachable = OllamaProvider(s.ollama_base_url, s.auditor_model,
+                                       allow_remote=s.ollama_allow_remote).is_available()
         except Exception:  # noqa: BLE001 — health must not fail because a probe failed
             reachable = False
     worker = getattr(request.app.state, "worker", None)
@@ -52,6 +58,7 @@ class SettingsBody(BaseModel):
     chat_default_provider: Literal["ollama", "claude_cli", "codex_cli"] | None = None
     always_mask: list[str] | None = None
     never_mask: list[str] | None = None
+    always_mask_family: dict[str, str] | None = None  # round-trips what GET returned
 
 
 @router.get("/settings")
@@ -61,7 +68,14 @@ def get_user_settings() -> dict:
 
 @router.put("/settings")
 def put_user_settings(body: SettingsBody) -> dict:
-    settings = get_settings()
-    current = load_user_settings(settings).model_dump()
-    current.update({k: v for k, v in body.model_dump().items() if v is not None})
-    return save_user_settings(settings, UserSettings.model_validate(current)).model_dump()
+    """One read-modify-write under the settings lock. A file that cannot be read is never
+    overwritten: 500 until it is fixed or moved away."""
+    changes = {k: v for k, v in body.model_dump().items() if v is not None}
+
+    def apply(current: UserSettings) -> UserSettings:
+        return UserSettings.model_validate({**current.model_dump(), **changes})
+
+    try:
+        return update_user_settings(get_settings(), apply).model_dump()
+    except UserSettingsUnreadable as e:
+        raise HTTPException(status_code=500, detail="internal_error") from e

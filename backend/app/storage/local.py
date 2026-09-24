@@ -1,15 +1,18 @@
 """Local filesystem storage backend over the 5 isolated layers (Architecture.md §6).
 
 Files live at <root>/<layer>/<document_id>/<name>. Directories are created 0700 and files 0600:
-only the user running the app can read documents, mappings or reports. Writes are atomic (temp
-file + rename). Secure deletion overwrites then unlinks all layers for a document; on SSD/APFS the
-overwrite is best-effort only (see SECURITY.md §5 — the production guarantee is crypto-shredding).
+only the user running the app can read documents, mappings or reports. Writes are atomic (a unique
+temp file + rename, `write_private`). Secure deletion overwrites then unlinks all layers for a
+document; on SSD/APFS the overwrite is best-effort only (see SECURITY.md §5 — the production
+guarantee is crypto-shredding).
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from app.storage.base import StorageLayer
@@ -37,19 +40,21 @@ def _private_dir(path: Path) -> None:
         pass
 
 
-def _write_private(path: Path, data: bytes) -> None:
-    """Atomic write of a 0600 file: the temp file is created with the final permissions, so the
-    content is never readable by others, not even for a moment."""
-    tmp = path.with_name(path.name + ".tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, _FILE_MODE)
+def write_private(path: Path, data: bytes) -> None:
+    """Atomic write of a 0600 file, shared by every writer (storage layers, user settings).
+
+    The temp file is UNIQUE (mkstemp in the target's directory, created 0600, so the content is
+    never readable by others, not even for a moment): concurrent writers of one path never share or
+    truncate each other's temp file, and a failure removes only this call's own temp file."""
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".part")
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(data)
+        os.replace(tmp, path)
     except BaseException:
-        tmp.unlink(missing_ok=True)
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
         raise
-    os.chmod(tmp, _FILE_MODE)  # an existing temp file keeps its old mode otherwise
-    os.replace(tmp, path)
 
 
 class LocalStorageBackend:
@@ -65,7 +70,7 @@ class LocalStorageBackend:
 
     def write_bytes(self, layer: StorageLayer, document_id: str, name: str, data: bytes) -> str:
         p = self._path(layer, document_id, name)
-        _write_private(p, data)
+        write_private(p, data)
         return str(p)
 
     def read_bytes(self, layer: StorageLayer, document_id: str, name: str) -> bytes:
@@ -73,7 +78,7 @@ class LocalStorageBackend:
 
     def write_json(self, layer: StorageLayer, document_id: str, name: str, obj: object) -> str:
         p = self._path(layer, document_id, name)
-        _write_private(p, json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+        write_private(p, json.dumps(obj, ensure_ascii=False).encode("utf-8"))
         return str(p)
 
     def read_json(self, layer: StorageLayer, document_id: str, name: str) -> object:
@@ -84,7 +89,11 @@ class LocalStorageBackend:
         return (self.root / layer.value / document_id / name).exists()
 
     def delete_document(self, document_id: str, *, secure: bool = True) -> None:
-        for layer in StorageLayer:
+        """Every layer of the document. The record (layer 4, document.json) goes LAST and only
+        when every other layer is gone: a layer that survives raises OSError, so the document
+        stays listed and the delete can be retried instead of leaving raw data behind unseen."""
+        last = StorageLayer.VALIDATION
+        for layer in [*(lyr for lyr in StorageLayer if lyr != last), last]:
             d = self.root / layer.value / document_id
             if not d.exists():
                 continue
@@ -93,3 +102,5 @@ class LocalStorageBackend:
                     if f.is_file():
                         _secure_overwrite(f)
             shutil.rmtree(d, ignore_errors=True)
+            if d.exists():
+                raise OSError(f"could not delete the {layer.value} layer")

@@ -59,6 +59,8 @@ export interface MockDoc {
   updatedAt: number;
   /** Final status once processing is over (needs_review, approved, rejected, failed). */
   status: DocStatus;
+  /** Like the backend: 0 until anonymized, then +1 per (re-)anonymization, i.e. per decision. */
+  revision: number;
   processing: Processing | null;
   units: MockUnit[];
   spans: MockSpan[];

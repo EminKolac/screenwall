@@ -2,6 +2,7 @@
 // and every failure normalised into ApiError{code,status}.
 import type {
   AppSettings,
+  ApproveRequest,
   ChatPreviewRequest,
   ChatPreviewResponse,
   ChatRequest,
@@ -170,7 +171,7 @@ export const api = {
   pageImageUrl: (id: string, page: number) =>
     pageImageResolver ? pageImageResolver(id, page) : `${doc(id)}/pages/${page}`,
   decide: (id: string, body: DecisionRequest) => sendJson<ReviewPayload>("POST", `${doc(id)}/decisions`, body),
-  approve: (id: string) => sendJson<DocumentSummary>("POST", `${doc(id)}/approve`),
+  approve: (id: string, body: ApproveRequest = {}) => sendJson<DocumentSummary>("POST", `${doc(id)}/approve`, body),
   reject: (id: string, body: RejectRequest) => sendJson<DocumentSummary>("POST", `${doc(id)}/reject`, body),
   download: async (id: string): Promise<{ blob: Blob; filename: string | null }> => {
     const res = await request(`${doc(id)}/download`, { accept: "application/pdf" });

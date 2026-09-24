@@ -1,236 +1,201 @@
-"""Human decisions: mask, unmask, keep — then approve or reject.
+"""Human decisions: mask, unmask, keep — each followed by a re-mask of the stored original.
 
-Decisions are stored in layer 2 (they reference original values, so mapping mode only) and are
-re-applied on every re-anonymization through engine Overrides, so they survive restarts and later
-decisions (before v2 an unmask lived only in memory and was lost on the next redaction). Global
-decisions go to the user's always/never lists (Settings).
+Decisions live in layer 2 (store.py: they reference original values, so mapping mode only) and
+are re-applied on every re-anonymization through engine Overrides, so they survive restarts and
+later decisions. Global decisions go to the user's always/never lists (user settings); a global
+mask keeps the family the reviewer chose.
 
-Approval is fail-closed: open items block it, and a document changed since its last LLM audit is
-re-audited first.
+Everything happens under the document's lock, on the document re-read inside it. A stale client
+(expected_revision) is refused before any positional span or item id is resolved. The re-mask is
+computed before anything is stored, and a failed one leaves the decisions and the global lists as
+they were. The final actions (approve, reject, delete) live in approval.py.
 """
 from __future__ import annotations
 
-import re
+from collections.abc import Callable
 
-from app.anonymization.engine import AnonymizationOutput, Engine, Overrides
-from app.audit.factory import build_auditor
+from app.anonymization.engine import Engine
+from app.anonymization.lists import term_key
 from app.audit.heuristic import HeuristicAuditor
 from app.config import Settings
 from app.models.document import Document, DocumentStatus
-from app.models.findings import RiskLevel
-from app.pipeline.orchestrator import PipelineResult
-from app.pipeline.runner import build_chat_context, persist_output, record_audit
+from app.pipeline.runner import note_settings, write_output
 from app.pipeline.terms import effective_terms
-from app.review.payload import build_review
+from app.review import audit_terms
+from app.review.approval import approve, delete_document, reject
+from app.review.errors import DecisionError, invalid
+from app.review.findings import record_findings
 from app.review.reasons import REVIEW_REASONS
+from app.review.store import (
+    kept_findings,
+    load_document,
+    normalized,
+    overrides_from,
+    term_dict,
+    unique_terms,
+    without_term,
+)
+from app.review.targets import Target, resolve_target
+from app.services.locks import document_lock
 from app.services.repository import DocumentRepository
-from app.services.user_settings import load_user_settings, save_user_settings
+from app.services.user_settings import (
+    UserSettings,
+    mask_families,
+    update_user_settings,
+    with_always,
+    with_never,
+)
 
-_FAMILY = re.compile(r"^[A-Z][A-Z_]{1,19}$")
-_MAX_VALUE = 200
-_AUDIT_CODES = ("audit_residual", "audit_unlocated", "auditor_unavailable")
+__all__ = ["DecisionError", "apply_decision", "approve", "delete_document", "reanonymize",
+           "reject"]
 
-
-class DecisionError(Exception):
-    def __init__(self, code: str, status: int = 409) -> None:
-        super().__init__(code)
-        self.code = code
-        self.status = status
-
-
-# ---------------------------------------------------------------- decisions store
-
-def _normalized(decisions: dict) -> dict:
-    return {
-        "keep_ranges": {k: [list(map(int, r)) for r in v]
-                        for k, v in (decisions.get("keep_ranges") or {}).items()},
-        "mask_ranges": {k: [[int(r[0]), int(r[1]), str(r[2])] for r in v]
-                        for k, v in (decisions.get("mask_ranges") or {}).items()},
-        "keep_terms": list(decisions.get("keep_terms") or []),
-        "mask_terms": dict(decisions.get("mask_terms") or {}),
-        "keep_findings": list(decisions.get("keep_findings") or []),
-    }
-
-
-def overrides_from(decisions: dict) -> Overrides:
-    d = _normalized(decisions)
-    return Overrides(
-        keep_ranges={k: [(s, e) for s, e in v] for k, v in d["keep_ranges"].items()},
-        mask_ranges={k: [(s, e, f) for s, e, f in v] for k, v in d["mask_ranges"].items()},
-        keep_terms=d["keep_terms"],
-        mask_terms=d["mask_terms"],
-    )
-
-
-# ---------------------------------------------------------------- target resolution
-
-def _resolve(doc: Document, repo: DocumentRepository, target: dict) -> dict:
-    payload = build_review(doc, repo)
-    units = {u["id"]: u for u in payload["units"]}
-    if "span_id" in target:
-        found = next((s for s in payload["spans"] if s["id"] == target["span_id"]), None)
-        if found is None:
-            raise DecisionError("invalid_decision", 422)
-        return _target(units, found["unit_id"], found["start"], found["end"],
-                       found["family"], state=found["state"])
-    if "item_id" in target:
-        found = next((i for i in payload["items"] if i["id"] == target["item_id"]), None)
-        if found is None:
-            raise DecisionError("invalid_decision", 422)
-        return _target(units, found["unit_id"], found["start"], found["end"],
-                       found["family"] or "SENSITIVE", state="item")
-    fam = str(target.get("family") or "")
-    if not _FAMILY.match(fam):
-        raise DecisionError("invalid_decision", 422)
-    return _target(units, str(target.get("unit_id")), int(target.get("start", -1)),
-                   int(target.get("end", -1)), fam, state="selection")
-
-
-def _target(units: dict, uid: str, start: int, end: int, fam: str, *, state: str) -> dict:
-    unit = units.get(uid)
-    if unit is None or unit["original"] is None:
-        raise DecisionError("invalid_decision", 422)
-    if not 0 <= start < end <= len(unit["original"]):
-        raise DecisionError("invalid_decision", 422)
-    value = " ".join(unit["original"][start:end].split())
-    if not value or len(value) > _MAX_VALUE:
-        raise DecisionError("invalid_decision", 422)
-    return {"unit_id": uid, "start": start, "end": end, "family": fam, "value": value,
-            "state": state}
+GlobalChange = Callable[[UserSettings], UserSettings] | None
+_SCOPES = ("occurrence", "document", "global")
 
 
 # ---------------------------------------------------------------- applying a decision
 
-def apply_decision(doc: Document, repo: DocumentRepository, settings: Settings,
-                   op: str, target: dict, scope: str) -> None:
-    if doc.status not in (DocumentStatus.NEEDS_HUMAN_REVIEW, DocumentStatus.APPROVED):
-        raise DecisionError("not_in_review")
-    if doc.mode != "mapping" or repo.get_extracted(doc.id) is None:
-        raise DecisionError("original_not_stored")
-    if op not in ("mask", "unmask", "keep") or scope not in ("occurrence", "document", "global"):
-        raise DecisionError("invalid_decision", 422)
-    t = _resolve(doc, repo, target)
-    d = _normalized(repo.get_decisions(doc.id))
-    if op == "unmask":
-        _unmask(d, t, scope, settings)
-    elif op == "mask":
-        _mask(d, t, scope, settings)
-    else:
-        _keep(d, t, scope, settings)
-    repo.save_decisions(doc.id, d)
-    reanonymize(doc, repo, settings)
+def apply_decision(doc_id: str, repo: DocumentRepository, settings: Settings, op: str,
+                   target: object, scope: str,
+                   expected_revision: int | None = None) -> Document:
+    if op not in _OPS or scope not in _SCOPES:
+        raise invalid()
+    with document_lock(doc_id):
+        doc = load_document(repo, doc_id)
+        if doc.status not in (DocumentStatus.NEEDS_HUMAN_REVIEW, DocumentStatus.APPROVED):
+            raise DecisionError("not_in_review")
+        if expected_revision is not None and expected_revision != doc.revision:
+            raise DecisionError("stale_revision")
+        if doc.mode != "mapping" or repo.get_extracted(doc.id) is None:
+            raise DecisionError("original_not_stored")
+        t = resolve_target(doc, repo, target)
+        decisions, change = _OPS[op](normalized(repo.get_decisions(doc.id)), t, scope)
+        _commit(doc, repo, settings, decisions, change)
+        return doc
 
 
-def _unmask(d: dict, t: dict, scope: str, settings: Settings) -> None:
-    uid, s, e = t["unit_id"], t["start"], t["end"]
-    if t["state"] == "added":  # undo the reviewer's own mask instead of stacking a keep on it
-        d["mask_ranges"][uid] = [r for r in d["mask_ranges"].get(uid, [])
-                                 if not (r[0] < e and s < r[1])]
-        d["mask_terms"].pop(t["value"], None)
+def _commit(doc: Document, repo: DocumentRepository, settings: Settings, decisions: dict,
+            change: GlobalChange) -> None:
+    """A global list change is written first (the re-mask reads the lists) and undone when the
+    re-mask fails — unless something else changed the lists meanwhile."""
+    if change is None:
+        reanonymize(doc, repo, settings, decisions)
         return
-    if t["state"] not in ("masked",):
-        raise DecisionError("invalid_decision", 422)
+    before: list[UserSettings] = []
+
+    def remember_and_change(prefs: UserSettings) -> UserSettings:
+        before.append(prefs)
+        return change(prefs)
+
+    applied = update_user_settings(settings, remember_and_change)
+    try:
+        reanonymize(doc, repo, settings, decisions)
+    except BaseException:
+        update_user_settings(settings, lambda p: before[0] if p == applied else p)
+        raise
+
+
+def _unmask(d: dict, t: Target, scope: str) -> tuple[dict, GlobalChange]:
+    if t.state == "added":
+        return _undo_mask(d, t, scope)
+    if t.state != "masked" or (t.split and scope != "occurrence"):
+        raise invalid()  # a split-cell fragment is no term: unmask that occurrence instead
     if scope == "occurrence":
-        d["keep_ranges"].setdefault(uid, []).append([s, e])
-    elif scope == "document":
-        d["keep_terms"] = list(dict.fromkeys([*d["keep_terms"], t["value"]]))
-    else:
-        _global(settings, never=t["value"])
+        return _add_range(d, "keep_ranges", t.unit_id, [t.start, t.end]), None
+    if scope == "document":
+        return {**d, "keep_terms": unique_terms([*d["keep_terms"], t.value])}, None
+    return d, lambda p: with_never(p, t.value)
 
 
-def _mask(d: dict, t: dict, scope: str, settings: Settings) -> None:
-    uid, s, e = t["unit_id"], t["start"], t["end"]
-    if t["state"] == "kept":  # undo the reviewer's own keep
-        d["keep_ranges"][uid] = [r for r in d["keep_ranges"].get(uid, [])
-                                 if not (r[0] < e and s < r[1])]
-        d["keep_terms"] = [v for v in d["keep_terms"] if v.casefold() != t["value"].casefold()]
-        return
+def _undo_mask(d: dict, t: Target, scope: str) -> tuple[dict, GlobalChange]:
+    """Unmask a span the reviewer's own mask produced. One occurrence of a document-wide mask gets
+    a keep range; the term itself (any spelling) goes only with document or global scope."""
+    ranges = d["mask_ranges"].get(t.unit_id, [])
+    rest = [r for r in ranges if not (r[0] < t.end and t.start < r[1])]
+    undone = {**d, "mask_ranges": {**d["mask_ranges"], t.unit_id: rest}}
     if scope == "occurrence":
-        d["mask_ranges"].setdefault(uid, []).append([s, e, t["family"]])
-    elif scope == "document":
-        d["mask_terms"][t["value"]] = t["family"]
-    else:
-        _global(settings, always=t["value"])
+        if len(rest) < len(ranges):
+            return undone, None
+        return _add_range(d, "keep_ranges", t.unit_id, [t.start, t.end]), None
+    terms = {k: v for k, v in d["mask_terms"].items() if term_key(k) != term_key(t.value)}
+    undone = {**undone, "mask_terms": terms}
+    return undone, (lambda p: with_never(p, t.value)) if scope == "global" else None
 
 
-def _keep(d: dict, t: dict, scope: str, settings: Settings) -> None:
-    if t["state"] != "item":
-        raise DecisionError("invalid_decision", 422)
-    if scope == "global":
-        _global(settings, never=t["value"])
-    d["keep_findings"] = list(dict.fromkeys([*d["keep_findings"], t["value"]]))
+def _mask(d: dict, t: Target, scope: str) -> tuple[dict, GlobalChange]:
+    if t.state == "kept":  # undo the reviewer's own keep
+        ranges = d["keep_ranges"].get(t.unit_id, [])
+        rest = [r for r in ranges if not (r[0] < t.end and t.start < r[1])]
+        return {**d, "keep_ranges": {**d["keep_ranges"], t.unit_id: rest},
+                "keep_terms": without_term(d["keep_terms"], t.value)}, None
+    if scope == "occurrence":
+        return _add_range(d, "mask_ranges", t.unit_id, [t.start, t.end, t.family]), None
+    d = {**d, "keep_terms": without_term(d["keep_terms"], t.value)}
+    if scope == "document":
+        return {**d, "mask_terms": term_dict({**d["mask_terms"], t.value: t.family})}, None
+    return d, lambda p: with_always(p, t.value, t.family)
 
 
-def _global(settings: Settings, *, always: str | None = None, never: str | None = None) -> None:
-    prefs = load_user_settings(settings)
-    if always:
-        prefs.always_mask = [*prefs.always_mask, always]
-    if never:
-        prefs.never_mask = [*prefs.never_mask, never]
-    save_user_settings(settings, prefs.model_validate(prefs.model_dump()))
+def _keep(d: dict, t: Target, scope: str) -> tuple[dict, GlobalChange]:
+    """A finding the reviewer says is not personal data: this occurrence (by position) or every
+    same-value finding of the document; global scope also adds it to the never-mask list."""
+    if t.state != "item":
+        raise invalid()
+    if scope == "occurrence":
+        return _add_range(d, "keep_finding_ranges", t.unit_id, [t.start, t.end]), None
+    kept = {**d, "keep_findings": unique_terms([*d["keep_findings"], t.value])}
+    return kept, (lambda p: with_never(p, t.value)) if scope == "global" else None
+
+
+def _add_range(d: dict, key: str, uid: str, rng: list) -> dict:
+    ranges = d[key].get(uid, [])
+    return {**d, key: {**d[key], uid: ranges if rng in ranges else [*ranges, rng]}}
+
+
+_OPS = {"unmask": _unmask, "mask": _mask, "keep": _keep}
 
 
 # ---------------------------------------------------------------- re-anonymization and audit
 
-def reanonymize(doc: Document, repo: DocumentRepository, settings: Settings) -> None:
-    """Re-mask the stored original with every decision, then run the fast heuristic audit.
-    The LLM audit runs at approval time (the document is marked as changed since its audit)."""
+def reanonymize(doc: Document, repo: DocumentRepository, settings: Settings,
+                decisions: dict) -> None:
+    """Re-mask the stored original with `decisions`, keeping the audit's repairs, and re-locate
+    its open terms plus the heuristic backstop's. The LLM audit runs at approval (the revision
+    moves on, so the document is no longer covered by its last LLM audit). Nothing is stored
+    until the re-mask succeeded; the previous decisions come back if storing then fails."""
     extracted = repo.get_extracted(doc.id)
     if extracted is None:
         raise DecisionError("original_not_stored")
-    decisions = _normalized(repo.get_decisions(doc.id))
+    records = repo.get_audit_terms(doc.id)
     deny, allow = effective_terms(settings)
-    output = Engine().anonymize(extracted, doc.language, extra_deny_terms=deny,
-                                extra_allow_terms=allow, overrides=overrides_from(decisions))
-    was_approved = doc.status == DocumentStatus.APPROVED
-    audited = doc.audited_revision
-    persist_output(doc, repo, output, destructive=False)
-    heuristic = HeuristicAuditor().audit(output.content.plain_text)
-    clean = heuristic.is_clean_approval(RiskLevel(settings.auditor_risk_approve))
-    _drop_audit_reasons(doc)
-    record_audit(doc, repo, PipelineResult(doc, output, heuristic, approved=clean),
-                 kept_values=decisions["keep_findings"])
-    doc.audited_revision = audited  # only the heuristic ran; the LLM audit is now stale
-    if was_approved:
+    output = Engine().anonymize(
+        extracted, doc.language, extra_deny_terms=deny + audit_terms.repair_terms(records),
+        extra_allow_terms=allow, overrides=overrides_from(decisions),
+        deny_families=mask_families(settings))
+    previous = repo.get_decisions(doc.id)
+    repo.save_decisions(doc.id, decisions)
+    try:
+        _store_remask(doc, repo, output, decisions, records, settings)
+    except BaseException:
+        repo.save_decisions(doc.id, previous)
+        raise
+
+
+def _store_remask(doc: Document, repo: DocumentRepository, output, decisions: dict,
+                  records: list[dict], settings: Settings) -> None:
+    """The new revision and the review status are stored BEFORE the new content: if a later
+    write fails, the document sits in review, covered by no LLM audit (approval re-audits), and
+    an approved document stops being downloadable before its layer 3 changes."""
+    if doc.status == DocumentStatus.APPROVED:
         doc.add_reason("changed_after_approval", REVIEW_REASONS["changed_after_approval"])
+    doc.revision += 1
     doc.transition(DocumentStatus.NEEDS_HUMAN_REVIEW)
+    note_settings(doc, settings)
     repo.save_document(doc)
-
-
-def _drop_audit_reasons(doc: Document) -> None:
-    doc.reasons = [r for r in doc.reasons if r.code not in _AUDIT_CODES]
-    doc.review_reason = [r.text for r in doc.reasons]
-
-
-def approve(doc: Document, repo: DocumentRepository, settings: Settings) -> None:
-    if doc.status != DocumentStatus.NEEDS_HUMAN_REVIEW:
-        raise DecisionError("not_in_review")
-    if doc.pending_count > 0:
-        raise DecisionError("unresolved_items")
-    anon = repo.get_anonymized(doc.id)
-    if anon is not None and doc.audited_revision != doc.revision:
-        audit = build_auditor(settings).audit(anon.plain_text)
-        if audit.summary.startswith("Fail-closed"):
-            raise DecisionError("ollama_unreachable", 503)
-        clean = audit.is_clean_approval(RiskLevel(settings.auditor_risk_approve))
-        _drop_audit_reasons(doc)
-        record_audit(doc, repo,
-                     PipelineResult(doc, AnonymizationOutput(content=anon), audit, approved=clean),
-                     kept_values=_normalized(repo.get_decisions(doc.id))["keep_findings"])
-        if doc.pending_count > 0:
-            repo.save_document(doc)
-            raise DecisionError("unresolved_items")
-    doc.reasons = [r for r in doc.reasons if r.code != "changed_after_approval"]
-    doc.review_reason = [r.text for r in doc.reasons]
-    doc.transition(DocumentStatus.APPROVED)
-    build_chat_context(repo, doc.id)
-    repo.save_document(doc)
-
-
-def reject(doc: Document, repo: DocumentRepository, reason: str | None) -> None:
-    if doc.status.processing or doc.status == DocumentStatus.REJECTED:
-        raise DecisionError("not_in_review")
-    doc.reject_reason = " ".join((reason or "").split())[:500]
-    doc.transition(DocumentStatus.REJECTED)
+    write_output(doc, repo, output, destructive=False)
+    heuristic = HeuristicAuditor().audit(output.content.plain_text)
+    terms = audit_terms.relocate_terms(records) + heuristic.raw_terms
+    record_findings(doc, repo, output.content, output.edits, terms, kept_findings(decisions),
+                    residual=False)
     repo.save_document(doc)
 
