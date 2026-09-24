@@ -14,7 +14,7 @@ from fastapi.responses import PlainTextResponse, Response
 
 from app.config import get_settings
 from app.extraction.base import ExtractionFailed, UploadRejected
-from app.models.document import Document
+from app.models.document import Document, DocumentStatus
 from app.pipeline.runner import run_pipeline
 from app.services.deps import get_repository
 from app.services.repository import DocumentRepository
@@ -39,6 +39,7 @@ def _summary(doc: Document, repo: DocumentRepository) -> dict:
         "chat_enabled": doc.chat_enabled,
         "risk_level": last.risk_level.value if last else None,
         "has_anonymized": repo.get_anonymized(doc.id) is not None,
+        "review_reason": doc.review_reason,
     }
 
 
@@ -94,11 +95,14 @@ def download_anonymized(doc_id: str) -> str:
     doc = repo.get_document(doc_id)
     if doc is None:
         raise HTTPException(status_code=404, detail="document not found")
-    # Privacy-first: unapproved best-effort output may still contain residual PII flagged for
-    # human review, so it is not downloadable until the document is approved.
-    if not doc.approved:
+    # Bu uç nokta ÖNİZLEME (düz metin, tarayıcıda); dosya olarak dışarı çıkan sürüm ayrı bir
+    # uçta (/download) ve orası onay şartını korur. Gözden geçiren kişinin onaylayıp
+    # onaylamayacağına karar verebilmesi için metni GÖRMESİ gerekir — ikisini aynı kapıya
+    # bağlamak insan inceleme adımını uygulanamaz hale getiriyordu.
+    if not (doc.approved or doc.status == DocumentStatus.NEEDS_HUMAN_REVIEW):
         raise HTTPException(
-            status_code=403, detail="anonymized download is available only after approval"
+            status_code=403,
+            detail="anonymized text is available after approval, or while in human review",
         )
     anon = repo.get_anonymized(doc_id)
     if anon is None:

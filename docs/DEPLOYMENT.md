@@ -35,15 +35,14 @@ npm run dev                               # http://localhost:5173 (proxies /api 
 
 | Upgrade | Why | How |
 |---|---|---|
-| **Local Qwen auditor** | LLM-grade residual-PII detection on top of the heuristic | `bash scripts/setup_macos.sh` (installs Ollama, pulls `qwen2.5:7b-instruct-q4_K_M`) |
+| **Local Qwen auditor** | LLM-grade residual-PII detection on top of the heuristic | `bash scripts/setup_macos.sh` (installs Ollama, pulls `qwen3.5:4b` — Apache-2.0, also used for post-approval chat) |
 | **OpenAI Privacy Filter** | 2nd detection stage: a **local, on-device** open-weight model for context-aware PII (names/addresses/secrets) Presidio misses — no external call | `PRIVACY_FILTER=1 bash scripts/setup_macos.sh` (installs `[privacy]` extra **and pre-downloads the model** — runtime loading is `local_files_only`, zero network), then `USE_PRIVACY_FILTER=true`. Tune: `PRIVACY_FILTER_MODEL` / `PRIVACY_FILTER_THRESHOLD` / `PRIVACY_FILTER_EXCLUDE_LABELS` (calibrate with `uv run python -m app.cli.eval_privacy_filter`); `REQUIRE_PRIVACY_FILTER=true` fails closed if unavailable |
-| **Turkish transformers NER** | Higher TR name/org accuracy than the multilingual baseline | `uv sync --extra tr` then set `USE_TRANSFORMERS_TR=true` |
 | **`en_core_web_lg`** | Higher English NER accuracy | `uv run python -m spacy download en_core_web_lg` then `SPACY_EN_MODEL=en_core_web_lg` |
-| **External chat** | Q&A over approved docs | `uv sync --extra chat`, set `CHAT_PROVIDER` + API key |
 
 ### Memory budget (16GB M4)
-Qwen2.5-7B-Q4 ≈ 5 GB resident. The transformers TR model (≈ 0.5 GB) + Qwen together are tight;
-prefer not to keep both hot. The heuristic auditor needs no extra memory.
+qwen3.5:4b ≈ 3.4 GB resident, and the same weights serve the auditor and chat. The optional
+Privacy Filter stage adds its own footprint; prefer not to keep both hot. The heuristic
+auditor needs no extra memory.
 
 ## 4. Configuration
 
@@ -53,10 +52,10 @@ Copy `.env.example` → `.env`. Key vars:
 |---|---|---|
 | `MAX_ITERATIONS` | 3 | bounded 1–3 |
 | `AUDITOR_PROVIDER` | ollama | falls back to heuristic if Ollama is down |
-| `AUDITOR_MODEL` | qwen2.5:7b-instruct-q4_K_M | |
+| `AUDITOR_MODEL` | qwen3.5:4b | |
 | `AUDITOR_RISK_APPROVE` | low | max risk auto-approvable |
 | `SPACY_EN_MODEL` | en_core_web_sm | `en_core_web_lg` for production |
-| `CHAT_PROVIDER` | anthropic | openai / anthropic / azure |
+| `CHAT_PROVIDER` | ollama | only local; cloud providers were removed |
 | `STORAGE_ROOT` | ./data | the 5 isolated layers |
 | `MAX_UPLOAD_MB` | 50 | |
 

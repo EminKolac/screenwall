@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.models.document import DocumentStatus
 
 client = TestClient(app)
 
@@ -14,7 +15,7 @@ def test_health():
 def test_statuses_have_value_and_label():
     body = client.get("/api/statuses").json()
     assert {"value", "label"} <= set(body["statuses"][0].keys())
-    assert len(body["statuses"]) == 10
+    assert len(body["statuses"]) == len(DocumentStatus)
 
 
 def test_upload_runs_full_pipeline(docx_en):

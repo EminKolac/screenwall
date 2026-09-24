@@ -33,6 +33,12 @@ class OllamaProvider:
             "model": self.model,
             "stream": False,
             "format": "json",
+            # Qwen3 kuşağı modeller VARSAYILAN OLARAK "thinking" modunda çalışır ve JSON
+            # gövdesinden önce uzun bir akıl yürütme üretir. Ölçüldü (qwen3.5:4b, M4):
+            # "tek kelime OK yaz" isteği düşünmeyle 753 token / 55 sn, think=false ile
+            # 2 token / 0.1 sn. Denetim promptunda bu fark 180 sn timeout demek oluyordu.
+            # Düşünmeyen modellerde (qwen2.5) alan sessizce yok sayılır — koşulsuz güvenli.
+            "think": False,
             "options": {"temperature": 0},
             "messages": [
                 {"role": "system", "content": system_prompt},

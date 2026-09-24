@@ -72,8 +72,8 @@ all layers.
 
 - **Backend:** Python 3.11/3.12 (uv), FastAPI, Presidio (analyzer+anonymizer), spaCy
   (`en_core_web_sm` + `xx_ent_wiki_sm`), PyMuPDF, python-docx, openpyxl, langdetect, httpx,
-  pydantic-settings. Optional extras: `[tr]` (transformers+torch), `[chat]` (openai+anthropic).
-- **Local auditor:** Ollama + Qwen2.5-7B-Instruct-Q4 (optional; heuristic backstop runs without it).
+  pydantic-settings. Optional extra: `[privacy]` (transformers+torch, Privacy Filter stage).
+- **Local auditor:** Ollama + qwen3.5:4b (optional; heuristic backstop runs without it).
 - **Frontend:** React 18 + Vite 5 + TypeScript (no heavy UI lib; dark CSS dashboard).
 
 ---
@@ -168,9 +168,8 @@ uv run uvicorn app.main:app --reload
 # Frontend
 cd ~/anonymizer-platform/frontend && npm install && npm run dev
 ```
-Optional full-power: `bash scripts/setup_macos.sh` (Ollama + Qwen) · `uv sync --extra tr` +
-`USE_TRANSFORMERS_TR=true` (Turkish BERT NER) · `SPACY_EN_MODEL=en_core_web_lg` ·
-`uv sync --extra chat` + API key.
+Optional full-power: `bash scripts/setup_macos.sh` (Ollama + Qwen) ·
+`SPACY_EN_MODEL=en_core_web_lg`.
 
 ---
 

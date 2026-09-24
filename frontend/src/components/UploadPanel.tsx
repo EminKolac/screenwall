@@ -5,14 +5,13 @@ import type { AnonymizationMode, DocSummary } from "../types";
 const MODES: { value: AnonymizationMode; label: string; hint: string }[] = [
   {
     value: "mapping",
-    label: "Mapping",
-    hint: "Reversible — original + mapping kept locally so a reviewer can compare and correct.",
+    label: "Eşlemeli",
+    hint: "Geri alınabilir. Orijinal ve eşleme tablosu bu makinede kalır; yanlış maskelenen\n      bir terimi tek tıkla geri alabilirsiniz.",
   },
   {
     value: "destructive",
-    label: "Destructive",
-    hint: "Irreversible — original and mapping are never written. A missed entity can't be " +
-      "corrected in place; re-upload to try again.",
+    label: "Geri dönüşsüz",
+    hint: "Orijinal ve eşleme tablosu hiç yazılmaz. Kaçan bir veriyi yerinde düzeltemezsiniz;\n      belgeyi yeniden yüklemeniz gerekir.",
   },
 ];
 
@@ -43,7 +42,7 @@ export default function UploadPanel({
 
   return (
     <div className="upload">
-      <div className="mode-select" role="radiogroup" aria-label="Anonymization mode">
+      <div className="mode-select" role="radiogroup" aria-label="Anonimleştirme modu">
         {MODES.map((m) => (
           <button
             key={m.value}
@@ -68,7 +67,7 @@ export default function UploadPanel({
           disabled={busy}
           onChange={(e) => handle(e.target.files?.[0])}
         />
-        <span>{busy ? "Processing…" : "⬆  Upload PDF / DOCX / XLSX"}</span>
+        <span>{busy ? "İşleniyor…" : "PDF / DOCX / XLSX yükle"}</span>
       </label>
     </div>
   );

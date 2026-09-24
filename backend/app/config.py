@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "production", "test"] = "development"
     storage_root: Path = Path("./data")
     max_upload_mb: int = 50
-    max_iterations: int = 3
+    max_iterations: int = 2
     # Two anonymization modes, overridable per upload (see api/documents.py `mode` form field):
     #   "mapping"     — today's behaviour. Original + extracted-text + placeholder<->original map
     #                   are persisted (layers 1-2). Reversible by whoever holds the map. This is
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     # Local privacy auditor (never external)
     auditor_provider: Literal["ollama", "mlx", "llamacpp"] = "ollama"
-    auditor_model: str = "qwen2.5:7b-instruct-q4_K_M"
+    auditor_model: str = "qwen3.5:4b"
     ollama_base_url: str = "http://localhost:11434"
     auditor_risk_approve: Literal["low", "medium", "high"] = "low"
     # If True, the local LLM auditor is REQUIRED: when Ollama is unavailable, documents route to
@@ -50,10 +50,7 @@ class Settings(BaseSettings):
     # en_core_web_sm runs out of the box; en_core_web_lg is the production-accuracy upgrade.
     spacy_en_model: str = "en_core_web_sm"
     spacy_multilingual_model: str = "xx_ent_wiki_sm"  # Turkish/other NER baseline (no torch)
-    tr_ner_model: str = "savasy/bert-base-turkish-ner-cased"  # optional transformers upgrade
-    use_transformers_tr: bool = False
     anonymizer_score_threshold: float = 0.4
-    lang_detector: Literal["langdetect", "fasttext"] = "langdetect"
     # Always-mask terms for THIS project/data room (fund, portfolio-company, brand names that NER
     # can't reliably catch, e.g. "e2vc"). Comma-separated; applied deterministically every run.
     deny_terms: str = ""
@@ -86,22 +83,19 @@ class Settings(BaseSettings):
     )
 
     # Chat (post-approval only). Default 'ollama' = fully local, no external API/key required.
-    chat_provider: Literal["openai", "anthropic", "azure", "ollama"] = "ollama"
-    chat_model: str = "claude-sonnet-4-6"
-    chat_ollama_model: str = "qwen2.5:3b"  # small + fast for local chat (~2GB)
+    # Sohbet YALNIZ yerel (Ollama). Bulut sağlayıcılar kaldırıldı — bkz. chat/providers.py.
+    chat_provider: Literal["ollama"] = "ollama"
+    # Aynı model denetçide de kullanılıyor: tek ağırlık kümesi bellekte kalır (3.4 GB yerine
+    # 4.7 + 1.9 GB) ve qwen2.5:3b'nin ticari kullanıma kapalı Qwen Research lisansından çıkılır.
+    chat_ollama_model: str = "qwen3.5:4b"
     chat_max_message_chars: int = 4000
     cors_allow_origins: str = "http://localhost:5173,http://localhost:5174"  # comma-separated
-    openai_api_key: str = ""
-    anthropic_api_key: str = ""
-    azure_openai_api_key: str = ""
-    azure_openai_endpoint: str = ""
-    azure_openai_deployment: str = ""
 
     @field_validator("max_iterations")
     @classmethod
     def _bound_iterations(cls, v: int) -> int:
-        if not 1 <= v <= 3:
-            raise ValueError("max_iterations must be between 1 and 3 (PRD requirement)")
+        if not 1 <= v <= 2:
+            raise ValueError("max_iterations must be between 1 and 2")
         return v
 
     @field_validator("max_upload_mb")

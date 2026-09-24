@@ -33,8 +33,6 @@ class DocumentStatus(str, Enum):
     QWEN_AUDIT_1 = "qwen_audit_1"
     PRESIDIO_PASS_2 = "presidio_pass_2"
     QWEN_AUDIT_2 = "qwen_audit_2"
-    PRESIDIO_PASS_3 = "presidio_pass_3"
-    QWEN_AUDIT_3 = "qwen_audit_3"
     APPROVED = "approved"
     NEEDS_HUMAN_REVIEW = "needs_human_review"
 
@@ -44,16 +42,14 @@ class DocumentStatus(str, Enum):
 
 
 _DISPLAY_LABELS: dict[DocumentStatus, str] = {
-    DocumentStatus.UPLOADED: "Uploaded",
-    DocumentStatus.EXTRACTED: "Extracted",
-    DocumentStatus.PRESIDIO_PASS_1: "Presidio Pass 1",
-    DocumentStatus.QWEN_AUDIT_1: "Qwen Audit 1",
-    DocumentStatus.PRESIDIO_PASS_2: "Presidio Pass 2",
-    DocumentStatus.QWEN_AUDIT_2: "Qwen Audit 2",
-    DocumentStatus.PRESIDIO_PASS_3: "Presidio Pass 3",
-    DocumentStatus.QWEN_AUDIT_3: "Qwen Audit 3",
-    DocumentStatus.APPROVED: "Approved",
-    DocumentStatus.NEEDS_HUMAN_REVIEW: "Needs Human Review",
+    DocumentStatus.UPLOADED: "Yüklendi",
+    DocumentStatus.EXTRACTED: "Çıkarıldı",
+    DocumentStatus.PRESIDIO_PASS_1: "Maskeleme 1",
+    DocumentStatus.QWEN_AUDIT_1: "Denetim 1",
+    DocumentStatus.PRESIDIO_PASS_2: "Maskeleme 2",
+    DocumentStatus.QWEN_AUDIT_2: "Denetim 2",
+    DocumentStatus.APPROVED: "Onaylandı",
+    DocumentStatus.NEEDS_HUMAN_REVIEW: "İnceleme bekliyor",
 }
 
 
@@ -94,6 +90,10 @@ class Document(BaseModel):
     # never persisted). See Settings.anonymization_mode for the full contract.
     mode: Literal["mapping", "destructive"] = "mapping"
     current_iteration: int = 0
+    # Belge NEDEN insan incelemesine düştü. Çıkarma aşamasında hesaplanıp atılıyordu; artık
+    # saklanıyor, çünkü gözden geçiren kişi gerekçeyi görmeden karar veremez. PII taşımaz —
+    # yalnız sabit uyarı kodlarından türetilmiş insan-okur cümleler.
+    review_reason: list[str] = Field(default_factory=list)
     # Faz 3 — insan düzeltmesi. Bir gözden geçiren "bu maskeleme yanlıştı" dediğinde, geri alınan
     # DEĞER buraya yazılır ve belge yeniden anonimleştirilirken allow-list'e eklenir. Böylece
     # düzeltme kalıcıdır: aynı terim sonraki iterasyonlarda tekrar maskelenmez.

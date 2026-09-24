@@ -4,8 +4,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODEL="${AUDITOR_MODEL:-qwen2.5:7b-instruct-q4_K_M}"
-CHAT_MODEL="${CHAT_OLLAMA_MODEL:-qwen2.5:3b}"  # local post-approval chat (config default)
+MODEL="${AUDITOR_MODEL:-qwen3.5:4b}"
+CHAT_MODEL="${CHAT_OLLAMA_MODEL:-qwen3.5:4b}"  # same model: auditor + post-approval chat
 
 echo "==> 1/5 Ollama"
 if ! command -v ollama >/dev/null 2>&1; then
@@ -36,13 +36,13 @@ fi
 
 echo "==> 4/5 Backend Python env (uv)"
 cd "$ROOT/backend"
-uv sync --extra tr --extra chat
+uv sync
 echo "   Downloading spaCy English model…"
-uv run python -m spacy download en_core_web_lg
+uv run python -m spacy download en_core_web_sm
 
 if [ "${PRIVACY_FILTER:-0}" = "1" ]; then
   echo "==> 5/5 (optional) OpenAI Privacy Filter (LOCAL contextual PII detector)"
-  uv sync --extra tr --extra chat --extra privacy
+  uv sync --extra privacy
   PF_MODEL="${PRIVACY_FILTER_MODEL:-OpenMed/privacy-filter-multilingual}"
   echo "   Pre-downloading $PF_MODEL (runtime loading is local_files_only — zero network)…"
   uv run huggingface-cli download "$PF_MODEL" >/dev/null

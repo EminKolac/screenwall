@@ -30,3 +30,63 @@ def test_pdf_text(pdf_en):
     assert c.kind == FileKind.pdf
     assert any(b.page == 1 for b in c.blocks)
     assert "finance team" in c.plain_text
+
+
+# ---------------------------------------------------------------------------------------------
+# Kapsam boşlukları — ikisi de probla bulundu, ikisi de sessizdi (uyarı üretmiyordu).
+# ---------------------------------------------------------------------------------------------
+
+def test_sticky_note_annotation_content_is_extracted():
+    """Text (yapışkan not) annotation'ının içeriği sayfada ÇİZİLMEZ; yalnız /Contents alanında
+    durur. `get_text()` onu göremiyordu, dolayısıyla bir yoruma yazılmış IBAN hiç maskelenmiyor
+    ve denetçiye de hiç ulaşmıyordu."""
+    import fitz
+
+    from app.extraction.dispatcher import extract
+
+    d = fitz.open()
+    p = d.new_page()
+    p.insert_text((36, 60), "SOZLESME TASLAGI", fontsize=12)
+    a = p.add_text_annot((300, 100), "IBAN: TR330006100519786457841326")
+    a.set_info(title="Av. Burak Sahin", content="IBAN: TR330006100519786457841326")
+    a.update()
+    data = d.tobytes()
+    d.close()
+
+    _, content = extract(data, "x.pdf", max_bytes=5 * 1024 * 1024)
+    assert "TR330006100519786457841326" in content.plain_text
+    assert "Burak Sahin" in content.plain_text  # yazar adı da kişisel veri
+
+
+def test_image_heavy_page_with_header_text_warns_and_blocks_auto_approval():
+    """Eski davranışta fail-OPEN: sayfanın büyük bölümü görüntü olsa bile metin katmanı 50
+    karakteri geçtiğinde OCR atlanıyor ve HİÇBİR uyarı üretilmiyordu — görüntüdeki PII sessizce
+    okunmadan geçip belge temiz rotadan ilerliyordu."""
+    import fitz
+
+    from app.config import Settings
+    from app.extraction.base import IMAGE_TEXT_UNREAD
+    from app.extraction.dispatcher import extract
+    from app.models.document import DocumentStatus
+    from app.services.ingest import ingest
+
+    inner = fitz.open()
+    ip = inner.new_page()
+    ip.insert_text((20, 40), "Hasta: Selin Ozdemir TCKN: 32944882886", fontsize=13)
+    pix = ip.get_pixmap(dpi=60)  # testi küçük tut; ölçülen şey kaplama oranı, çözünürlük değil
+    inner.close()
+
+    d = fitz.open()
+    p = d.new_page()
+    # 50 karakterden UZUN üstbilgi → eski koşulun ilk yarısı düşüyor
+    p.insert_text((72, 60), "SIRKET ICI YAZISMA - GIZLI - DAGITIM SINIRLIDIR - 2026", fontsize=9)
+    p.insert_image(fitz.Rect(30, 80, 580, 760), pixmap=pix)  # sayfanın çoğu görüntü
+    data = d.tobytes()
+    d.close()
+
+    _, content = extract(data, "scan.pdf", max_bytes=50 * 1024 * 1024)
+    assert IMAGE_TEXT_UNREAD in content.warnings
+
+    doc, _ = ingest(data, "scan.pdf", Settings())
+    assert doc.status == DocumentStatus.NEEDS_HUMAN_REVIEW
+    assert doc.review_reason, "gözden geçirene gerekçe gösterilmeli"

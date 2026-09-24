@@ -13,6 +13,7 @@ export interface DocSummary {
   chat_enabled: boolean;
   risk_level: string | null;
   has_anonymized: boolean;
+  review_reason: string[];
 }
 
 export interface SensitiveItem {
@@ -51,6 +52,7 @@ export interface DocDetail {
   created_at: string;
   updated_at: string;
   chat_ready?: boolean;
+  review_reason?: string[];
 }
 
 export interface StatusInfo {

@@ -72,3 +72,42 @@ def test_norm_projection_folds_turkish_i_family_and_whitespace():
     p3, _ = _norm_projection("kadıköyistanbul")
     # aksanlar ayrıştırılır (ö→o), i-ailesi katlanır, boşluk atılır → hepsi aynı izdüşüm
     assert p1 == p2 == p3 == "kadikoyistanbul"
+
+
+def test_company_short_form_does_not_survive_masking():
+    """Ölçülmüş sızıntı (gerçek belge): 'Türk Telekomünikasyon A.Ş.' maskelendi ama aynı
+    belgedeki 'TürkTelekom' ve 'Turk Telekom' AÇIK kaldı — tam-eşleşme araması kısaltılmış
+    yazımı göremiyor, çünkü izdüşümü tespit edilenin ÖN EKİ (eşiti değil)."""
+    from app.anonymization.presidio_engine import PresidioEngine
+    from app.extraction.base import Block, BlockType, ExtractedContent
+    from app.models.document import FileKind, Language
+
+    text = (
+        "İşveren Türk Telekomünikasyon A.Ş. tarafından düzenlenmiştir.\n"
+        "TürkTelekom yatırımcı sunumu.\n"
+        "Turk Telekom 2026 sonuçları."
+    )
+    content = ExtractedContent(kind=FileKind.pdf, blocks=[
+        Block(block_id="b1", type=BlockType.paragraph, text=text)])
+    out = PresidioEngine().anonymize(content, Language.tr).content.plain_text
+    assert "TürkTelekom" not in out
+    assert "Turk Telekom" not in out
+    assert "Telekomünikasyon" not in out
+
+
+def test_company_prefix_does_not_mask_ordinary_capitalised_words():
+    """Ön ek yayılımı yalnız ≥8 karakter + büyük harf + kelime sınırı ile eşleşir; 'Türk' gibi
+    kısa ve sıradan bir kelime maskelenmemeli (aksi halde metin okunamaz hale gelir)."""
+    from app.anonymization.presidio_engine import PresidioEngine
+    from app.extraction.base import Block, BlockType, ExtractedContent
+    from app.models.document import FileKind, Language
+
+    text = ("Anadolu Metal Sanayi A.Ş. ile sözleşme imzalandı.\n"
+            "Anadolu coğrafyası geniştir ve deniz manzarası güzeldir.")
+    content = ExtractedContent(kind=FileKind.pdf, blocks=[
+        Block(block_id="b1", type=BlockType.paragraph, text=text)])
+    out = PresidioEngine().anonymize(content, Language.tr).content.plain_text
+    # 'Anadolu' izdüşümü 7 karakter — ≥8 eşiğinin altında, dolayısıyla ön ek yayılımı onu
+    # tek başına maskeleyemez. (spaCy NER'in kendi yanlış pozitifleri bu testin konusu değil;
+    # aşırı-maskeleme ayrı bir eksen olarak ölçülüyor.)
+    assert "Anadolu coğrafyası" in out, "tek başına 'Anadolu' ön ek yayılımıyla maskelenmemeli"

@@ -153,7 +153,12 @@ def _is_lowercase_initial_ner(span: EntitySpan, text: str) -> bool:
 
 
 def _is_implausible_person_ner(span: EntitySpan, text: str) -> bool:
-    """Deney v5 — PERSON'a özgü iki ek ortografik kural (bağımsız probda 21 FP'nin 11'i):
+    """İstatistiksel NER (spaCy) çıktısına uygulanan ortografik kapı.
+
+    spaCy her tahmine sabit 0.85 verir — skor kanıt taşımaz, dolayısıyla eleme yazımsal
+    sinyallerle yapılır. Kural 3 PERSON ve LOCATION'a, kural 1-2 yalnız PERSON'a uygulanır.
+
+    Deney v5 — PERSON'a özgü iki ortografik kural (bağımsız probda 21 FP'nin 11'i):
 
     1) TEK kelimelik istatistiksel PERSON span'i elenir. spaCy'nin sabit 0.85'i kanıt taşımaz ve
        tek kelimelik tahminleri probda sistematik yanlış pozitif ("Konsolide", "Tahakkuk",
@@ -169,9 +174,26 @@ def _is_implausible_person_ner(span: EntitySpan, text: str) -> bool:
     Kapsam BİLİNÇLİ olarak yalnız PERSON: LOCATION'da tek kelime meşru ve yaygın ("Kadıköy",
     "İstanbul" — gold LOCATION mention'larının tamamı tek kelimelik, elenirse recall sıfırlanır).
     """
-    if span.entity_type != "PERSON" or span.source not in ("en", "tr"):
+    if span.source not in ("en", "tr"):
         return False
-    words = text[span.start:span.end].split()
+    surface = text[span.start:span.end]
+    words = surface.split()
+
+    # 3) SATIR SONUNU AŞAN çok-kelimeli PERSON span'i elenir.
+    #    Ölçülen desen (gerçek yatırımcı sunumu): blok metni ayrı görsel öğeleri alt alta
+    #    birleştirdiği için NER iki AYRI etiketi tek varlık sanıyor —
+    #    'Abone Kazanımı\nMobilde', 'Toplam Abone Sayısı\nSatış Gelirleri', 'Ae Wh\nSon'.
+    #    Eşik ≥3 kelime: satır sonunda BÖLÜNMÜŞ gerçek bir ad ("Selin\nÖzdemir") iki kelimedir
+    #    ve korunur — yayılım/­bitişiklik mekanizmaları PERSON'ı kapsamadığı için onu elemek
+    #    doğrudan recall kaybı olurdu.
+    #    LOCATION BİLİNÇLİ OLARAK KAPSAM DIŞI: Türkçe adresler uzun ve çok kelimelidir,
+    #    PDF'te düzenli olarak satıra bölünürler ve özel bir adres tanıyıcısı yok — kural
+    #    LOCATION'a da uygulandığında holdout'ta 2 KRİTİK adres kaybedildi (ölçüldü:
+    #    finance-019, legal-031; kritik recall 1.0000 → 0.9985).
+    if span.entity_type != "PERSON":
+        return False
+    if "\n" in surface and len(words) >= 3:
+        return True
     if len(words) == 1:
         return True
     return any(w[0].isalpha() and w[0].islower() for w in words if len(w) >= 3)
@@ -180,6 +202,34 @@ def _is_implausible_person_ner(span: EntitySpan, text: str) -> bool:
 # Serialize access to the shared cached AnalyzerEngine across threads/requests.
 _ANALYZE_LOCK = threading.Lock()
 
+
+_MAX_COMPANY_PREFIX = 24
+
+
+def _projection_prefixes(value: str, min_len: int = 8) -> list[str]:
+    """Şirket unvanının kısaltılmış yazımlarını yakalayacak izdüşüm parçalarını üret.
+
+    İki nokta ölçümle öğrenildi:
+      1. Parçalar HER KELİME BAŞINDAN üretilir, yalnız 0'dan değil. TR_COMPANY deseni öndeki
+         büyük harfli kelimeleri de span'e alabiliyor ("İşveren Türk Telekomünikasyon A.Ş."),
+         o yüzden 0'dan üretilen ön ekler 'isveren…' ile başlıyor ve aranan 'turktelekom' hiç
+         doğmuyordu — sızıntı tam buradan sürüyordu.
+      2. Parça kelime ortasından kesilebilir: "Telekomünikasyon" → "telekom" aranan biçimin
+         kendisi.
+    Eşleşme kuralları `_propagate_variants`'taki "company" modunda: ≥8 karakter, BÜYÜK harfle
+    başlama ve orijinal metinde iki yanlı kelime sınırı. Üst sınır parça sayısını sınırlar.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for word in value.split():
+        idx = value.find(word)
+        proj = _norm_projection(value[idx:])[0]
+        for k in range(min_len, min(len(proj), _MAX_COMPANY_PREFIX) + 1):
+            piece = proj[:k]
+            if piece not in seen:
+                seen.add(piece)
+                out.append(piece)
+    return out
 
 class PresidioEngine(AnonymizationEngine):
     def __init__(self, score_threshold: float | None = None) -> None:
@@ -231,11 +281,19 @@ class PresidioEngine(AnonymizationEngine):
         # Çok-kelimeli bir adın YAPIŞIK yazımı ise düz metinde doğal olarak oluşmaz.
         prop_person: dict[str, str] = {}
         prop_surname: dict[str, str] = {}
+        # Şirket unvanları ayrı havuzda: yasal ek (A.Ş./Ltd. Şti.) kanıtlanmış bir şirket adını
+        # işaret eder, ama belgede aynı şirket KISALTILMIŞ da geçer. Ölçülen sızıntı:
+        # "Türk Telekomünikasyon A.Ş." maskelendi, "TürkTelekom" ve "Turk Telekom" AÇIK kaldı —
+        # tam-eşleşme araması kısaltmayı göremiyor (izdüşüm 'turktelekom', tespit edilen
+        # 'turktelekomunikasyona.s.' — biri diğerinin ÖN EKİ, eşiti değil).
+        prop_company: dict[str, str] = {}
 
         def _collect(src_text: str, kept: list[EntitySpan]) -> None:
             for s in kept:
                 if s.entity_type in self._PROPAGATION_TYPES:
                     prop_surfaces[src_text[s.start:s.end]] = _ph_type(s.entity_type)
+                if s.entity_type == "TR_COMPANY":
+                    prop_company[src_text[s.start:s.end]] = _ph_type(s.entity_type)
                 elif s.entity_type in ("PERSON", "TR_PERSON_CTX"):
                     surface = src_text[s.start:s.end]
                     words = surface.split()
@@ -312,6 +370,13 @@ class PresidioEngine(AnonymizationEngine):
             # soyad tam adlardan kısa, 8 şartı onları tümden elerdi).
             + [(fam, val, "surname") for val, fam in prop_surname.items()
                if len(_norm_projection(val)[0]) >= 4]
+            # Şirket adının izdüşüm ÖN EKLERİ. "company" modu üç korumayla sınırlı: ≥8 karakter,
+            # BÜYÜK harfle başlama ve orijinal metinde iki yanlı kelime sınırı. Sınır şartı,
+            # ön ekin kendi uzun biçiminin içinde eşleşmesini de engeller ("turktelekom" →
+            # "Türk Telekomünikasyon"un içinde takip eden karakter 'ü', yani harf → elenir).
+            + [(fam, pref, "company")
+               for val, fam in prop_company.items()
+               for pref in _projection_prefixes(val)]
         )
         if surfaces:
             var_blocks = []
@@ -357,6 +422,14 @@ class PresidioEngine(AnonymizationEngine):
                 ok = True
                 if mode in ("glued", "surname") and any(ch.isspace() for ch in occurrence):
                     ok = False  # boşluklu eş-yazım — düz metin olabilir, maskelenmez
+                if ok and mode == "company":
+                    # Şirket adı boşluklu da geçebilir ("Turk Telekom"), o yüzden boşluk serbest;
+                    # ama büyük harf + iki yanlı kelime sınırı zorunlu.
+                    if not occurrence[:1].isupper():
+                        ok = False
+                    elif (s_orig > 0 and text[s_orig - 1].isalpha()) or \
+                            (e_orig < len(text) and text[e_orig].isalpha()):
+                        ok = False
                 if ok and mode == "surname":
                     if not occurrence[:1].isupper():
                         ok = False

@@ -17,7 +17,14 @@ import shutil
 
 import fitz  # PyMuPDF
 
-from app.extraction.base import OCR_UNAVAILABLE, Block, BlockType, ExtractedContent, TableCell
+from app.extraction.base import (
+    IMAGE_TEXT_UNREAD,
+    OCR_UNAVAILABLE,
+    Block,
+    BlockType,
+    ExtractedContent,
+    TableCell,
+)
 from app.models.document import FileKind
 
 # PyMuPDF reads Tesseract's tessdata via TESSDATA_PREFIX at OCR-call time (not import). Point it at
@@ -64,6 +71,30 @@ def _inside(inner: tuple, outer: tuple) -> bool:
     return ox0 <= cx <= ox1 and oy0 <= cy <= oy1
 
 
+def _annotation_texts(page, warnings: list[str]) -> list[str]:
+    """Annotation gövdelerini döndür — sayfada çizilmeyenler dahil.
+
+    `get_text()` yalnız görünüm akışını okur; bir yapışkan notun ya da vurgu yorumunun içeriği
+    orada yoktur. İçerik ve yazar alanları ayrı ayrı alınır (yazar adı da kişisel veridir ve
+    anonimleştirmeye girmelidir).
+    """
+    out: list[str] = []
+    try:
+        annots = list(page.annots() or [])
+    except Exception:  # noqa: BLE001 — bozuk annotation tablosu belgeyi düşürmemeli
+        warnings.append(f"annotation read failed on page {page.number + 1}")
+        return out
+    for a in annots:
+        try:
+            info = a.info or {}
+        except Exception:  # noqa: BLE001
+            continue
+        parts = [(info.get(k) or "").strip() for k in ("title", "subject", "content")]
+        text = " — ".join(p for p in parts if p)
+        if text:
+            out.append(text)
+    return out
+
 class PdfExtractor:
     kind = FileKind.pdf
 
@@ -89,8 +120,17 @@ class PdfExtractor:
             for pno in range(doc.page_count):
                 page = doc[pno]
                 ocr_tp = None
-                if len(page.get_text().strip()) < _MIN_TEXT_PER_PAGE and _significant_raster(page):
+                sparse = len(page.get_text().strip()) < _MIN_TEXT_PER_PAGE
+                raster = _significant_raster(page)
+                if sparse and raster:
                     ocr_tp = self._ocr_textpage(page, warnings)
+                elif raster:
+                    # Sayfanın büyük bölümü görüntü AMA metin katmanı eşiği geçiyor (ör. 54
+                    # karakterlik bir "GİZLİ" üstbilgisi). Eski davranışta OCR atlanıyor ve
+                    # HİÇBİR uyarı üretilmiyordu: görüntüdeki PII sessizce okunmadan geçiyordu,
+                    # belge de temiz rotadan ilerliyordu. Ölçülmüş tek fail-OPEN yolu buydu.
+                    if IMAGE_TEXT_UNREAD not in warnings:
+                        warnings.append(IMAGE_TEXT_UNREAD)
                 page_items: list[tuple[float, float, Block]] = []
                 table_bboxes: list[tuple] = []
                 if ocr_tp is None:  # only detect tables on a native text layer (unreliable on OCR)
@@ -125,6 +165,14 @@ class PdfExtractor:
                     page_items.append((y0, x0, Block(
                         block_id="", type=BlockType.paragraph, text=text, page=pno + 1,
                         bbox=[x0, y0, x1, y1], location=loc)))
+                # Annotation'lar: FreeText ve Widget sayfada çizildiği için get_text() zaten
+                # görüyor, ama Text (yapışkan not), Highlight ve Popup'ın içeriği yalnız
+                # /Contents alanında durur ve metin katmanına HİÇ girmez. Ölçüldü: bir yorumun
+                # içine konan IBAN çıkarılamıyordu — yani denetçi onu hiç göremiyordu.
+                for annot in _annotation_texts(page, warnings):
+                    page_items.append((page.rect.y1, page.rect.x0, Block(
+                        block_id="", type=BlockType.paragraph, text=annot, page=pno + 1,
+                        location=f"page {pno + 1} annotation")))
                 page_items.sort(key=lambda it: (it[0], it[1]))  # reading order
                 for _, _, blk in page_items:
                     bid += 1

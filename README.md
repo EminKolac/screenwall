@@ -36,7 +36,7 @@ GSM/IBAN/plaka kalıpları, sağlık ve engellilik ifadeleri, İ/ı büyük-kü�
 | Tespit 1 | [Microsoft Presidio](https://microsoft.github.io/presidio/) + [spaCy](https://spacy.io) | Kural + istatistik tabanlı PII tespiti (İngilizce `en_core_web_sm`, çok dilli `xx_ent_wiki_sm`) |
 | Tespit 2 | 15 özel Türkçe tanıyıcı (bu repoda) | TCKN, IBAN, GSM, plaka, adres, maaş bandı, sağlık/engellilik… Presidio'nun Türkçe'de göremediklerini kapatıyor |
 | Tespit 3 | [OpenMed Privacy Filter](https://huggingface.co/OpenMed) (transformers/torch, tamamen yerel) | Bağlamdan anlayan model — kural tabanlıların kaçırdığı serbest metin adları için |
-| Denetçi | Qwen 2.5 ([Ollama](https://ollama.com) üzerinden, yerel) + deterministik kontroller | Maskelenmiş kopyada kalıntı var mı diye ikinci göz |
+| Denetçi | Qwen 3.5 4B ([Ollama](https://ollama.com) üzerinden, yerel) + deterministik kontroller | Maskelenmiş kopyada kalıntı var mı diye ikinci göz |
 | Belge işleme | PyMuPDF, python-docx, openpyxl, Tesseract (OCR) | PDF/DOCX/XLSX okuma-yazma, taranmış sayfa metni |
 | Backend | Python 3.12, FastAPI, uv | API ve işlem hattı |
 | Arayüz | React 18 + Vite + TypeScript | Yükleme, inceleme, geri alma, sohbet ekranları |

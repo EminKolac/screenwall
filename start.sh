@@ -15,11 +15,12 @@ if ! up http://localhost:11434/api/tags; then
   echo "→ ollama serve"
   nohup "$OLLAMA" serve >"$LOGS/ollama.log" 2>&1 & disown
 fi
-# Wait for Ollama to bind, THEN ensure the local chat model (config default qwen2.5:3b) is present.
+# Wait for Ollama to bind, THEN ensure the local model (config default qwen3.5:4b) is present.
+# Same model serves the auditor and post-approval chat.
 for _ in $(seq 1 15); do up http://localhost:11434/api/tags && break; sleep 1; done
-if up http://localhost:11434/api/tags && ! "$OLLAMA" list 2>/dev/null | grep -q "qwen2.5:3b"; then
-  echo "→ pulling chat model qwen2.5:3b (first run, background)"
-  nohup "$OLLAMA" pull qwen2.5:3b >"$LOGS/ollama-pull.log" 2>&1 & disown
+if up http://localhost:11434/api/tags && ! "$OLLAMA" list 2>/dev/null | grep -q "qwen3.5:4b"; then
+  echo "→ pulling qwen3.5:4b (first run, background)"
+  nohup "$OLLAMA" pull qwen3.5:4b >"$LOGS/ollama-pull.log" 2>&1 & disown
 fi
 
 # 2) Backend :8000

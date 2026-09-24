@@ -22,6 +22,9 @@ from app.models.document import FileKind, Language
 # a document whose content was only partially captured).
 OCR_UNAVAILABLE = "ocr_unavailable"        # a page needed OCR but Tesseract was missing/failed
 WORKBOOK_TRUNCATED = "workbook truncated"  # XLSX exceeded the cell cap (see xlsx.py)
+# Sayfanın önemli bölümü görüntü ama metin katmanı OCR eşiğini geçtiği için OCR koşmadı:
+# görüntüdeki metin hiç okunmadı. Kapsam boşluğudur → insan incelemesi (bkz. pdf.py).
+IMAGE_TEXT_UNREAD = "image_text_unread"
 
 
 class UploadRejected(ValueError):

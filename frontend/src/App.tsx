@@ -28,11 +28,9 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo">🛡️</span>
-          <div>
-            <h1>Document Anonymization</h1>
-            <p>Bilingual (TR / EN) · Microsoft Presidio + local Qwen audit</p>
-          </div>
+          <span className="mark" aria-hidden="true" />
+          <h1>Screenwall</h1>
+          <p>Belgeni ver, verini verme — her şey bu makinede</p>
         </div>
       </header>
       <div className="layout">
@@ -65,8 +63,9 @@ export default function App() {
             />
           ) : (
             <div className="empty">
-              <h2>Select or upload a document</h2>
-              <p>PDF, DOCX, or XLSX — Turkish, English, or mixed. Raw files never leave this machine.</p>
+              <h2>Bir belge seçin ya da yükleyin</h2>
+              <p>PDF, Word veya Excel. Türkçe, İngilizce ya da karışık. Dosyanın kendisi
+              hiçbir zaman bu bilgisayardan çıkmıyor.</p>
             </div>
           )}
         </main>

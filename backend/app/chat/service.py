@@ -48,4 +48,6 @@ class ChatService:
         # gate 3: read ONLY the anonymized chat-context layer.
         context = self.storage.read_bytes(StorageLayer.CHAT_CONTEXT, doc.id, _CONTEXT_NAME).decode("utf-8")
         system_prompt = _SYSTEM_TEMPLATE.format(context=context)
-        return self.provider.chat(system_prompt, self._sanitize(user_messages), self.settings.chat_model)
+        return self.provider.chat(
+            system_prompt, self._sanitize(user_messages), self.settings.chat_ollama_model
+        )

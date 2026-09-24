@@ -462,3 +462,65 @@ sahibi:", "Müşteri temsilcisi", "Hasta:") + tek başına soyad geçişleri ("E
 İterasyon: 8 (+1 DISCARD: bloklar-arası birleştirme). Uyku kirliliği iki koşuyu bozdu,
 determinizm tekrarıyla ayıklandı. OCCUPATION etkisi (madde 3) 20-belgelik alt-kümede
 DOĞRULANAMADI (o mention'lar alt-kümeye düşmüyor) — exclude değişikliği yerinde, kanıtı eksik.
+
+## Deney: varyant yayılım modları hak ediyor mu? (2026-09-08)
+
+Hipotez: `presidio_engine.anonymize` içindeki üç yayılım modu (`any` / `glued` / `surname`)
+birikmiş yama karmaşıklığı; en az biri artık gereksizdir ve çıkarılabilir.
+
+Yöntem: her mod tek tek devre dışı bırakıldı, stres kapısı koşuldu (LLM denetçisi KAPALI —
+ölçülen şey tespit katmanı). Sonra eleme adayı için holdout GoldBench ile recall kıyaslandı.
+
+| Mod kapalı | Stres kritik yanlış onay | Karar |
+|---|---|---|
+| — (hepsi açık) | 0/72 | temel |
+| `any` | **1** | KEEP |
+| `glued` | **1** | KEEP |
+| `surname` | 0 | → holdout'ta doğrulanmalı |
+
+`surname` stres kapısını geçti, ama holdout kıyası aksini söyledi:
+
+| | kritik kaçan | kritik recall | varlık recall | aşırı maske |
+|---|---|---|---|---|
+| surname açık | 0 | 1.0000 | 0.8682 | 0/270 |
+| surname kapalı | **19** | 0.9868 | 0.8561 | 0/270 |
+
+**Sonuç: DISCARD — üç mod da kalıyor.**
+
+Ders (kayda değer): **stres kapısı tek başına silme gerekçesi değil.** İki koşu da 0/72 verdi;
+fark yalnız holdout'ta göründü. Üstelik 0.9868 sert kapının (≥0.95) üstünde kaldığı için kapı da
+uyarmazdı — kaybı yakalayan tek şey doğrudan öncesi/sonrası kıyası oldu. Bundan sonraki her
+"bu kod gereksiz" iddiası, ilgili metriği doğrudan kıyaslamadan kapatılmamalı.
+
+## Deney: aşırı maskeleme — satır sonunu aşan NER span'leri (2026-09-08)
+
+Tetikleyici: kullanıcının gerçek bir yatırımcı sunumundan aldığı dış geri bildirim — "hem
+yetersiz hem aşırı anonimleştirilmiş". Belge yeniden üretildi; maskelenen yüzeyler dökülünce
+15 PERSON'un 13'ü ve 7 LOCATION'un 7'si yanlış pozitif çıktı.
+
+Gözlenen desen: blok metni AYRI görsel öğeleri alt alta birleştiriyor, spaCy bunu tek varlık
+sanıyor — `'Abone Kazanımı\nMobilde'`, `'Toplam Abone Sayısı\nSatış Gelirleri'`, `'Ae Wh\nSon'`,
+ve bir plaka yanlış pozitifi `'26\nSon 12'`.
+
+Hipotez: istatistiksel NER span'i satır sonunu aşıyorsa ve ≥3 kelimeyse elenmeli.
+
+| Koşu | kritik kaçan | kritik recall | varlık recall | karakter kesinliği | stres |
+|---|---|---|---|---|---|
+| temel | 0 | 1.0000 | 0.8682 | 0.7688 | 0/72 |
+| kural PERSON+LOCATION | **2** | 0.9985 | 0.8668 | 0.7878 | 0/72 |
+| **kural yalnız PERSON** | **0** | **1.0000** | **0.8682** | **0.7885** | 0/72 |
+
+Geniş sürümün kaybettiği 2 varlık teşhis edildi: ikisi de **ADRES** (finance-019 tablo kanalı,
+legal-031 gövde). Türkçe adresler uzun, çok kelimeli ve PDF'te satıra bölünüyor; özel bir adres
+tanıyıcısı olmadığı için tespit tamamen genel LOCATION NER'ine dayanıyor.
+
+**Sonuç: KEEP (yalnız PERSON).** Recall tam korunuyor, karakter kesinliği 0.7688 → 0.7885.
+Gerçek belgede PERSON yanlış pozitifleri 15 → 11, plaka yanlış pozitifi 1 → 0.
+
+Kapanmayan kısım (dürüstçe): kalan PERSON FP'leri tek satırlık Title-Case iş terimleri
+(`'Yatırım Harcamaları'`, `'Sabit Genişbant Geliri'`, `'Abonelerin Ortalama Hızı'`), LOCATION
+FP'lerinin hepsi tek kelimelik yaygın sözcükler (`'Toplam'`, `'Yıllık'`, `'Çeyreklik'`,
+`'Mobil'`, `'Şirket'`). Sunumlarda her etiket Title-Case olduğu için NER'in dayandığı büyük-harf
+sinyali bu belge sınıfında bilgi taşımıyor. Tek kelimelik LOCATION elenemez — gold LOCATION
+mention'larının tamamı tek kelimelik (bkz. `_is_implausible_person_ner` docstring). Bu sınıf
+ortografik kuralla değil, Türkçe-yerli bir PII kodlayıcısıyla kapanır.

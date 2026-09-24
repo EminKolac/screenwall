@@ -68,3 +68,38 @@ def test_local_format_without_prefix_still_matches():
     start = text.find("0532")
     spans = PresidioEngine().detect(text)
     assert any(s.start <= start and s.end >= len(text) - 1 for s in spans)
+
+
+def test_person_span_crossing_a_line_break_is_rejected():
+    """Slayt/tablo bloklarında blok metni AYRI görsel öğeleri alt alta birleştiriyor; spaCy bunu
+    tek bir PERSON sanıyor. Gerçek belgede ölçülen yanlış pozitifler:
+    'Abone Kazanımı\\nMobilde', 'Toplam Abone Sayısı\\nSatış Gelirleri', 'Ae Wh\\nSon'."""
+    from app.anonymization.engine import EntitySpan
+    from app.anonymization.presidio_engine import _is_implausible_person_ner
+
+    text = "Toplam Abone Sayısı\nSatış Gelirleri"
+    span = EntitySpan(entity_type="PERSON", start=0, end=len(text), score=0.85, source="tr")
+    assert _is_implausible_person_ner(span, text) is True
+
+
+def test_two_word_person_wrapped_across_lines_survives():
+    """Satır sonunda BÖLÜNMÜŞ gerçek bir ad iki kelimedir ve korunmalı — PERSON yayılım/
+    bitişiklik mekanizmalarının kapsamında değil, elenirse doğrudan recall kaybı olur."""
+    from app.anonymization.engine import EntitySpan
+    from app.anonymization.presidio_engine import _is_implausible_person_ner
+
+    text = "Selin\nÖzdemir"
+    span = EntitySpan(entity_type="PERSON", start=0, end=len(text), score=0.85, source="tr")
+    assert _is_implausible_person_ner(span, text) is False
+
+
+def test_wrapped_location_is_not_rejected_addresses_depend_on_it():
+    """Kural BİLİNÇLİ olarak LOCATION'a uygulanmaz: Türkçe adresler uzun, çok kelimeli ve
+    PDF'te düzenli olarak satıra bölünür; özel bir adres tanıyıcısı yok. LOCATION'a da
+    uygulandığında holdout'ta 2 KRİTİK adres kaybedildi (kritik recall 1.0000 → 0.9985)."""
+    from app.anonymization.engine import EntitySpan
+    from app.anonymization.presidio_engine import _is_implausible_person_ner
+
+    text = "Bağdat Caddesi No 145\nKadıköy İstanbul"
+    span = EntitySpan(entity_type="LOCATION", start=0, end=len(text), score=0.85, source="tr")
+    assert _is_implausible_person_ner(span, text) is False

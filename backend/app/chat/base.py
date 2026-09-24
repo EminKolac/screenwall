@@ -23,5 +23,5 @@ def ensure_chat_allowed(doc: Document) -> None:
 
 @runtime_checkable
 class ChatProvider(Protocol):
-    name: str  # openai | anthropic | azure
+    name: str  # bugün yalnız "ollama" (bkz. chat/providers.py)
     def chat(self, system_prompt: str, messages: list[dict], model: str) -> str: ...

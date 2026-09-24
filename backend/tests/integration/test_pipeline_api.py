@@ -42,14 +42,39 @@ def test_anonymized_404_for_unknown():
     assert client.get("/api/documents/nope/anonymized").status_code == 404
 
 
-def test_anonymized_blocked_before_approval():
+def _seed(doc_id: str, status):
     from app.extraction.base import Block, ExtractedContent
-    from app.models.document import Document, DocumentStatus, FileKind
+    from app.models.document import Document, FileKind
     from app.services.deps import get_repository
 
     repo = get_repository()
-    repo.save_document(Document(id="na1", filename="x.pdf", kind=FileKind.pdf,
-                               status=DocumentStatus.NEEDS_HUMAN_REVIEW))
-    repo.save_anonymized("na1", ExtractedContent(kind=FileKind.pdf,
+    repo.save_document(Document(id=doc_id, filename="x.pdf", kind=FileKind.pdf, status=status))
+    repo.save_anonymized(doc_id, ExtractedContent(kind=FileKind.pdf,
                          blocks=[Block(block_id="1", text="residual maybe")]))
-    assert client.get("/api/documents/na1/anonymized").status_code == 403
+
+
+def test_anonymized_preview_visible_during_human_review():
+    """Gözden geçiren, onaylayacağı metni GÖRMELİ. Önizleme ile dosya indirme aynı kapıya
+    bağlıydı; bu, insan inceleme adımını uygulanamaz hale getiriyordu (körlemesine onay)."""
+    from app.models.document import DocumentStatus
+
+    _seed("na1", DocumentStatus.NEEDS_HUMAN_REVIEW)
+    r = client.get("/api/documents/na1/anonymized")
+    assert r.status_code == 200
+    assert "residual maybe" in r.text
+
+
+def test_anonymized_still_blocked_in_other_unapproved_states():
+    """Kapı kaldırılmadı, daraltıldı: yalnız incelemedeki belge görünür."""
+    from app.models.document import DocumentStatus
+
+    _seed("na2", DocumentStatus.EXTRACTED)
+    assert client.get("/api/documents/na2/anonymized").status_code == 403
+
+
+def test_pdf_download_stays_approval_only_during_review():
+    """Dışarı ÇIKAN dosya hâlâ yalnız onaydan sonra — paylaşım kapısı değişmedi."""
+    from app.models.document import DocumentStatus
+
+    _seed("na3", DocumentStatus.NEEDS_HUMAN_REVIEW)
+    assert client.get("/api/documents/na3/download").status_code == 403

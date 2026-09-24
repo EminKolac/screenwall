@@ -68,7 +68,7 @@ Upload ─▶ Extract ─▶ Detect Language ─┐
 
 `DocumentStatus` (exact UI labels):
 `UPLOADED → EXTRACTED → PRESIDIO_PASS_1 → QWEN_AUDIT_1 → PRESIDIO_PASS_2 → QWEN_AUDIT_2 →
-PRESIDIO_PASS_3 → QWEN_AUDIT_3 → {APPROVED | NEEDS_HUMAN_REVIEW}`
+{APPROVED | NEEDS_HUMAN_REVIEW}`
 
 A `Document` record tracks: `id`, `filename`, `mime`, `language`, `status`, `iterations[]`,
 `current_iteration`, timestamps. Each `IterationRecord` holds the Presidio stats and the
@@ -102,7 +102,7 @@ Each layer is addressed by `document_id`; layers never cross-reference raw PII o
 
 ## 8. Privacy Auditor (local)
 
-- `LLMAuditProvider` protocol → `OllamaProvider` (default, Qwen2.5-7B-Instruct Q4).
+- `LLMAuditProvider` protocol → `OllamaProvider` (default, qwen3.5:4b, Apache-2.0).
   `MLXProvider`/`llama.cpp` pluggable later.
 - The auditor prompt forbids de-anonymization and requires **strict JSON**:
   `{approved, risk_level, remaining_sensitive_items[], summary, recommended_next_action}`.
