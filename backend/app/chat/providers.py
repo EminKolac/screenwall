@@ -18,6 +18,7 @@ import httpx
 
 from app.chat import cli
 from app.chat.base import ChatError
+from app.security import ollama
 
 
 def _status(provider, **fields) -> dict:
@@ -41,25 +42,35 @@ def _status(provider, **fields) -> dict:
 
 
 class OllamaChatProvider:
-    """Fully local chat via Ollama — no external API or key. Requires Ollama running with the
-    model pulled (see scripts/setup_macos.sh)."""
+    """Chat via Ollama — no external API or key. Requires Ollama running with the model pulled
+    (see scripts/setup_macos.sh). Local means this computer (security/ollama.py): a remote
+    OLLAMA_BASE_URL is unavailable unless `ollama_allow_remote`, and even then it is not `local`,
+    so the consent preview applies and names the host. Ollama cloud models are unavailable."""
     id = "ollama"
     name = "ollama"
     label = "Yerel (Ollama)"
     local = True
-    destination = "Bu bilgisayar"
-    # Tests inject an httpx.MockTransport here; None = the real (loopback) Ollama.
+    destination = ollama.LOCAL_DESTINATION
+    # Tests inject an httpx.MockTransport here; None = the real Ollama.
     transport: httpx.BaseTransport | None = None
 
-    def __init__(self, base_url: str, model: str) -> None:
+    def __init__(self, base_url: str, model: str, allow_remote: bool = False) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
+        # None = usable; otherwise nothing is ever sent (no preview either).
+        self.refusal = ollama.refusal(base_url, model, allow_remote)
+        self.local = ollama.is_loopback_url(base_url)
+        self.destination = ollama.destination(base_url)
+        if not self.local:
+            self.label = "Uzak Ollama"
 
     def _client(self, timeout: float) -> httpx.Client:
         # trust_env=False: HTTP(S)_PROXY must never route document text through a proxy.
         return httpx.Client(timeout=timeout, trust_env=False, transport=self.transport)
 
     def render(self, system_prompt: str, messages: list[dict], model: str = "") -> str:
+        if self.refusal is not None:
+            raise ChatError("provider_unavailable")
         payload = {
             "model": self.model or model,
             "stream": False,
@@ -94,6 +105,8 @@ class OllamaChatProvider:
 
     def status(self) -> dict:
         """GET /api/tags (2 s): reachable, and the configured model is pulled."""
+        if self.refusal is not None:
+            return _status(self, problem="provider_unavailable")
         try:
             with self._client(2.0) as client:
                 r = client.get(f"{self.base_url}/api/tags")

@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Not the app's 5174 (vite.config.ts, strictPort): e2e starts its own dev server with the
+// in-browser mock backend, so it must never collide with, or reuse, a running app. Its origin is
+// deliberately NOT in the backend's Origin allow-list; the mock never calls the backend.
 const PORT = 5175;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 

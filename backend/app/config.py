@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     auditor_provider: Literal["ollama", "mlx", "llamacpp"] = "ollama"
     auditor_model: str = "qwen3.5:4b"
     ollama_base_url: str = "http://localhost:11434"
+    # OLLAMA_BASE_URL is used only when it is this computer (localhost, 127.0.0.0/8, ::1). A
+    # remote host receives the auditor's masked-but-unapproved text and chat's questions, over
+    # plain HTTP unless the URL says https: without this opt-in the auditor fails closed (every
+    # document goes to review) and Ollama chat is unavailable; with it, Ollama chat is a remote
+    # destination behind the same consent preview as the cloud CLIs (security/ollama.py).
+    # Ollama "cloud" models (names ending in -cloud / :cloud) proxy to ollama.com: always refused.
+    ollama_allow_remote: bool = False
     auditor_risk_approve: Literal["low", "medium", "high"] = "low"
     # If True, the local LLM auditor is REQUIRED: when Ollama is unavailable, documents route to
     # human review instead of auto-approving on the heuristic alone (no silent fail-open).
@@ -98,7 +105,11 @@ class Settings(BaseSettings):
     chat_codex_model: str = ""
     chat_cli_timeout_s: int = 60  # per CLI call; the process group is killed on expiry
     chat_max_message_chars: int = 4000
-    cors_allow_origins: str = "http://localhost:5173,http://localhost:5174"  # comma-separated
+    # The UI's own origins, and nothing else (comma-separated). Every origin listed gets
+    # credentialed API access and can read the CSRF token through CORS, so no host or port is
+    # added implicitly: another local dev server (a different Vite project on 5173) is foreign.
+    # The UI runs on 5174 with strictPort (frontend/vite.config.ts, start.sh).
+    cors_allow_origins: str = "http://localhost:5174,http://127.0.0.1:5174"
 
     # Local web security (security/web.py). The app binds to 127.0.0.1; these stop other sites and
     # other local processes from driving it (DNS rebinding, CSRF).
@@ -111,10 +122,8 @@ class Settings(BaseSettings):
         return {h.strip().lower() for h in self.allowed_hosts.split(",") if h.strip()}
 
     def origin_allowlist(self) -> set[str]:
-        origins = {o.strip() for o in self.cors_allow_origins.split(",") if o.strip()}
-        for host in self.host_allowlist():
-            origins.update({f"http://{host}:5173", f"http://{host}:5174", f"http://{host}:8000"})
-        return origins
+        """Exactly the configured UI origins (see `cors_allow_origins`)."""
+        return {o.strip() for o in self.cors_allow_origins.split(",") if o.strip()}
 
     @field_validator("max_iterations")
     @classmethod

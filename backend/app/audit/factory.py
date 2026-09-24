@@ -8,14 +8,22 @@ Every combined result carries `llm_ok`: None when no LLM is configured (heuristi
 when the LLM was required but missing or its call failed (the result is then never an approval),
 True when the LLM answered. A per-call failure keeps no "Fail-closed" summary prefix here, so
 callers must read `llm_ok`, not the summary.
+
+An endpoint security/ollama.py refuses (a remote OLLAMA_BASE_URL without `ollama_allow_remote`,
+an Ollama cloud model) is treated as a REQUIRED LLM that is unavailable: it is never contacted and
+every audit fails closed, whatever `require_llm_auditor` says.
 """
 from __future__ import annotations
+
+import logging
 
 from app.audit.auditor import PrivacyAuditor
 from app.audit.heuristic import HeuristicAuditor
 from app.audit.ollama_provider import OllamaProvider
 from app.config import Settings
 from app.models.findings import AuditResult, NextAction, RiskLevel
+
+logger = logging.getLogger(__name__)
 
 _RISK_ORDER = {RiskLevel.low: 0, RiskLevel.medium: 1, RiskLevel.high: 2}
 
@@ -65,9 +73,17 @@ class CompositeAuditor:
 def build_auditor(settings: Settings) -> CompositeAuditor:
     heuristic = HeuristicAuditor()
     max_risk = RiskLevel(settings.auditor_risk_approve)
+    require_llm = settings.require_llm_auditor
     llm: PrivacyAuditor | None = None
     if settings.auditor_provider == "ollama":
-        provider = OllamaProvider(settings.ollama_base_url, settings.auditor_model)
-        if provider.is_available():
+        provider = OllamaProvider(settings.ollama_base_url, settings.auditor_model,
+                                  allow_remote=settings.ollama_allow_remote)
+        if provider.refusal is not None:
+            # A remote host without the opt-in, or a cloud model: never contacted, and never
+            # silently replaced by the heuristic alone. Built as a required-but-unavailable LLM,
+            # so every audit fails closed (llm_ok=False) and the document goes to review.
+            logger.warning("LLM auditor refused (%s); audits fail closed", provider.refusal)
+            require_llm = True
+        elif provider.is_available():
             llm = PrivacyAuditor(provider)
-    return CompositeAuditor(heuristic, llm, max_risk, require_llm=settings.require_llm_auditor)
+    return CompositeAuditor(heuristic, llm, max_risk, require_llm=require_llm)

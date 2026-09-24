@@ -4,12 +4,15 @@ Ported nearly verbatim from Screenwall V2, screenwall-v2/backend/app/studio/cli_
 (stdlib only). The safety model is unchanged:
   - no shell; document content travels ONLY through the stdin JSON envelope, never argv;
   - filtered child environment (no API keys, proxies, project hooks or debug flags) and a fixed
-    PATH, so a Finder-launched app still finds the CLI;
+    PATH, so a Finder-launched app still finds the CLI (chat/cli_process.py);
   - the V2 Claude and Codex flag sets (tools, MCP, hooks, memory, session persistence off);
     every call runs in a fresh, empty temp directory that is deleted afterwards;
   - pre-flight before every call: installed, `--help` lists the required flags, logged in;
-  - JSON event-stream parsing that rejects any tool use and any incomplete or empty answer;
-  - timeout with a process-group kill (descendants included) and a combined output limit;
+  - JSON event-stream parsing that rejects any tool use and any incomplete or empty answer. The
+    Claude stream is an ALLOWLIST: the init event comes first and reports no tools, assistant
+    content holds only text and thinking blocks, and no user (tool-result) turn appears;
+  - timeout with a process-group kill (descendants included) and a combined output limit
+    (chat/cli_process.py);
   - only fixed error codes leave this module, never CLI stderr.
 
 Fable deltas, deliberately small: temp-dir prefixes are `fable-*`; the error codes are exactly
@@ -27,27 +30,15 @@ from __future__ import annotations
 import json
 import os
 import re
-import selectors
 import shutil
-import signal
-import subprocess
 import tempfile
-import time
 from pathlib import Path
 
-CLI_PROVIDERS = frozenset({"codex_cli", "claude_cli"})
-# The only codes that may leave this module (contract ErrorCode, frontend/src/api/contract.ts).
-ERROR_CODES = frozenset(
-    {
-        "cli_not_found",
-        "cli_upgrade_required",
-        "cli_login_required",
-        "cli_timeout",
-        "cli_output_limit",
-        "cli_failed",
-        "cli_unsafe_output",
-    }
-)
+from app.chat.cli_process import ERROR_CODES, CliError, environment, run
+
+__all__ = ["ERROR_CODES", "CliError", "command", "complete", "environment", "envelope",
+           "executable", "parse", "run", "status"]
+
 _NAMES = {"codex_cli": "codex", "claude_cli": "claude"}
 _SYSTEM = (
     "You are a document question-answering assistant, not a coding agent. "
@@ -60,43 +51,56 @@ _CODE_MODE_DISABLED = (
     "enable `features.code_mode_host` and install `codex-code-mode-host`."
 )
 _CODEX_OFF = (
-    "shell_tool",
-    "unified_exec",
-    "shell_snapshot",
-    "view_image",
-    "apps",
-    "plugins",
-    "browser_use",
-    "browser_use_external",
-    "computer_use",
-    "in_app_browser",
-    "in_app_chat",
-    "in_app_dictation",
-    "in_app_local_automation",
-    "image_generation",
-    "multi_agent",
-    "multi_agent_v2",
-    "code_mode_host",
-    "code_mode",
-    "goals",
-    "hooks",
-    "skill_search",
-    "skill_mcp_dependency_install",
-    "memories",
-    "workspace_dependencies",
-    "sleep_tool",
-    "tool_suggest",
-    "remote_plugin",
+    "shell_tool", "unified_exec", "shell_snapshot", "view_image", "apps", "plugins",
+    "browser_use", "browser_use_external", "computer_use", "in_app_browser", "in_app_chat",
+    "in_app_dictation", "in_app_local_automation", "image_generation", "multi_agent",
+    "multi_agent_v2", "code_mode_host", "code_mode", "goals", "hooks", "skill_search",
+    "skill_mcp_dependency_install", "memories", "workspace_dependencies", "sleep_tool",
+    "tool_suggest", "remote_plugin",
 )
-
-
-class CliError(Exception):
-    """Only these fixed codes may cross the HTTP boundary; never CLI stderr."""
-
-    def __init__(self, code: str):
-        # Anything outside the contract collapses to the generic failure code.
-        self.code = code if code in ERROR_CODES else "cli_failed"
-        super().__init__(self.code)
+_CODEX_SETTINGS = (
+    'approval_policy="never"',
+    'history.persistence="none"',
+    'web_search="disabled"',
+    "suppress_unstable_features_warning=true",
+    "project_doc_max_bytes=0",
+    "tools.update_plan.enabled=false",
+    "tools.experimental_request_user_input.enabled=false",
+    "apps._default.enabled=false",
+    "features.skip_host_skill_discovery=true",
+    "developer_instructions=" + json.dumps(_SYSTEM),
+    *(f"features.{feature}=false" for feature in _CODEX_OFF),
+)
+_CLAUDE_FLAGS = (
+    "--print", "--output-format", "stream-json", "--verbose", "--safe-mode", "--restricted",
+    "--tools", "",
+    "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
+    "--setting-sources", "",
+    "--settings", '{"disableAllHooks":true,"autoMemoryEnabled":false}',
+    "--disable-slash-commands", "--no-chrome", "--no-session-persistence",
+    "--system-prompt-snapshot", "off",
+    "--permission-mode", "dontAsk",
+    "--permission-prompts", "none",
+    "--system-prompt", _SYSTEM,
+)
+# `--help` must list these, or the CLI is too old to be run safely.
+_REQUIRED_FLAGS = {
+    "codex_cli": ("--ignore-user-config", "--ignore-rules", "--ephemeral"),
+    "claude_cli": ("--safe-mode", "--restricted", "--tools", "--no-session-persistence",
+                   "--system-prompt-snapshot", "--permission-prompts"),
+}
+_MODEL = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_.:/-]{0,119}")
+# Codex: the only item types a plain question/answer turn produces.
+_CODEX_ITEMS = frozenset({"agent_message", "reasoning"})
+_FALLBACK_METADATA = re.compile(
+    r"Model metadata for `[a-zA-Z0-9_.:/-]+` not found\. "
+    r"Defaulting to fallback metadata; this can degrade "
+    r"performance and cause issues\."
+)
+# Claude: the only content blocks an answer may hold (tool_use, server_tool_use, mcp_tool_use,
+# tool results, images, documents... are all unsafe), and the events that mean a tool ran.
+_CLAUDE_BLOCKS = frozenset({"text", "thinking"})
+_CLAUDE_TOOL_EVENTS = frozenset({"user", "tool_progress", "tool_use_summary"})
 
 
 def executable(provider: str) -> str | None:
@@ -113,106 +117,8 @@ def executable(provider: str) -> str | None:
     return next((p for p in candidates if p and os.path.isfile(p) and os.access(p, os.X_OK)), None)
 
 
-def environment() -> dict[str, str]:
-    # Preserve account discovery, not API secrets, proxies, project hooks or debug flags.
-    env = {
-        k: os.environ[k]
-        for k in ("HOME", "USER", "LOGNAME", "TMPDIR", "CODEX_HOME")
-        if k in os.environ
-    }
-    env.update(
-        {
-            "PATH": f"{Path.home()}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
-            "LANG": "en_US.UTF-8",
-            "NO_COLOR": "1",
-            "RUST_LOG": "off",
-            "CLAUDE_CODE_DISABLE_ATTACHMENTS": "1",
-            "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
-            "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
-            "CLAUDE_CODE_DISABLE_AGENT_VIEW": "1",
-            "CLAUDE_CODE_DISABLE_ARTIFACT": "1",
-            "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1",
-            "CLAUDE_CODE_SKIP_PROMPT_HISTORY": "1",
-            "CLAUDE_CODE_DEBUG_LOGS_DIR": os.devnull,
-            "CLAUDE_CODE_DEBUG_LOG_LEVEL": "error",
-        }
-    )
-    return env
-
-
-def run(
-    argv: list[str], *, cwd: str, stdin: str = "", timeout: float = 60, limit: int = 512_000
-) -> tuple[int, str, str]:
-    """Bound all streams and kill the process group on timeout, including descendants."""
-    try:
-        proc = subprocess.Popen(
-            argv,
-            cwd=cwd,
-            env=environment(),
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            start_new_session=True,
-        )
-    except OSError:
-        raise CliError("cli_not_found") from None
-    selector = selectors.DefaultSelector()
-    output = {"out": bytearray(), "err": bytearray()}
-    pending = memoryview(stdin.encode())
-    deadline = time.monotonic() + timeout
-    try:
-        for pipe, name in ((proc.stdout, "out"), (proc.stderr, "err")):
-            os.set_blocking(pipe.fileno(), False)
-            selector.register(pipe, selectors.EVENT_READ, name)
-        if pending:
-            os.set_blocking(proc.stdin.fileno(), False)
-            selector.register(proc.stdin, selectors.EVENT_WRITE, "in")
-        else:
-            proc.stdin.close()
-        while selector.get_map():
-            if time.monotonic() >= deadline:
-                raise CliError("cli_timeout")
-            for key, _ in selector.select(min(0.1, max(0, deadline - time.monotonic()))):
-                if key.data == "in":
-                    try:
-                        pending = pending[os.write(key.fd, pending[:8192]) :]
-                    except BrokenPipeError:
-                        pending = memoryview(b"")
-                    if not pending:
-                        selector.unregister(key.fileobj)
-                        key.fileobj.close()
-                else:
-                    chunk = os.read(key.fd, 8192)
-                    if not chunk:
-                        selector.unregister(key.fileobj)
-                        key.fileobj.close()
-                    else:
-                        output[key.data].extend(chunk)
-                        if sum(map(len, output.values())) > limit:
-                            raise CliError("cli_output_limit")
-        try:
-            code = proc.wait(timeout=max(0.01, deadline - time.monotonic()))
-        except subprocess.TimeoutExpired:
-            raise CliError("cli_timeout") from None
-        return (
-            code,
-            output["out"].decode("utf-8", "replace"),
-            output["err"].decode("utf-8", "replace"),
-        )
-    finally:
-        # Even a completed parent can leave a child behind. Never retain agent workers.
-        try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            pass
-        proc.wait()
-        selector.close()
-        for pipe in (proc.stdin, proc.stdout, proc.stderr):
-            pipe.close()
-
-
 def command(provider: str, binary: str, directory: str, model: str = "") -> list[str]:
-    if model and not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.:/-]{0,119}", model):
+    if model and not _MODEL.fullmatch(model):
         raise CliError("cli_failed")  # V2: cli_invalid_model — never let a model become a flag
     if provider == "codex_cli":
         args = [
@@ -228,70 +134,19 @@ def command(provider: str, binary: str, directory: str, model: str = "") -> list
             "-C",
             directory,
         ]
-        settings = [
-            'approval_policy="never"',
-            'history.persistence="none"',
-            'web_search="disabled"',
-            "suppress_unstable_features_warning=true",
-            "project_doc_max_bytes=0",
-            "tools.update_plan.enabled=false",
-            "tools.experimental_request_user_input.enabled=false",
-            "apps._default.enabled=false",
-            "features.skip_host_skill_discovery=true",
-            "developer_instructions=" + json.dumps(_SYSTEM),
-        ]
-        settings += [f"features.{feature}=false" for feature in _CODEX_OFF]
-        for setting in settings:
+        for setting in _CODEX_SETTINGS:
             args += ["-c", setting]
-        if model:
-            args += ["--model", model]
-        return args + ["-"]
+        return args + (["--model", model] if model else []) + ["-"]
     if provider == "claude_cli":
-        args = [
-            binary,
-            "--print",
-            "--output-format",
-            "stream-json",
-            "--verbose",
-            "--safe-mode",
-            "--restricted",
-            "--tools",
-            "",
-            "--strict-mcp-config",
-            "--mcp-config",
-            '{"mcpServers":{}}',
-            "--setting-sources",
-            "",
-            "--settings",
-            '{"disableAllHooks":true,"autoMemoryEnabled":false}',
-            "--disable-slash-commands",
-            "--no-chrome",
-            "--no-session-persistence",
-            "--system-prompt-snapshot",
-            "off",
-            "--permission-mode",
-            "dontAsk",
-            "--permission-prompts",
-            "none",
-            "--system-prompt",
-            _SYSTEM,
-        ]
-        return args + (["--model", model] if model else [])
+        return [binary, *_CLAUDE_FLAGS, *(["--model", model] if model else [])]
     raise CliError("cli_not_found")  # V2: cli_unavailable
 
 
 def status(provider: str) -> dict:
     """Local metadata only: no prompts or account identifiers returned to the browser."""
     binary = executable(provider)
-    result = {
-        "provider": provider,
-        "installed": bool(binary),
-        "compatible": False,
-        "authenticated": False,
-        "version": None,
-        "documents_sent": False,
-        "login_command": "codex login" if provider == "codex_cli" else "claude auth login",
-    }
+    result = {"installed": bool(binary), "compatible": False, "authenticated": False,
+              "version": None}
     if not binary:
         return result
     with tempfile.TemporaryDirectory(prefix="fable-cli-check-") as cwd:
@@ -304,83 +159,40 @@ def status(provider: str) -> dict:
             timeout=8,
             limit=64_000,
         )
-        required = (
-            ("--ignore-user-config", "--ignore-rules", "--ephemeral")
-            if provider == "codex_cli"
-            else (
-                "--safe-mode",
-                "--restricted",
-                "--tools",
-                "--no-session-persistence",
-                "--system-prompt-snapshot",
-                "--permission-prompts",
-            )
-        )
-        result["compatible"] = all(flag in help_text for flag in required)
-        args = ["login", "status"] if provider == "codex_cli" else ["auth", "status"]
-        code, out, err = run([binary, *args], cwd=cwd, timeout=8, limit=32_000)
-        if provider == "codex_cli":
-            result["authenticated"] = code == 0 and "Logged in using ChatGPT" in out + err
-        else:
-            try:
-                body = json.loads(out)
-                result["authenticated"] = code == 0 and body.get("loggedIn") is True
-            except (ValueError, AttributeError):
-                pass
+        result["compatible"] = all(flag in help_text for flag in _REQUIRED_FLAGS[provider])
+        result["authenticated"] = _logged_in(provider, binary, cwd)
     return result
 
 
+def _logged_in(provider: str, binary: str, cwd: str) -> bool:
+    args = ["login", "status"] if provider == "codex_cli" else ["auth", "status"]
+    code, out, err = run([binary, *args], cwd=cwd, timeout=8, limit=32_000)
+    if provider == "codex_cli":
+        return code == 0 and "Logged in using ChatGPT" in out + err
+    try:
+        return code == 0 and json.loads(out).get("loggedIn") is True
+    except (ValueError, AttributeError):
+        return False
+
+
+class _Stream:
+    """What an event stream has shown so far."""
+
+    def __init__(self) -> None:
+        self.answer = ""
+        self.completed = False
+        self.started = False  # codex: turn.started seen; claude: the init report seen
+
+
 def parse(provider: str, output: str) -> str:
-    answer = ""
-    completed = False
-    started = False
+    stream = _Stream()
+    handle = _codex_event if provider == "codex_cli" else _claude_event
     try:
         for line in output.splitlines():
-            event = json.loads(line)
-            kind = event.get("type")
-            if provider == "codex_cli":
-                started |= kind == "turn.started"
-                if kind in ("error", "turn.failed"):
-                    raise CliError("cli_failed")
-                if kind in ("item.started", "item.updated", "item.completed"):
-                    item = event.get("item", {})
-                    # Codex emits non-fatal startup warnings as error items. We deliberately
-                    # disable Code Mode; never re-enable it to silence this diagnostic.
-                    if (
-                        not started
-                        and item.get("type") == "error"
-                        and (
-                            item.get("message") == _CODE_MODE_DISABLED
-                            or re.fullmatch(
-                                r"Model metadata for `[a-zA-Z0-9_.:/-]+` not found\. "
-                                r"Defaulting to fallback metadata; this can degrade "
-                                r"performance and cause issues\.",
-                                item.get("message", ""),
-                            )
-                        )
-                    ):
-                        continue
-                    if item.get("type") not in ("agent_message", "reasoning"):
-                        raise CliError("cli_unsafe_output")
-                    if kind == "item.completed" and item.get("type") == "agent_message":
-                        answer = item.get("text", "")
-                completed |= kind == "turn.completed"
-            else:
-                if kind == "system" and event.get("subtype") == "init" and event.get("tools"):
-                    raise CliError("cli_unsafe_output")
-                if kind == "assistant":
-                    if any(
-                        c.get("type") in ("tool_use", "server_tool_use")
-                        for c in event.get("message", {}).get("content", [])
-                    ):
-                        raise CliError("cli_unsafe_output")
-                if kind == "result":
-                    if event.get("is_error") or event.get("subtype") != "success":
-                        raise CliError("cli_failed")
-                    answer = event.get("result", "")
-                    completed = True
+            handle(json.loads(line), stream)
+        answer = stream.answer
         if (
-            not completed
+            not stream.completed
             or not isinstance(answer, str)
             or not answer.strip()
             or len(answer) > 24_000
@@ -389,6 +201,53 @@ def parse(provider: str, output: str) -> str:
         return answer
     except (ValueError, AttributeError, TypeError):
         raise CliError("cli_failed") from None
+
+
+def _codex_event(event: dict, stream: _Stream) -> None:
+    kind = event.get("type")
+    stream.started |= kind == "turn.started"
+    if kind in ("error", "turn.failed"):
+        raise CliError("cli_failed")
+    if kind in ("item.started", "item.updated", "item.completed"):
+        item = event.get("item", {})
+        # Codex emits non-fatal startup warnings as error items. We deliberately
+        # disable Code Mode; never re-enable it to silence this diagnostic.
+        if not stream.started and _startup_warning(item):
+            return
+        if item.get("type") not in _CODEX_ITEMS:
+            raise CliError("cli_unsafe_output")
+        if kind == "item.completed" and item.get("type") == "agent_message":
+            stream.answer = item.get("text", "")
+    stream.completed |= kind == "turn.completed"
+
+
+def _startup_warning(item: dict) -> bool:
+    return item.get("type") == "error" and (
+        item.get("message") == _CODE_MODE_DISABLED
+        or bool(_FALLBACK_METADATA.fullmatch(item.get("message", "")))
+    )
+
+
+def _claude_event(event: dict, stream: _Stream) -> None:
+    """An allowlist: anything not shown to be a plain answer is unsafe."""
+    kind = event.get("type")
+    if kind in _CLAUDE_TOOL_EVENTS:  # a user turn carries tool results; the others, tool runs
+        raise CliError("cli_unsafe_output")
+    if kind == "system" and event.get("subtype") == "init":
+        if event.get("tools") != []:  # it must report, explicitly, that no tool exists
+            raise CliError("cli_unsafe_output")
+        stream.started = True
+    elif kind in ("assistant", "result") and not stream.started:
+        raise CliError("cli_unsafe_output")  # nothing counts before the init report
+    if kind == "assistant":
+        content = event.get("message", {}).get("content", [])
+        if any(block.get("type") not in _CLAUDE_BLOCKS for block in content):
+            raise CliError("cli_unsafe_output")
+    if kind == "result":
+        if event.get("is_error") or event.get("subtype") != "success":
+            raise CliError("cli_failed")
+        stream.answer = event.get("result", "")
+        stream.completed = True
 
 
 def envelope(system: str, messages: list[dict]) -> str:

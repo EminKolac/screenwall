@@ -29,7 +29,9 @@ export function ConsentDialog({ preview, mode, open, sending = false, onConfirm,
 
   if (!preview) return null;
   const consent = mode === "consent";
-  const local = preview.provider === "ollama";
+  // The flow opens "consent" for every non-local provider, including an explicitly allowed remote
+  // Ollama, so the mode (not the provider's name) says whether the text leaves this machine.
+  const local = !consent;
 
   return (
     <Dialog

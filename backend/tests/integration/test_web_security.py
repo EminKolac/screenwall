@@ -67,3 +67,50 @@ def test_validation_errors_never_echo_input(secure) -> None:
                    headers={"X-CSRF-Token": token})
     assert r.status_code == 422
     assert "Ayşe" not in r.text and "10000000146" not in r.text
+
+
+def test_testserver_host_is_refused_unless_configured(monkeypatch) -> None:
+    """TestClient sends Host "testserver". Production must not accept it: a DNS-rebinding page
+    could otherwise name that host and read every original value."""
+    monkeypatch.setenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    client = TestClient(app)
+    r = client.get("/api/health")
+    assert r.status_code == 403 and r.json()["detail"] == "host_not_allowed"
+    assert client.get("/api/health", headers={"Host": "localhost:8000"}).status_code == 200
+
+
+def test_non_ascii_csrf_token_is_refused_not_a_server_error(secure) -> None:
+    client = TestClient(app, raise_server_exceptions=False)
+    assert client.get("/api/session").status_code == 200
+    r = client.put("/api/settings", json={}, headers={"X-CSRF-Token": "jeton-ş".encode()})
+    assert r.status_code == 403 and r.json()["detail"] == "csrf_failed"
+
+
+def test_origin_allowlist_is_only_the_configured_ui_origins(monkeypatch) -> None:
+    from app.config import Settings
+
+    monkeypatch.delenv("CORS_ALLOW_ORIGINS", raising=False)
+    assert Settings().origin_allowlist() == {"http://localhost:5174", "http://127.0.0.1:5174"}
+    only = Settings(cors_allow_origins="http://localhost:5174")
+    assert only.origin_allowlist() == {"http://localhost:5174"}  # nothing added per host/port
+
+
+@pytest.mark.parametrize("origin", ["http://localhost:5173", "http://127.0.0.1:5173",
+                                    "http://localhost:8000", "http://127.0.0.1:5175"])
+def test_other_local_ports_are_foreign_origins(secure, origin) -> None:
+    """Another local dev server (any other Vite project on 5173) must not get credentialed API
+    access, nor read the CSRF token through CORS."""
+    r = secure.get("/api/session", headers={"Origin": origin})
+    assert r.status_code == 403 and r.json()["detail"] == "origin_not_allowed"
+    pre = secure.options("/api/session", headers={"Origin": origin,
+                                                  "Access-Control-Request-Method": "GET"})
+    assert "access-control-allow-origin" not in pre.headers
+
+
+@pytest.mark.parametrize("origin", ["http://localhost:5174", "http://127.0.0.1:5174"])
+def test_the_ui_origins_are_allowed(secure, origin) -> None:
+    r = secure.get("/api/session", headers={"Origin": origin})
+    assert r.status_code == 200 and r.headers["access-control-allow-origin"] == origin

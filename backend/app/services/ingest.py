@@ -7,10 +7,11 @@ never to auto-approval. Corrupt files raise `ExtractionFailed`.
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from dataclasses import dataclass, field
 
-from app.config import Settings
+from app.config import Settings, get_settings
 from app.extraction.base import (
     IMAGE_TEXT_UNREAD,
     OCR_UNAVAILABLE,
@@ -32,6 +33,8 @@ _BLOCKING = {
                                               "içindeki yazı okunmamış olabilir."),
 }
 _NO_TEXT = ("no_text", "Belgeden hiç metin çıkarılamadı (büyük olasılıkla tamamı görüntü).")
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -59,11 +62,31 @@ def extract_content(data: bytes, filename: str, settings: Settings) -> ExtractRe
     return ExtractResult(kind=kind, content=content, language=language, reasons=reasons)
 
 
-def new_document(filename: str, kind: FileKind, mode: str) -> Document:
+def new_document(filename: str, kind: FileKind, mode: str,
+                 settings: Settings | None = None) -> Document:
+    """A queued document. In destructive mode the upload's name is personal data like the
+    content ("Ahmet Yılmaz maaş.xlsx") and document.json is persisted, so only its masked form is
+    kept (`anonymize_filename`, as for the download name, with the run's always-mask terms) plus
+    the type's extension, which the worker uses to pick the extractor."""
+    if mode == "destructive":
+        filename = _masked_filename(filename, kind, settings)
     doc = Document(id=uuid.uuid4().hex, filename=filename, kind=kind)
     doc.mode = mode  # type: ignore[assignment]
     doc.transition(DocumentStatus.QUEUED)
     return doc
+
+
+def _masked_filename(filename: str, kind: FileKind, settings: Settings | None) -> str:
+    from app.export.filename import anonymize_filename  # loads the engine: import on use
+    from app.pipeline.terms import effective_terms
+
+    try:
+        deny, _allow = effective_terms(settings or get_settings())
+        stem = anonymize_filename(filename, deny_terms=deny)
+    except Exception as e:  # noqa: BLE001 — never fall back to the raw name
+        logger.warning("filename masking failed (%s); a neutral name is stored", type(e).__name__)
+        stem = "belge"
+    return f"{stem}.{kind.value}"
 
 
 def ingest(data: bytes, filename: str, settings: Settings) -> tuple[Document, ExtractedContent]:

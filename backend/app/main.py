@@ -6,6 +6,7 @@ layer (security/web.py) and the background worker. The API is meant to listen on
 """
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,18 +18,27 @@ from app.api import chat, documents, system
 from app.config import get_settings
 from app.security import web
 from app.security.logging import configure_pii_safe_logging
+from app.security.permissions import lock_down_store
 from app.services.deps import get_worker
+
+logger = logging.getLogger(__name__)
 
 _LAYERS = ("1_original", "2_extracted", "3_anonymized", "4_validation", "5_chat_context")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    configure_pii_safe_logging()  # redact PII from all logs before anything runs
+    configure_pii_safe_logging()  # redact PII from all logs (uvicorn's too) before anything runs
     settings = get_settings()
     settings.storage_root.mkdir(parents=True, exist_ok=True, mode=0o700)
     for layer_dir in _LAYERS:
         settings.layer_path(layer_dir).mkdir(parents=True, exist_ok=True, mode=0o700)
+    # mkdir never tightens what exists; a store from an older version is 0755/0644.
+    counts = lock_down_store(settings.storage_root, _LAYERS)
+    if counts["dirs"] or counts["files"] or counts["errors"]:
+        logger.info("storage permissions: %d directories, %d files made private "
+                    "(%d symlinks skipped, %d errors)", counts["dirs"], counts["files"],
+                    counts["symlinks"], counts["errors"])
     worker = None
     if not settings.process_inline:
         worker = get_worker()

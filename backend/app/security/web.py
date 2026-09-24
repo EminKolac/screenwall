@@ -107,6 +107,15 @@ def _host(request: Request) -> str:
     return host.rsplit(":", 1)[0] if ":" in host else host
 
 
+def _csrf_matches(sent: str, expected: str) -> bool:
+    """Constant-time comparison of bytes: `compare_digest` raises TypeError on a str with
+    non-ASCII characters, and a header decoded as latin-1 can carry any byte."""
+    try:
+        return secrets.compare_digest(sent.encode("utf-8"), expected.encode("utf-8"))
+    except (TypeError, UnicodeError):
+        return False
+
+
 def install(app, sessions: SessionStore) -> None:
     """Settings are read per request (they are cached), so tests can change them per test."""
     from app.config import get_settings
@@ -116,7 +125,7 @@ def install(app, sessions: SessionStore) -> None:
     @app.middleware("http")
     async def local_security(request: Request, call_next):
         settings = get_settings()
-        hosts = settings.host_allowlist() | {"testserver"}  # FastAPI TestClient's Host header
+        hosts = settings.host_allowlist()  # tests add TestClient's "testserver" via settings
         origins = settings.origin_allowlist()
         if _host(request) not in hosts:
             return JSONResponse({"detail": "host_not_allowed"}, status_code=403)
@@ -136,7 +145,7 @@ def install(app, sessions: SessionStore) -> None:
             csrf = sessions.csrf_for(request.cookies.get(SESSION_COOKIE))
             if csrf is None:
                 return JSONResponse({"detail": "session_required"}, status_code=401)
-            if request.method not in ("GET", "HEAD") and not secrets.compare_digest(
+            if request.method not in ("GET", "HEAD") and not _csrf_matches(
                     request.headers.get("x-csrf-token", ""), csrf):
                 return JSONResponse({"detail": "csrf_failed"}, status_code=403)
         response = await call_next(request)

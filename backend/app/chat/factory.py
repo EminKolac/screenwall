@@ -25,8 +25,9 @@ def build_provider(
 
 
 def build_chat_provider(settings: Settings) -> OllamaChatProvider:
-    """The local default provider."""
-    return OllamaChatProvider(settings.ollama_base_url, settings.chat_ollama_model)
+    """The default provider: Ollama, local unless a remote host is explicitly allowed."""
+    return OllamaChatProvider(settings.ollama_base_url, settings.chat_ollama_model,
+                              allow_remote=settings.ollama_allow_remote)
 
 
 def build_chat_service(settings: Settings) -> ChatService:

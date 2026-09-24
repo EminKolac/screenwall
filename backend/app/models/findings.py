@@ -6,7 +6,8 @@ schema-invalid output is treated as "not approved" and routes the document to hu
 Codex Phase-1 review fixes incorporated:
 - Approval is NOT just `approved == true`; use `is_clean_approval()` (CRITICAL).
 - `SensitiveItem.snippet` is capped + minimally redacted at the model boundary so validation
-  reports stay PII-safe (CRITICAL).
+  reports stay PII-safe (CRITICAL). Its free-text siblings are too: `note` is dropped, `location`
+  keeps a bare page number, `type` a known label (security review, destructive mode).
 - JSON extraction is string-aware (ignores braces inside string literals) (MEDIUM).
 """
 from __future__ import annotations
@@ -40,9 +41,34 @@ def _mini_redact(text: str) -> str:
     return text
 
 
+# Residual types an item may name: the engine's detector types and families
+# (anonymization/types.py), the heuristic's labels, and the usual words an LLM uses for them.
+# Anything else is "UNKNOWN": a model-invented type ("PERSON: Ahmet Yılmaz") is free text.
+_ITEM_TYPES = frozenset({
+    "ACCOUNT", "ACCOUNT_NUMBER", "ADDRESS", "API_KEY", "BANK_ACCOUNT", "CARD", "COMPANY",
+    "CONFIDENTIAL", "CREDENTIAL", "CREDIT_CARD", "DATE", "DATE_OF_BIRTH", "DATE_TIME", "DL",
+    "DRIVER_LICENSE", "EMAIL", "EMAIL_ADDRESS", "FINANCIAL", "GOVERNMENT_ID", "HEALTH", "IBAN",
+    "IBAN_CODE", "ID", "ID_NUMBER", "IP", "IP_ADDRESS", "LICENSE_PLATE", "LOCATION", "MEDICAL",
+    "NAME", "NATIONAL_ID", "NRP", "ORG", "ORGANIZATION", "PASSPORT", "PASSPORT_NUMBER",
+    "PASSWORD", "PERSON", "PHONE", "PHONE_NUMBER", "PLATE", "SALARY", "SECRET", "SECRET_KEY",
+    "SENSITIVE", "SSN", "TAX_ID", "TAX_NUMBER", "TCKN", "TR_ACCOUNT", "TR_ADDRESS", "TR_COMPANY",
+    "TR_DISABILITY", "TR_GSM", "TR_HEALTH", "TR_IBAN", "TR_PASSPORT", "TR_PERSON_CTX",
+    "TR_PHONE", "TR_PLATE", "TR_SALARY_BAND", "TR_TCKN", "TR_VKN", "UK_PHONE", "UNKNOWN", "URL",
+    "US_DRIVER_LICENSE", "US_SSN", "USERNAME", "VEHICLE_PLATE", "VKN",
+})
+# "page 2", "sayfa 2", "p. 2": the only location kept — a bare, short page number.
+_PAGE_REF = re.compile(r"\b(?:page|sayfa|p\.|s\.)\s*(\d{1,4})(?!\d)", re.IGNORECASE)
+_LENGTH_HINT = re.compile(r"‹\d+ chars›")
+
+
 class SensitiveItem(BaseModel):
-    """A residual sensitive item reported by the auditor. Describes the *type* and a short,
-    redacted hint/location only — never reconstructed PII."""
+    """A residual sensitive item reported by the auditor, as stored in layer 4.
+
+    Only non-identifying hints survive validation: a known `type`, the snippet's LENGTH and a
+    bare page number. The model's free text — `note`, a descriptive `location`, an invented
+    `type` — can repeat the very value it found, so it is dropped here, at the model boundary
+    (the literal snippets reach the next masking pass through `AuditResult.raw_terms`, which is
+    never serialized)."""
     model_config = ConfigDict(extra="ignore")
 
     type: str = "UNKNOWN"
@@ -50,13 +76,33 @@ class SensitiveItem(BaseModel):
     location: str = ""
     note: str = ""
 
+    # "after" validators: a non-string field still fails the whole verdict closed, as before.
+    @field_validator("type")
+    @classmethod
+    def _known_type(cls, v: str) -> str:
+        key = re.sub(r"[^A-Z0-9]+", "_", v.upper()).strip("_")
+        return key if key in _ITEM_TYPES else "UNKNOWN"
+
     @field_validator("snippet")
     @classmethod
     def _safe_snippet(cls, v: str) -> str:
         # Store only a non-identifying length hint — never raw content (raw lives in raw_terms,
         # which is excluded from serialization). Keeps the validation layer & API PII-safe.
+        if _LENGTH_HINT.fullmatch(v):  # a stored document read back keeps its hint
+            return v
         n = len(v.strip())
         return f"‹{n} chars›" if n else ""
+
+    @field_validator("location")
+    @classmethod
+    def _page_only(cls, v: str) -> str:
+        m = _PAGE_REF.search(v)
+        return f"page {int(m[1])}" if m else ""
+
+    @field_validator("note")
+    @classmethod
+    def _no_free_text(cls, _v: str) -> str:
+        return ""
 
 
 class AuditResult(BaseModel):

@@ -7,7 +7,8 @@ appended to `claude.calls.jsonl` (argv, cwd and its listing, the full environmen
 and stdin as text + base64 so tests can compare exact bytes).
 
 Modes: success | tool_use | tools_enabled | error_result | exit_error | timeout | flood |
-logged_out | old_help
+logged_out | old_help | mcp_tool_use | tool_result | no_init | init_without_tools | thinking |
+rate_limited
 """
 import base64
 import json
@@ -113,7 +114,57 @@ def result_event(answer: str, *, is_error: bool = False) -> dict:
     }
 
 
+def user_event(content: list) -> dict:
+    return {
+        "type": "user",
+        "message": {"role": "user", "content": content},
+        "parent_tool_use_id": None,
+        "session_id": SESSION,
+        "uuid": "0c6b8f5e-1111-4a2b-8c3d-000000000004",
+    }
+
+
+def rate_limit_event() -> dict:
+    return {
+        "type": "rate_limit_event",
+        "rate_limit_info": {"status": "allowed", "resetsAt": 1790300000,
+                            "rateLimitType": "five_hour"},
+        "uuid": "0c6b8f5e-1111-4a2b-8c3d-000000000005",
+        "session_id": SESSION,
+    }
+
+
+def stream_scenario(mode: str, answer: str) -> list[dict] | None:
+    """Well-formed streams that differ only in what the model or the CLI did."""
+    text = {"type": "text", "text": answer}
+    if mode == "mcp_tool_use":
+        tool = {"type": "mcp_tool_use", "id": "mcptoolu_01Fake", "name": "read_file",
+                "server_name": "files", "input": {"path": "/etc/hosts"}}
+        return [init_event([]), assistant_event([tool, text]), result_event(answer)]
+    if mode == "tool_result":
+        result = {"type": "tool_result", "tool_use_id": "toolu_01Fake", "content": "hosts"}
+        return [init_event([]), user_event([result]), assistant_event([text]),
+                result_event(answer)]
+    if mode == "no_init":
+        return [assistant_event([text]), result_event(answer)]
+    if mode == "init_without_tools":
+        init = init_event([])
+        del init["tools"]
+        return [init, assistant_event([text]), result_event(answer)]
+    if mode == "thinking":
+        thought = {"type": "thinking", "thinking": "Kaynak S1'e bakıyorum.", "signature": "c2ln"}
+        return [init_event([]), assistant_event([thought, text]), result_event(answer)]
+    if mode == "rate_limited":
+        return [init_event([]), rate_limit_event(), assistant_event([text]),
+                result_event(answer)]
+    return None
+
+
 def chat(mode: str, answer: str) -> int:
+    events = stream_scenario(mode, answer)
+    if events is not None:
+        emit(*events)
+        return 0
     if mode == "timeout":
         grandchild = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
         pids = {"child": os.getpid(), "grandchild": grandchild.pid}

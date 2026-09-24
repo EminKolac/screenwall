@@ -25,6 +25,34 @@ def test_xlsx_cells_with_addresses(xlsx_tr):
     assert "Ahmet Yılmaz" in c.plain_text
 
 
+def test_xlsx_block_ids_and_locations_never_carry_the_sheet_name():
+    """Block ids become unit ids in layer 3 (anonymized.json, edits.json) and layer 4
+    (findings.json), and the location reaches the review screen: none of them is masked. The raw
+    sheet title may live only where the engine masks it (the heading text) or clears it
+    (`Block.sheet`)."""
+    import io
+
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    wb.active.title = "Ahmet Yılmaz"
+    wb.active.append(["Ad"])
+    wb.active.append(["Ahmet Yılmaz"])
+    wb.create_sheet("Boş sayfa")  # no cells: emits nothing, but keeps its position
+    wb.create_sheet("Ayşe Kaya").append(["Maaş"])
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    c = XlsxExtractor().extract(buf.getvalue(), "x.xlsx")
+    sheets = [b for b in c.blocks if b.location != "comment"]
+    assert [(b.block_id, b.type, b.location) for b in sheets] == [
+        ("x1-h", BlockType.heading, "Sayfa 1"), ("x1-t", BlockType.table, "Sayfa 1"),
+        ("x3-h", BlockType.heading, "Sayfa 3"), ("x3-t", BlockType.table, "Sayfa 3"),
+    ]
+    assert [b.text for b in sheets if b.type == BlockType.heading] == ["Ahmet Yılmaz", "Ayşe Kaya"]
+    assert [b.sheet for b in sheets if b.type == BlockType.table] == ["Ahmet Yılmaz", "Ayşe Kaya"]
+
+
 def test_pdf_text(pdf_en):
     c = PdfExtractor().extract(pdf_en, "a.pdf")
     assert c.kind == FileKind.pdf

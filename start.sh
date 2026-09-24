@@ -2,8 +2,13 @@
 # Start the whole platform (Ollama + backend + frontend) detached, so it survives terminal close.
 # Usage:  bash ~/anonymizer-platform/start.sh   then open http://localhost:5174
 set -u
+# Private by default: the log files the redirects below create, and whatever the three services
+# write, are readable by this user only.
+umask 077
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGS="$ROOT/.logs"; mkdir -p "$LOGS"
+# A log from an earlier run keeps its old mode (0644) across `>`: tighten those too.
+chmod 700 "$LOGS"; chmod 600 "$LOGS"/*.log 2>/dev/null || true
 UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
 NPM="$(command -v npm || echo npm)"
 OLLAMA="$(command -v ollama || echo "/opt/homebrew/bin/ollama")"

@@ -5,6 +5,7 @@ cwd, environment, process ids and the exact stdin bytes of every invocation.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import time
@@ -15,7 +16,7 @@ import pytest
 from app.chat import cli
 from tests.fixtures.fake_cli import PROVIDER_BINARY, install_fake_cli, process_gone
 
-PROVIDERS = sorted(cli.CLI_PROVIDERS)
+PROVIDERS = sorted(PROVIDER_BINARY)
 SYSTEM = "SYNTHETIC-INSTRUCTIONS answer from [S1] only. <PERSON_1> signed."
 MESSAGES = [{"role": "user", "content": "SYNTHETIC-QUESTION kim imzaladı?"}]
 ANSWERS = {
@@ -212,3 +213,70 @@ def test_invalid_output_is_safe(output):
     for provider in PROVIDERS:
         with pytest.raises(cli.CliError):
             cli.parse(provider, output)
+
+
+# ------------------------------------------------ Claude stream: an allowlist, not a denylist
+
+
+@pytest.mark.parametrize("mode", ["mcp_tool_use", "tool_result", "no_init", "init_without_tools"])
+def test_claude_stream_outside_the_allowlist_is_unsafe(mode, fakes):
+    """Only text/thinking blocks, no user (tool-result) turn, and an init report of no tools."""
+    fakes["claude_cli"].set(mode)
+    with pytest.raises(cli.CliError) as err:
+        _complete("claude_cli")
+    assert err.value.code == "cli_unsafe_output"
+
+
+@pytest.mark.parametrize("mode", ["thinking", "rate_limited"])
+def test_claude_thinking_and_metadata_events_are_fine(mode, fakes):
+    fakes["claude_cli"].set(mode)
+    assert _complete("claude_cli") == ANSWERS["claude_cli"]
+
+
+def _line(**event) -> str:
+    return json.dumps(event)
+
+
+def test_claude_parser_checks_every_block_and_event():
+    init = _line(type="system", subtype="init", tools=[])
+    text = {"type": "text", "text": "ok [S1]"}
+    result = _line(type="result", subtype="success", is_error=False, result="ok [S1]")
+    ok = "\n".join([init, _line(type="assistant", message={"content": [text]}), result])
+    assert cli.parse("claude_cli", ok) == "ok [S1]"
+    for block in ({"type": "server_tool_use"}, {"type": "web_search_tool_result"},
+                  {"type": "image"}, {"type": "document"}, {}):
+        bad = _line(type="assistant", message={"content": [text, block]})
+        with pytest.raises(cli.CliError) as err:
+            cli.parse("claude_cli", "\n".join([init, bad, result]))
+        assert err.value.code == "cli_unsafe_output"
+    for tools in (["Bash"], None, "", {}):
+        with pytest.raises(cli.CliError) as err:
+            cli.parse("claude_cli", "\n".join([_line(type="system", subtype="init", tools=tools),
+                                               result]))
+        assert err.value.code == "cli_unsafe_output"
+    for event in (_line(type="user", message={"content": "hi"}), _line(type="tool_progress")):
+        with pytest.raises(cli.CliError) as err:
+            cli.parse("claude_cli", "\n".join([init, event, result]))
+        assert err.value.code == "cli_unsafe_output"
+
+
+# ------------------------------------------------------------------ module shape (split of cli.py)
+
+
+def test_status_returns_only_the_fields_the_provider_reads(fakes):
+    assert set(cli.status("claude_cli")) == {"installed", "compatible", "authenticated", "version"}
+    assert not hasattr(cli, "CLI_PROVIDERS")  # unused outside tests
+
+
+def test_cli_modules_stay_small():
+    import ast
+
+    from app.chat import cli_process
+
+    for module in (cli, cli_process):
+        source = Path(module.__file__).read_text(encoding="utf-8")
+        assert len(source.splitlines()) <= 300, module.__name__
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                length = node.end_lineno - node.lineno + 1
+                assert length <= 50, f"{module.__name__}.{node.name}: {length} lines"

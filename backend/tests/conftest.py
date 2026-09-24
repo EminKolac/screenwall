@@ -29,6 +29,9 @@ def _isolated_storage(tmp_path, monkeypatch):
     # it back on.
     monkeypatch.setenv("PROCESS_INLINE", "true")
     monkeypatch.setenv("SESSION_REQUIRED", "false")
+    # FastAPI's TestClient sends Host "testserver". The app itself never trusts that name; tests
+    # allow it here, through the same setting production uses.
+    monkeypatch.setenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
     from app.anonymization.privacy_filter import get_privacy_filter
     from app.config import get_settings
     from app.services.deps import get_repository, get_worker

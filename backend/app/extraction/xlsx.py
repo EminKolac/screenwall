@@ -3,6 +3,11 @@ A1 address), preceded by a HEADING block carrying the sheet name so that name is
 audited too (rendering the raw `Block.sheet` would expose an un-audited name). Cell COMMENTS are
 captured as well so their PII is audited + rendered (Codex P1).
 
+A sheet title is content ("Ahmet Yılmaz" is a common one), so it lives ONLY in the heading text
+(masked by the engine) and in `Block.sheet` (cleared by the engine). Block ids and locations are
+never masked — they become unit ids in layers 3-4 and reach the review screen — so they carry the
+sheet's position only: `x{n}-h` / `x{n}-t` and "Sayfa {n}", n = 1-based index in the workbook.
+
 Memory safety: VALUES are read with `read_only=True` streaming + a hard cell cap. COMMENTS are read
 straight from the `xl/comments*.xml` parts of the zip — but each part is size-bounded BEFORE
 decompression/parse (a single part could otherwise be hundreds of MB under the archive limit).
@@ -68,7 +73,7 @@ class XlsxExtractor:
         count = 0
         truncated = False
         try:
-            for ws in wb.worksheets:
+            for n, ws in enumerate(wb.worksheets, start=1):
                 if truncated:
                     break
                 cells: list[TableCell] = []
@@ -86,13 +91,14 @@ class XlsxExtractor:
                             text=str(cell.value), address=cell.coordinate))
                         count += 1
                 if cells:
-                    # Sheet name as a heading block → anonymized + audited (not rendered raw).
+                    # Sheet name as a heading block → anonymized + audited (not rendered raw);
+                    # ids and location name the position only (see the module docstring).
                     blocks.append(Block(
-                        block_id=f"sheet-h-{ws.title}", type=BlockType.heading,
-                        text=ws.title, location=f"sheet {ws.title}"))
+                        block_id=f"x{n}-h", type=BlockType.heading,
+                        text=ws.title, location=f"Sayfa {n}"))
                     blocks.append(Block(
-                        block_id=f"sheet-{ws.title}", type=BlockType.table,
-                        cells=cells, sheet=ws.title, location=f"sheet {ws.title}"))
+                        block_id=f"x{n}-t", type=BlockType.table,
+                        cells=cells, sheet=ws.title, location=f"Sayfa {n}"))
             meta = {"sheets": ",".join(wb.sheetnames)}
         finally:
             wb.close()

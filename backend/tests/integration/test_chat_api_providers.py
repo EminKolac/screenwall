@@ -313,6 +313,41 @@ def test_local_ollama_send_is_not_recorded(client, ollama):
     assert not (get_settings().storage_root / "chat_dispatches.jsonl").exists()
 
 
+REMOTE_OLLAMA = "http://gpu-box.invalid:11434"
+
+
+def test_a_remote_ollama_without_opt_in_is_unavailable(client, ollama, monkeypatch):
+    monkeypatch.setenv("OLLAMA_BASE_URL", REMOTE_OLLAMA)
+    get_settings.cache_clear()
+    _seed("d1")
+    for path in ("/api/chat", "/api/chat/preview"):
+        r = client.post(path, json=_body("ollama"))
+        assert r.status_code == 503 and r.json() == {"detail": "provider_unavailable"}
+    by_id = {p["id"]: p for p in client.get("/api/chat/providers").json()["providers"]}
+    assert by_id["ollama"]["problem"] == "provider_unavailable"
+    assert by_id["ollama"]["local"] is False
+    assert ollama["bodies"] == []
+    assert not (get_settings().storage_root / "chat_dispatches.jsonl").exists()
+
+
+def test_an_allowed_remote_ollama_needs_consent_and_is_recorded(client, ollama, monkeypatch):
+    monkeypatch.setenv("OLLAMA_BASE_URL", REMOTE_OLLAMA)
+    monkeypatch.setenv("OLLAMA_ALLOW_REMOTE", "true")
+    get_settings.cache_clear()
+    _seed("d1")
+    r = client.post("/api/chat", json=_body("ollama"))
+    assert r.status_code == 409 and r.json() == {"detail": "preview_required"}
+    assert ollama["bodies"] == []
+    preview = client.post("/api/chat/preview", json=_body("ollama")).json()
+    assert "gpu-box.invalid" in preview["destination"]
+    r = client.post("/api/chat", json=_body("ollama", preview_hash=preview["preview_hash"]))
+    assert r.status_code == 200, r.text
+    assert len(ollama["bodies"]) == 1
+    log = get_settings().storage_root / "chat_dispatches.jsonl"
+    [row] = [json.loads(line) for line in log.read_text().splitlines()]
+    assert row["provider"] == "ollama" and row["preview_hash"] == preview["preview_hash"]
+
+
 def test_more_than_eight_history_messages_is_422(client, ollama):
     _seed("d1")
     history = [{"role": "user", "content": f"soru {i}"} for i in range(9)]
