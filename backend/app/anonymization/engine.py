@@ -37,14 +37,8 @@ from app.models.document import Language
 
 __all__ = [
     "AnonymizationEngine", "AnonymizationOutput", "Engine", "EntitySpan", "MaskEdit",
-    "Overrides", "resolve_spans", "get_privacy_filter", "iter_units",
+    "Overrides", "resolve_spans", "iter_units",
 ]
-
-
-def get_privacy_filter():
-    """Optional local contextual detector (off by default). Module-level so tests can patch it."""
-    from app.anonymization.privacy_filter import get_privacy_filter as _get
-    return _get()
 
 
 class AnonymizationOutput(BaseModel):
@@ -164,8 +158,7 @@ class Engine(AnonymizationEngine):
         deny = _clean(deny)
         deny_keys = {term_key(t) for t in deny}
         allow = [t for t in _clean(allow) if term_key(t) not in deny_keys]
-        return Detection(analyzer=get_analyzer(), detector=get_privacy_filter(),
-                         threshold=self.threshold, deny=deny,
+        return Detection(analyzer=get_analyzer(), threshold=self.threshold, deny=deny,
                          allow=allow + _clean(list(keep_terms)),
                          deny_families=dict(families or {}))
 

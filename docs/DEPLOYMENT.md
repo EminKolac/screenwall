@@ -36,13 +36,12 @@ npm run dev                               # http://localhost:5174 (proxies /api 
 | Upgrade | Why | How |
 |---|---|---|
 | **Local Qwen auditor** | LLM-grade residual-PII detection on top of the heuristic | `bash scripts/setup_macos.sh` (installs Ollama, pulls `qwen3.5:4b` — Apache-2.0, also used for post-approval chat) |
-| **OpenAI Privacy Filter** | 2nd detection stage: a **local, on-device** open-weight model for context-aware PII (names/addresses/secrets) Presidio misses — no external call | `PRIVACY_FILTER=1 bash scripts/setup_macos.sh` (installs `[privacy]` extra **and pre-downloads the model** — runtime loading is `local_files_only`, zero network), then `USE_PRIVACY_FILTER=true`. Tune: `PRIVACY_FILTER_MODEL` / `PRIVACY_FILTER_THRESHOLD` / `PRIVACY_FILTER_EXCLUDE_LABELS` (calibrate with `uv run python -m app.cli.eval_privacy_filter`); `REQUIRE_PRIVACY_FILTER=true` fails closed if unavailable |
 | **`en_core_web_lg`** | Higher English NER accuracy | `uv run python -m spacy download en_core_web_lg` then `SPACY_EN_MODEL=en_core_web_lg` |
 
 ### Memory budget (16GB M4)
-qwen3.5:4b ≈ 3.4 GB resident, and the same weights serve the auditor and chat. The optional
-Privacy Filter stage adds its own footprint; prefer not to keep both hot. The heuristic
-auditor needs no extra memory.
+qwen3.5:4b ≈ 3.4 GB resident, and the same weights serve the auditor and chat. The heuristic
+auditor needs no extra memory. (The optional OpenAI Privacy Filter stage was retired to
+`archive/privacy_filter/`: off by default, ~38x slower per document, used by no measurement.)
 
 ## 4. Configuration
 

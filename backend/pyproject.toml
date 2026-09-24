@@ -27,12 +27,6 @@ dependencies = [
     "httpx>=0.27",
 ]
 
-[project.optional-dependencies]
-# OpenAI Privacy Filter — optional local (on-device) contextual PII detector (2nd detection stage).
-# Pre-download the model once (PRIVACY_FILTER=1 scripts/setup_macos.sh); runtime loading is
-# local_files_only (zero network). Enable with USE_PRIVACY_FILTER=true.
-privacy = ["transformers>=4.40", "torch>=2.2"]
-
 [dependency-groups]
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.5", "httpx>=0.27"]
 

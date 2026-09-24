@@ -32,19 +32,16 @@ def _isolated_storage(tmp_path, monkeypatch):
     # FastAPI's TestClient sends Host "testserver". The app itself never trusts that name; tests
     # allow it here, through the same setting production uses.
     monkeypatch.setenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
-    from app.anonymization.privacy_filter import get_privacy_filter
     from app.config import get_settings
     from app.services.deps import get_repository, get_worker
 
     get_settings.cache_clear()
     get_repository.cache_clear()
     get_worker.cache_clear()
-    get_privacy_filter.cache_clear()  # settings-dependent; must not leak across tests
     yield
     get_settings.cache_clear()
     get_repository.cache_clear()
     get_worker.cache_clear()
-    get_privacy_filter.cache_clear()
 
 
 TR_PARA = "Bu sözleşme Türkiye Cumhuriyeti kanunlarına tabidir ve taraflar arasında imzalanmıştır."

@@ -263,7 +263,6 @@ def _run_one_mode(mode: str, docs: list[dict], args) -> Path:
         "track": args.track, "mode": mode, "limit": args.limit,
         "canary_limit": args.canary_limit, "max_pages": args.max_pages,
         "corpus_docs": len(docs), **llm_config(args.llm, build_settings(args.llm)),
-        "use_privacy_filter": Settings().use_privacy_filter,
         "anonymizer_score_threshold": Settings().anonymizer_score_threshold,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
 

@@ -101,30 +101,13 @@ def test_by_source_reports_presidio_stage():
     assert out.by_source.get("presidio", 0) >= 1  # stage ① attributed
 
 
-# --- Stage ② — OpenAI Privacy Filter (local detector) merges into the same resolution ---
+# --- Overlap resolution: a stronger span wins over a weaker overlapping one ---
 
-def test_privacy_filter_span_wins_overlap_by_score():
-    # A Privacy Filter person span (0.9) beats an overlapping weaker Presidio NRP span (0.3).
+def test_stronger_span_wins_overlap_by_score():
+    # A 0.9 person span beats an overlapping weaker Presidio NRP span (0.3).
     pf = EntitySpan(start=0, end=12, entity_type="PERSON", score=0.9, source="privacy_filter")
     weak = EntitySpan(start=0, end=5, entity_type="NRP", score=0.3, source="tr")
     assert resolve_spans([weak, pf]) == [pf]
-
-
-def test_privacy_filter_detector_spans_masked_and_counted(monkeypatch):
-    import app.anonymization.engine as pe  # the engine reads get_privacy_filter from here
-
-    class FakePF:  # a made-up brand NER wouldn't catch; PF "detects" it
-        def detect(self, text):
-            i = text.find("Zorptech")
-            return [] if i == -1 else [EntitySpan(
-                start=i, end=i + len("Zorptech"),
-                entity_type="PERSON", score=0.99, source="privacy_filter")]
-
-    monkeypatch.setattr(pe, "get_privacy_filter", lambda: FakePF())
-    out = eng.anonymize(_content("Please contact Zorptech about the deal."), Language.en)
-    assert "Zorptech" not in out.content.plain_text
-    assert "<PERSON_" in out.content.plain_text
-    assert out.by_source.get("privacy_filter", 0) >= 1
 
 
 def test_detection_cache_preserves_output_and_determinism():

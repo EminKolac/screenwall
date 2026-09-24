@@ -74,25 +74,9 @@ class Settings(BaseSettings):
     # turns it off, because every reported number is measured without lists (plan rule).
     term_lists: bool = True
 
-    # OpenAI Privacy Filter — optional LOCAL (on-device) contextual PII detector: a 2nd detection
-    # stage unioned with Presidio. Needs the [privacy] extra (transformers+torch) and the model
-    # PRE-DOWNLOADED once (scripts/setup_macos.sh with PRIVACY_FILTER=1); runtime loading is
-    # local_files_only — zero network. Off by default so the platform runs torch-free by default.
-    use_privacy_filter: bool = False
-    privacy_filter_model: str = "OpenMed/privacy-filter-multilingual"  # multilingual (TR+EN)
-    privacy_filter_threshold: float = 0.5
-    require_privacy_filter: bool = False  # if unavailable → fail-closed to human review
-    # Model labels to IGNORE (comma-separated, model taxonomy names). Defaults drop the noisy,
-    # non-identifying classes that would over-mask business documents (contract dates, amounts,
-    # currencies, job titles, "Visa" as card issuer); anything NOT listed is masked (fail-safe).
-    # Deney v5: OCCUPATION/JOBTITLE/JOBDEPARTMENT exclude'dan ÇIKARILDI — GoldBench şeması
-    # mesleği maskelenmesi gereken QUASI tanımlayıcı sayar ve holdout'ta OCCUPATION recall 0/40
-    # ölçülmüştü; asıl engel eşleme değil (harita zaten SENSITIVE'e katlıyor) bu excludetı.
-    # Aşırı-maskeleme etkisi ölçüldü (bkz. EXPERIMENTS.md v5): bağımsız prob PF'le değişmedi.
-    privacy_filter_exclude_labels: str = (
-        "AMOUNT,CREDITCARDISSUER,CURRENCY,CURRENCYCODE,CURRENCYNAME,CURRENCYSYMBOL,DATE,"
-        "ORDINALDIRECTION,PREFIX,TIME"
-    )
+    # The optional OpenAI Privacy Filter stage was moved to archive/privacy_filter/ (off by
+    # default, ~38x slower per document, and no measurement used it).
+
 
     # Chat (post-approval only, layer 5 only). Default 'ollama' = fully local, no key. Claude and
     # Codex run through the user's own CLI login (Fable stores no API key); every cloud question
@@ -150,10 +134,6 @@ class Settings(BaseSettings):
         DAHİL DEĞİLDİR — o, dile ait sabit bir liste; bu alan yalnız proje-özel eklemeler içindir.
         İkisi `PresidioEngine.anonymize`'da birleştirilir (bkz. `pipeline/runner.py` deseni)."""
         return [t.strip() for t in self.allow_terms.split(",") if t.strip()]
-
-    def privacy_filter_excluded(self) -> frozenset[str]:
-        labels = self.privacy_filter_exclude_labels.split(",")
-        return frozenset(t.strip().upper() for t in labels if t.strip())
 
 
 @lru_cache

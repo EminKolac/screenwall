@@ -2,8 +2,9 @@
 
 The production pipeline has behavioural tests (does it mask a known TCKN?) but no *accuracy*
 measurement. This package adds one: a labelled corpus (text + ground-truth PII spans) and a
-scorer, so claims like "Privacy Filter improves recall" become numbers, not anecdotes.
+scorer, so claims about a change become numbers, not anecdotes.
 
-Run:  uv run python -m evaluation.run           # baseline (Presidio only)
-      USE_PRIVACY_FILTER=true uv run python -m evaluation.run   # + stage ② → compare
+Run everything the way reported numbers are produced (lists off, see docs/SCORECARD.md):
+      make scorecard        # fast: no LLM, no real documents
+      make scorecard-full   # live Qwen auditor + 30 real BIST PDFs
 """

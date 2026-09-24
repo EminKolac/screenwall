@@ -35,7 +35,6 @@ GSM/IBAN/plaka kalıpları, sağlık ve engellilik ifadeleri, İ/ı büyük-kü�
 |---|---|---|
 | Tespit 1 | [Microsoft Presidio](https://microsoft.github.io/presidio/) + [spaCy](https://spacy.io) | Kural + istatistik tabanlı PII tespiti (İngilizce `en_core_web_sm`, çok dilli `xx_ent_wiki_sm`) |
 | Tespit 2 | 15 özel Türkçe tanıyıcı (bu repoda) | TCKN, IBAN, GSM, plaka, adres, maaş bandı, sağlık/engellilik… Presidio'nun Türkçe'de göremediklerini kapatıyor |
-| Tespit 3 | [OpenMed Privacy Filter](https://huggingface.co/OpenMed) (transformers/torch, tamamen yerel) | Bağlamdan anlayan model — kural tabanlıların kaçırdığı serbest metin adları için |
 | Denetçi | Qwen 3.5 4B ([Ollama](https://ollama.com) üzerinden, yerel) + deterministik kontroller | Maskelenmiş kopyada kalıntı var mı diye ikinci göz |
 | Belge işleme | PyMuPDF, python-docx, openpyxl, Tesseract (OCR) | PDF/DOCX/XLSX okuma-yazma, taranmış sayfa metni |
 | Backend | Python 3.12, FastAPI, uv | API ve işlem hattı |
@@ -138,8 +137,8 @@ uv run uvicorn app.main:app --reload
 cd frontend && npm install && npm run dev
 ```
 
-Tarayıcıda `http://localhost:5174`. Yerel denetçi LLM, Privacy Filter ve sohbet sağlayıcıları
-gibi opsiyonel parçalar için: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+Tarayıcıda `http://localhost:5174`. Yerel denetçi LLM ve sohbet sağlayıcıları gibi opsiyonel
+parçalar için: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Ölçümleri kendiniz koşun
 
@@ -148,6 +147,7 @@ için aynı komutlar sizde de aynı sonucu verir:
 
 ```bash
 cd backend
+make -C .. scorecard        # raporlanan sayıların üretildiği yol (listeler kapalı)
 uv run python -m evaluation.goldbench.run_gold   --mode mapping --tag benim
 uv run python -m evaluation.goldbench.run_stress --mode mapping --tag benim
 uv run python scripts/measure_canary.py
@@ -157,8 +157,8 @@ uv run python scripts/measure_canary.py
 
 - Çift tıkla kurulum (şu an kurulum terminal istiyor, bu B2C hedefiyle çelişiyor)
 - UYAP UDF desteği — avukatların gerçekte kullandığı format
-- Kalite modundaki yavaşlığı azaltmak (Privacy Filter açıkken belge başına ~10 sn)
-- Gereksiz karartmayı 11/40'tan Sol'un seviyesine (3/40) indirmek
+- Gereksiz karartmayı dürüst ölçümle indirmek: nötr cümlede 11/40'tan en fazla 2/40'a,
+  korunması gereken iş terimlerinde 10/90'dan en az 80/90'a (listesiz; bkz. docs/SCORECARD.md)
 - Saldırı-direnci (TRIR) testi — paketi hazır, henüz koşulmadı; koşulmadığı sürece
   raporlarda "ölçülmedi" olarak geçiyor, geçer not saymıyoruz
 

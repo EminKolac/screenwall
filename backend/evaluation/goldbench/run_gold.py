@@ -213,7 +213,6 @@ def main(argv=None) -> int:
             "tag": args.tag, "mode": mode, "splits": sorted(splits), "formats": list(formats),
             "documents": len(rows), "limit": args.limit,
             **llm_config(args.llm, llm_settings),
-            "use_privacy_filter": Settings().use_privacy_filter,
             "anonymizer_score_threshold": Settings().anonymizer_score_threshold,
         }, ensure_ascii=False, indent=2), encoding="utf-8")
         run_mode(rows, mode, formats, outdir / "results.jsonl", args.limit, llm=args.llm)

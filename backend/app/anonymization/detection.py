@@ -27,7 +27,6 @@ class Detection:
     """Detection for one anonymize()/detect() call. The per-call cache is exact: detection depends
     only on the text and on the term lists, which are fixed within one call."""
     analyzer: object
-    detector: object  # the optional local Privacy Filter, or None
     threshold: float
     deny: list[str]
     allow: list[str]
@@ -41,8 +40,6 @@ class Detection:
             return self.cache[text]
         spans = self._analyze(text) + self._linewrap(text)
         spans += deny_spans(text, self.deny, self.deny_families)
-        if self.detector is not None:
-            spans.extend(self.detector.detect(text))
         # Never-mask filtering and the orthographic gates run BEFORE resolution: removing a span
         # afterwards could not resurrect a real span it had suppressed through overlap.
         if self.allow:

@@ -7,7 +7,6 @@ they are migrated. The original implementation is kept in archive/anonymization_
 from __future__ import annotations
 
 from app.anonymization.engine import Engine as PresidioEngine
-from app.anonymization.engine import get_privacy_filter
 from app.anonymization.gates import implausible_person_ner as _is_implausible_person_ner
 from app.anonymization.gates import lowercase_initial_ner as _is_lowercase_initial_ner
 from app.anonymization.propagate import norm_projection as _norm_projection
@@ -15,6 +14,6 @@ from app.anonymization.propagate import projection_prefixes as _projection_prefi
 from app.anonymization.types import family as _ph_type
 
 __all__ = [
-    "PresidioEngine", "get_privacy_filter", "_is_implausible_person_ner",
+    "PresidioEngine", "_is_implausible_person_ner",
     "_is_lowercase_initial_ner", "_norm_projection", "_projection_prefixes", "_ph_type",
 ]
