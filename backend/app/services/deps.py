@@ -1,7 +1,6 @@
 """Shared singletons (FastAPI dependency providers).
 
-Default repository is the storage-backed implementation over the 5 layers (Phase 5). Tests point
-STORAGE_ROOT at a temp dir and clear this cache for isolation.
+Tests point STORAGE_ROOT at a temp dir and clear these caches for isolation.
 """
 from __future__ import annotations
 
@@ -17,3 +16,10 @@ from app.storage.local import LocalStorageBackend
 def get_repository() -> DocumentRepository:
     settings = get_settings()
     return StorageDocumentRepository(LocalStorageBackend(settings.storage_root))
+
+
+@lru_cache
+def get_worker():
+    from app.pipeline.queue import Worker
+
+    return Worker(get_settings, get_repository)

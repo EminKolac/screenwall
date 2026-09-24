@@ -51,29 +51,35 @@ def test_invalid_mode_rejected(docx_tr):
     assert r.status_code == 400
 
 
-def test_destructive_mode_redact_returns_409_not_404(docx_tr):
-    """Manual redaction needs layer 2 (extracted text) to re-run anonymization against — in
-    destructive mode that was never persisted by design, so the endpoint must say why, not just
-    404 as if the document itself were missing."""
+def _mask_first_word(doc_id: str) -> object:
+    review = client.get(f"/api/documents/{doc_id}/review").json()
+    unit = next(u for u in review["units"] if (u["original"] or u["masked"]).strip())
+    return client.post(f"/api/documents/{doc_id}/decisions", json={
+        "op": "mask", "scope": "occurrence",
+        "target": {"unit_id": unit["id"], "start": 0, "end": 3, "family": "SENSITIVE"}})
+
+
+def test_destructive_mode_decision_returns_409_not_404(docx_tr):
+    """A decision re-runs anonymization against layer 2 (extracted text) — in destructive mode
+    that was never persisted by design, so the API must say why, not 404 as if the document were
+    missing."""
     r = client.post(
         "/api/documents", files={"file": ("s.docx", docx_tr, _DOCX_MIME)},
         data={"mode": "destructive"},
     )
-    doc_id = r.json()["id"]
-    resp = client.post(f"/api/review/{doc_id}/redact", json={"terms": ["Ahmet"]})
+    resp = _mask_first_word(r.json()["id"])
     assert resp.status_code == 409
-    assert "destructive" in resp.json()["detail"]
+    assert resp.json()["detail"] == "original_not_stored"
 
 
-def test_mapping_mode_redact_still_works(docx_tr):
-    """Regression guard: the mode-aware 409 in review.redact() must not shadow the ordinary
-    404-when-truly-missing case, nor break redaction in mapping mode."""
+def test_mapping_mode_decision_works(docx_tr):
     r = client.post("/api/documents", files={"file": ("s.docx", docx_tr, _DOCX_MIME)})
-    doc_id = r.json()["id"]
-    resp = client.post(f"/api/review/{doc_id}/redact", json={"terms": ["Sözleşme"]})
-    assert resp.status_code == 200
+    resp = _mask_first_word(r.json()["id"])
+    assert resp.status_code == 200, resp.text
+    assert any(s["state"] == "added" for s in resp.json()["spans"])
 
 
-def test_redact_404_for_unknown_document():
-    resp = client.post("/api/review/does-not-exist/redact", json={"terms": ["x"]})
+def test_decision_404_for_unknown_document():
+    resp = client.post("/api/documents/does-not-exist/decisions",
+                       json={"op": "mask", "scope": "occurrence", "target": {"span_id": "x"}})
     assert resp.status_code == 404

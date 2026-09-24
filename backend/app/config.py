@@ -82,14 +82,34 @@ class Settings(BaseSettings):
         "ORDINALDIRECTION,PREFIX,TIME"
     )
 
-    # Chat (post-approval only). Default 'ollama' = fully local, no external API/key required.
-    # Sohbet YALNIZ yerel (Ollama). Bulut sağlayıcılar kaldırıldı — bkz. chat/providers.py.
-    chat_provider: Literal["ollama"] = "ollama"
+    # Chat (post-approval only, layer 5 only). Default 'ollama' = fully local, no key. Claude and
+    # Codex run through the user's own CLI login (Fable stores no API key); every cloud question
+    # needs a send preview + consent (preview_hash) — see chat/service.py and plan §5.6.
+    chat_default_provider: Literal["ollama", "claude_cli", "codex_cli"] = "ollama"
     # Aynı model denetçide de kullanılıyor: tek ağırlık kümesi bellekte kalır (3.4 GB yerine
     # 4.7 + 1.9 GB) ve qwen2.5:3b'nin ticari kullanıma kapalı Qwen Research lisansından çıkılır.
     chat_ollama_model: str = "qwen3.5:4b"
+    chat_claude_model: str = ""  # "" = the CLI's own default model
+    chat_codex_model: str = ""
+    chat_cli_timeout_s: int = 60  # per CLI call; the process group is killed on expiry
     chat_max_message_chars: int = 4000
     cors_allow_origins: str = "http://localhost:5173,http://localhost:5174"  # comma-separated
+
+    # Local web security (security/web.py). The app binds to 127.0.0.1; these stop other sites and
+    # other local processes from driving it (DNS rebinding, CSRF).
+    allowed_hosts: str = "localhost,127.0.0.1"  # comma-separated Host header values (port stripped)
+    session_required: bool = True  # tests switch it off; production never should
+    # Tests process uploads inside the request; the app uses the background worker.
+    process_inline: bool = False
+
+    def host_allowlist(self) -> set[str]:
+        return {h.strip().lower() for h in self.allowed_hosts.split(",") if h.strip()}
+
+    def origin_allowlist(self) -> set[str]:
+        origins = {o.strip() for o in self.cors_allow_origins.split(",") if o.strip()}
+        for host in self.host_allowlist():
+            origins.update({f"http://{host}:5173", f"http://{host}:5174", f"http://{host}:8000"})
+        return origins
 
     @field_validator("max_iterations")
     @classmethod

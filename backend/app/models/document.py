@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.findings import AuditResult
 
@@ -27,38 +27,72 @@ class Language(str, Enum):
 
 
 class DocumentStatus(str, Enum):
-    UPLOADED = "uploaded"
-    EXTRACTED = "extracted"
-    PRESIDIO_PASS_1 = "presidio_pass_1"
-    QWEN_AUDIT_1 = "qwen_audit_1"
-    PRESIDIO_PASS_2 = "presidio_pass_2"
-    QWEN_AUDIT_2 = "qwen_audit_2"
-    APPROVED = "approved"
+    """Fixed processing states. Stored values are machine-stable: the ones that existed before v2
+    ("uploaded", "extracted", "approved", "needs_human_review") keep their values so stored
+    documents and evaluation reports stay readable. The API exposes contract names (api_value)."""
+    QUEUED = "queued"
+    UPLOADED = "uploaded"  # legacy initial state, shown as "queued"
+    EXTRACTED = "extracted"  # legacy: extraction finished, shown as "extracting"
+    MASKING = "masking"
+    AUDITING = "auditing"
     NEEDS_HUMAN_REVIEW = "needs_human_review"
+    NEEDS_REVIEW = "needs_human_review"  # alias with the contract's name
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    FAILED = "failed"
 
     @property
     def display(self) -> str:
         return _DISPLAY_LABELS[self]
 
+    @property
+    def api_value(self) -> str:
+        return _API_VALUES.get(self, self.value)
+
+    @property
+    def processing(self) -> bool:
+        return self in _PROCESSING
+
 
 _DISPLAY_LABELS: dict[DocumentStatus, str] = {
-    DocumentStatus.UPLOADED: "Yüklendi",
-    DocumentStatus.EXTRACTED: "Çıkarıldı",
-    DocumentStatus.PRESIDIO_PASS_1: "Maskeleme 1",
-    DocumentStatus.QWEN_AUDIT_1: "Denetim 1",
-    DocumentStatus.PRESIDIO_PASS_2: "Maskeleme 2",
-    DocumentStatus.QWEN_AUDIT_2: "Denetim 2",
-    DocumentStatus.APPROVED: "Onaylandı",
+    DocumentStatus.QUEUED: "Sırada",
+    DocumentStatus.UPLOADED: "Sırada",
+    DocumentStatus.EXTRACTED: "Çıkarılıyor",
+    DocumentStatus.MASKING: "Maskeleniyor",
+    DocumentStatus.AUDITING: "Denetleniyor",
     DocumentStatus.NEEDS_HUMAN_REVIEW: "İnceleme bekliyor",
+    DocumentStatus.APPROVED: "Onaylandı",
+    DocumentStatus.REJECTED: "Reddedildi",
+    DocumentStatus.FAILED: "İşlenemedi",
 }
+
+_API_VALUES: dict[DocumentStatus, str] = {
+    DocumentStatus.UPLOADED: "queued",
+    DocumentStatus.EXTRACTED: "extracting",
+    DocumentStatus.NEEDS_HUMAN_REVIEW: "needs_review",
+}
+
+_PROCESSING = frozenset({DocumentStatus.QUEUED, DocumentStatus.UPLOADED, DocumentStatus.EXTRACTED,
+                         DocumentStatus.MASKING, DocumentStatus.AUDITING})
+
+# Pre-v2 per-iteration states. A stored document still in one of them was interrupted mid-run.
+_LEGACY_TRANSIENT = {"presidio_pass_1", "qwen_audit_1", "presidio_pass_2", "qwen_audit_2",
+                     "presidio_pass_3", "qwen_audit_3"}
 
 
 def presidio_pass_status(iteration: int) -> DocumentStatus:
-    return DocumentStatus[f"PRESIDIO_PASS_{iteration}"]
+    """Kept for callers of the old loop; every masking iteration is now the same state."""
+    return DocumentStatus.MASKING
 
 
 def qwen_audit_status(iteration: int) -> DocumentStatus:
-    return DocumentStatus[f"QWEN_AUDIT_{iteration}"]
+    return DocumentStatus.AUDITING
+
+
+class ReviewReason(BaseModel):
+    """Why a document waits for a human or failed: a stable code plus a Turkish sentence."""
+    code: str
+    text: str
 
 
 def _now() -> datetime:
@@ -94,6 +128,18 @@ class Document(BaseModel):
     # saklanıyor, çünkü gözden geçiren kişi gerekçeyi görmeden karar veremez. PII taşımaz —
     # yalnız sabit uyarı kodlarından türetilmiş insan-okur cümleler.
     review_reason: list[str] = Field(default_factory=list)
+    # Same reasons with stable machine codes (the API exposes these; review_reason stays for
+    # older readers). Filled through add_reason().
+    reasons: list[ReviewReason] = Field(default_factory=list)
+    reject_reason: str = ""
+    page_count: int | None = None
+    # Bumped by every re-anonymization; the review screen and approval use it to notice changes.
+    revision: int = 0
+    # The LLM audit last ran on this revision (approval re-audits when it is stale).
+    audited_revision: int = -1
+    # Cached counts so the document list never has to open layer-3 files.
+    masked_count: int = 0
+    pending_count: int = 0
     # Faz 3 — insan düzeltmesi. Bir gözden geçiren "bu maskeleme yanlıştı" dediğinde, geri alınan
     # DEĞER buraya yazılır ve belge yeniden anonimleştirilirken allow-list'e eklenir. Böylece
     # düzeltme kalıcıdır: aynı terim sonraki iterasyonlarda tekrar maskelenmez.
@@ -107,10 +153,29 @@ class Document(BaseModel):
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
 
+    @field_validator("status", mode="before")
+    @classmethod
+    def _legacy_status(cls, value: object) -> object:
+        # A pre-v2 document stored mid-iteration was interrupted; it cannot resume in place.
+        if isinstance(value, str) and value in _LEGACY_TRANSIENT:
+            return DocumentStatus.FAILED.value
+        return value
+
     def transition(self, new_status: DocumentStatus) -> None:
         """Single place that changes status, so timestamps/audit hooks stay consistent."""
         self.status = new_status
         self.updated_at = _now()
+
+    def add_reason(self, code: str, text: str) -> None:
+        if any(r.code == code for r in self.reasons):
+            return
+        self.reasons.append(ReviewReason(code=code, text=text))
+        if text not in self.review_reason:
+            self.review_reason.append(text)
+
+    def clear_reasons(self) -> None:
+        self.reasons = []
+        self.review_reason = []
 
     @property
     def approved(self) -> bool:

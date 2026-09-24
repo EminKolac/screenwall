@@ -1,8 +1,8 @@
 """Document repository — the seam between the pipeline/API and storage.
 
-Phase 4 ships an in-memory implementation; Phase 5 adds a storage-backed one over the 5 layers
-(this Protocol is the contract both honor). Mapping (layer 2) and original/extracted are never
-returned to the API; only anonymized content (layer 3) and PII-safe metadata/reports are.
+The storage-backed implementation (storage_repository.py) is the only one; this Protocol documents
+the contract. Mapping, original, extracted text and human decisions (layers 1-2) never reach an
+API response; only anonymized content (layer 3), positions and PII-safe reports (layer 4) do.
 """
 from __future__ import annotations
 
@@ -25,59 +25,12 @@ class DocumentRepository(Protocol):
     def get_anonymized(self, doc_id: str) -> ExtractedContent | None: ...
     def save_mapping(self, doc_id: str, mapping: dict[str, str]) -> None: ...
     def get_mapping(self, doc_id: str) -> dict[str, str] | None: ...
+    def save_edits(self, doc_id: str, edits: dict[str, list[dict]]) -> None: ...
+    def get_edits(self, doc_id: str) -> dict[str, list[dict]]: ...
+    def save_findings(self, doc_id: str, findings: list[dict]) -> None: ...
+    def get_findings(self, doc_id: str) -> list[dict]: ...
+    def save_decisions(self, doc_id: str, decisions: dict) -> None: ...
+    def get_decisions(self, doc_id: str) -> dict: ...
     def save_chat_context(self, doc_id: str, text: str) -> None: ...
     def get_chat_context(self, doc_id: str) -> str | None: ...
     def delete(self, doc_id: str, *, secure: bool = True) -> None: ...
-
-
-class InMemoryDocumentRepository:
-    def __init__(self) -> None:
-        self._docs: dict[str, Document] = {}
-        self._original: dict[str, bytes] = {}
-        self._extracted: dict[str, ExtractedContent] = {}
-        self._anon: dict[str, ExtractedContent] = {}
-        self._mapping: dict[str, dict[str, str]] = {}
-        self._chat: dict[str, str] = {}
-
-    def save_document(self, doc: Document) -> None:
-        self._docs[doc.id] = doc
-
-    def get_document(self, doc_id: str) -> Document | None:
-        return self._docs.get(doc_id)
-
-    def list_documents(self) -> list[Document]:
-        return list(self._docs.values())
-
-    def save_original(self, doc_id: str, data: bytes, filename: str) -> None:
-        self._original[doc_id] = data
-
-    def get_original(self, doc_id: str) -> bytes | None:
-        return self._original.get(doc_id)
-
-    def save_extracted(self, doc_id: str, content: ExtractedContent) -> None:
-        self._extracted[doc_id] = content
-
-    def get_extracted(self, doc_id: str) -> ExtractedContent | None:
-        return self._extracted.get(doc_id)
-
-    def save_anonymized(self, doc_id: str, content: ExtractedContent) -> None:
-        self._anon[doc_id] = content
-
-    def get_anonymized(self, doc_id: str) -> ExtractedContent | None:
-        return self._anon.get(doc_id)
-
-    def save_mapping(self, doc_id: str, mapping: dict[str, str]) -> None:
-        self._mapping[doc_id] = mapping
-
-    def get_mapping(self, doc_id: str) -> dict[str, str] | None:
-        return self._mapping.get(doc_id)
-
-    def save_chat_context(self, doc_id: str, text: str) -> None:
-        self._chat[doc_id] = text
-
-    def get_chat_context(self, doc_id: str) -> str | None:
-        return self._chat.get(doc_id)
-
-    def delete(self, doc_id: str, *, secure: bool = True) -> None:
-        for store in (self._docs, self._original, self._extracted, self._anon, self._mapping, self._chat):
-            store.pop(doc_id, None)

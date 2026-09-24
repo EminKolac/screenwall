@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Fake `codex` CLI for Fable's chat tests. Never contacts any service.
+
+The child environment is filtered by app/chat/cli.py, so the behaviour is chosen by
+`codex.scenario.json` next to this file: {"mode": ..., "answer": ...}. Every invocation is
+appended to `codex.calls.jsonl` (argv, cwd and its listing, the full environment, process ids,
+and stdin as text + base64 so tests can compare exact bytes).
+
+Modes: success | tool_use | turn_failed | exit_error | timeout | flood | logged_out | old_help
+"""
+import base64
+import json
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+NAME = "codex"
+FLAGS = ["--ignore-user-config", "--ignore-rules", "--ephemeral", "--skip-git-repo-check", "--json"]
+THREAD = "0199a213-81c0-7800-8aa1-bbab2a035a53"
+# Codex prints this before the turn when Code Mode is disabled — Fable disables it on purpose.
+CODE_MODE_DISABLED = (
+    "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; "
+    "enable `features.code_mode_host` and install `codex-code-mode-host`."
+)
+
+
+def scenario() -> dict:
+    path = HERE / f"{NAME}.scenario.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def record(raw_stdin: bytes) -> None:
+    entry = {
+        "argv": sys.argv[1:],
+        "cwd": os.getcwd(),
+        "cwd_listing": sorted(os.listdir(".")),
+        "env": dict(os.environ),
+        "pid": os.getpid(),
+        "pgid": os.getpgid(0),
+        "stdin": raw_stdin.decode("utf-8", "replace"),
+        "stdin_b64": base64.b64encode(raw_stdin).decode("ascii"),
+    }
+    with open(HERE / f"{NAME}.calls.jsonl", "a", encoding="utf-8") as log:
+        log.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def emit(*events: dict) -> None:
+    for event in events:
+        sys.stdout.write(json.dumps(event, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def item(kind: str, index: int, **fields) -> dict:
+    return {"type": kind, "item": {"id": f"item_{index}", **fields}}
+
+
+def chat(mode: str, answer: str) -> int:
+    if mode == "timeout":
+        grandchild = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
+        pids = {"child": os.getpid(), "grandchild": grandchild.pid}
+        (HERE / f"{NAME}.pids.json").write_text(json.dumps(pids), encoding="utf-8")
+        time.sleep(120)
+        return 0
+    if mode == "flood":
+        line = "x" * 8191 + "\n"
+        for _ in range(128):  # 1 MiB, twice the output limit
+            sys.stdout.write(line)
+        sys.stdout.flush()
+        return 0
+    if mode == "exit_error":
+        print("CANARY-STDERR-DETAIL stream error: unexpected status 401", file=sys.stderr)
+        return 1
+    emit(
+        {"type": "thread.started", "thread_id": THREAD},
+        item("item.completed", 0, type="error", message=CODE_MODE_DISABLED),
+        {"type": "turn.started"},
+        item("item.completed", 1, type="reasoning", text="**Reading the supplied excerpts**"),
+    )
+    if mode == "tool_use":
+        emit(
+            item(
+                "item.started",
+                2,
+                type="command_execution",
+                command="bash -lc 'cat /etc/hosts'",
+                aggregated_output="",
+                exit_code=None,
+                status="in_progress",
+            )
+        )
+    if mode == "turn_failed":
+        emit({"type": "turn.failed", "error": {"message": "stream disconnected"}})
+        return 0
+    emit(
+        item("item.completed", 3, type="agent_message", text=answer),
+        {
+            "type": "turn.completed",
+            "usage": {"input_tokens": 1520, "cached_input_tokens": 0, "output_tokens": 48},
+        },
+    )
+    return 0
+
+
+def main() -> int:
+    current = scenario()
+    mode = current.get("mode", "success")
+    raw_stdin = sys.stdin.buffer.read()
+    record(raw_stdin)
+    args = sys.argv[1:]
+    if args == ["--version"]:
+        print("codex-cli 0.154.0")
+        return 0
+    if args == ["exec", "--help"]:
+        flags = [f for f in FLAGS if not (mode == "old_help" and f == "--ignore-rules")]
+        print("Run Codex non-interactively\n\nUsage: codex exec [OPTIONS] [PROMPT]\n\nOptions:")
+        print("\n".join(f"      {flag}" for flag in flags))
+        return 0
+    if args == ["login", "status"]:
+        if mode == "logged_out":
+            print("Not logged in", file=sys.stderr)
+            return 1
+        print("Logged in using ChatGPT", file=sys.stderr)
+        return 0
+    if not args or args[0] != "exec" or args[-1] != "-":
+        print("fake codex: unexpected invocation", file=sys.stderr)
+        return 2
+    return chat(mode, current.get("answer", "The agreement was signed by <PERSON_1> [S1]."))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

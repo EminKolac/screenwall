@@ -82,6 +82,18 @@ class EditBuffer:
             prev = e.end
         return out
 
+    def current_range(self, start: int, end: int) -> tuple[int, int] | None:
+        """Where an ORIGINAL range sits in the current text, if it is still untouched literal
+        text; None when any part of it was already replaced."""
+        for c0, _c1, o0, o1, edit in self._segments():
+            if edit is None and o0 <= start and end <= o1:
+                return c0 + (start - o0), c0 + (end - o0)
+        return None
+
+    def overlaps_edit(self, start: int, end: int) -> bool:
+        """Does an ORIGINAL range touch any recorded replacement?"""
+        return any(e.start < end and start < e.end for e in self._edits)
+
     # ---------------------------------------------------------------- mutation
 
     def apply_original(self, start: int, end: int, text: str,

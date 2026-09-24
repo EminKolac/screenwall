@@ -70,6 +70,33 @@ class StorageDocumentRepository:
             return None
         return ExtractedContent.model_validate(self.backend.read_json(StorageLayer.ANONYMIZED, doc_id, "anonymized.json"))
 
+    # --- edit positions (layer 3, PII-safe: offsets, placeholders and types only) ---
+    def save_edits(self, doc_id: str, edits: dict[str, list[dict]]) -> None:
+        self.backend.write_json(StorageLayer.ANONYMIZED, doc_id, "edits.json", edits)
+
+    def get_edits(self, doc_id: str) -> dict[str, list[dict]]:
+        if not self.backend.exists(StorageLayer.ANONYMIZED, doc_id, "edits.json"):
+            return {}
+        return self.backend.read_json(StorageLayer.ANONYMIZED, doc_id, "edits.json")
+
+    # --- residual findings (layer 4, PII-safe: positions in the masked text + type code) ---
+    def save_findings(self, doc_id: str, findings: list[dict]) -> None:
+        self.backend.write_json(StorageLayer.VALIDATION, doc_id, "findings.json", findings)
+
+    def get_findings(self, doc_id: str) -> list[dict]:
+        if not self.backend.exists(StorageLayer.VALIDATION, doc_id, "findings.json"):
+            return []
+        return self.backend.read_json(StorageLayer.VALIDATION, doc_id, "findings.json")
+
+    # --- human decisions (layer 2, local-only: they reference original values) ---
+    def save_decisions(self, doc_id: str, decisions: dict) -> None:
+        self.backend.write_json(StorageLayer.EXTRACTED, doc_id, "decisions.json", decisions)
+
+    def get_decisions(self, doc_id: str) -> dict:
+        if not self.backend.exists(StorageLayer.EXTRACTED, doc_id, "decisions.json"):
+            return {}
+        return self.backend.read_json(StorageLayer.EXTRACTED, doc_id, "decisions.json")
+
     # --- chat context (layer 5) ---
     def save_chat_context(self, doc_id: str, text: str) -> None:
         self.backend.write_bytes(StorageLayer.CHAT_CONTEXT, doc_id, "context.txt", text.encode("utf-8"))

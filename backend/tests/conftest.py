@@ -24,16 +24,23 @@ def _isolated_storage(tmp_path, monkeypatch):
     """
     monkeypatch.setenv("STORAGE_ROOT", str(tmp_path))
     monkeypatch.setenv("AUDITOR_PROVIDER", "mlx")
+    # Uploads are processed inside the request (no background worker) so API tests can assert on
+    # the final state; the session/CSRF layer has its own tests (test_web_security.py) that turn
+    # it back on.
+    monkeypatch.setenv("PROCESS_INLINE", "true")
+    monkeypatch.setenv("SESSION_REQUIRED", "false")
     from app.anonymization.privacy_filter import get_privacy_filter
     from app.config import get_settings
-    from app.services.deps import get_repository
+    from app.services.deps import get_repository, get_worker
 
     get_settings.cache_clear()
     get_repository.cache_clear()
+    get_worker.cache_clear()
     get_privacy_filter.cache_clear()  # settings-dependent; must not leak across tests
     yield
     get_settings.cache_clear()
     get_repository.cache_clear()
+    get_worker.cache_clear()
     get_privacy_filter.cache_clear()
 
 

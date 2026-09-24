@@ -30,13 +30,13 @@ from app.anonymization.propagate import VariantPools, find_variants
 from app.anonymization.resolve import resolve_spans
 from app.anonymization.spans import EditBuffer, EntitySpan, MaskEdit
 from app.anonymization.tables import premask_table
-from app.anonymization.types import ADJACENCY_SAFE, family
+from app.anonymization.types import ADJACENCY_SAFE, family, user_type
 from app.extraction.base import Block, BlockType, ExtractedContent
 from app.models.document import Language
 
 __all__ = [
     "AnonymizationEngine", "AnonymizationOutput", "Engine", "EntitySpan", "MaskEdit",
-    "resolve_spans", "get_privacy_filter",
+    "Overrides", "resolve_spans", "get_privacy_filter",
 ]
 
 # Serialize access to the shared, cached AnalyzerEngine (spaCy pipelines are not thread-safe).
@@ -67,8 +67,42 @@ class AnonymizationEngine:
 
     def anonymize(self, content: ExtractedContent, language: Language, *,
                   extra_deny_terms: list[str] | None = None,
-                  extra_allow_terms: list[str] | None = None) -> AnonymizationOutput:
+                  extra_allow_terms: list[str] | None = None,
+                  overrides: Overrides | None = None) -> AnonymizationOutput:
         raise NotImplementedError
+
+
+def iter_units(content: ExtractedContent):
+    """(unit_id, block, cell_or_None, text) in the exact order and naming the engine uses."""
+    taken: set[str] = set()
+
+    def reserve(base: str) -> str:
+        uid, n = base, 1
+        while uid in taken:
+            n += 1
+            uid = f"{base}#{n}"
+        taken.add(uid)
+        return uid
+
+    for block in content.blocks:
+        if block.type == BlockType.table:
+            for cell in block.cells:
+                yield reserve(_cell_id(block, cell.row, cell.col)), block, cell, cell.text
+        else:
+            yield reserve(block.block_id), block, None, block.text
+
+
+@dataclass
+class Overrides:
+    """Human review decisions for one document, applied on top of detection.
+
+    Ranges are in ORIGINAL unit coordinates (unit ids as in AnonymizationOutput.edits). With no
+    overrides the engine behaves exactly as without them (parity-tested).
+    """
+    keep_ranges: dict[str, list[tuple[int, int]]] = field(default_factory=dict)
+    mask_ranges: dict[str, list[tuple[int, int, str]]] = field(default_factory=dict)  # family
+    keep_terms: list[str] = field(default_factory=list)  # document-wide never-mask
+    mask_terms: dict[str, str] = field(default_factory=dict)  # document-wide term -> family
 
 
 @dataclass
@@ -78,6 +112,8 @@ class _Run:
     detector: object
     deny: list[str]
     allow: list[str]
+    deny_families: dict[str, str] = field(default_factory=dict)
+    overrides: Overrides = field(default_factory=Overrides)
     mapper: PlaceholderMapper = field(default_factory=PlaceholderMapper)
     pools: VariantPools = field(default_factory=VariantPools)
     cache: dict[str, list[EntitySpan]] = field(default_factory=dict)
@@ -86,13 +122,18 @@ class _Run:
     by_source: dict[str, int] = field(default_factory=dict)
     total: int = 0
 
-    def add_unit(self, unit_id: str, buf: EditBuffer) -> None:
+    def reserve_unit_id(self, unit_id: str) -> str:
         uid, n = unit_id, 1
         while uid in self.unit_ids:  # duplicate cell coordinates get a stable suffix
             n += 1
             uid = f"{unit_id}#{n}"
         self.unit_ids.add(uid)
-        self.units.append((uid, buf))
+        return uid
+
+    def keep_in_current(self, uid: str, buf: EditBuffer) -> list[tuple[int, int]]:
+        """The unit's keep ranges mapped onto its current text."""
+        ranges = (buf.current_range(s, e) for s, e in self.overrides.keep_ranges.get(uid, []))
+        return [r for r in ranges if r is not None]
 
 
 def _clean(terms: list[str] | None) -> list[str]:
@@ -122,21 +163,29 @@ class Engine(AnonymizationEngine):
 
     def anonymize(self, content: ExtractedContent, language: Language, *,
                   extra_deny_terms: list[str] | None = None,
-                  extra_allow_terms: list[str] | None = None) -> AnonymizationOutput:
-        run = self._new_run(extra_deny_terms, extra_allow_terms)
+                  extra_allow_terms: list[str] | None = None,
+                  overrides: Overrides | None = None) -> AnonymizationOutput:
+        ov = overrides or Overrides()
+        run = self._new_run([*(extra_deny_terms or []), *ov.mask_terms],
+                            [*(extra_allow_terms or []), *ov.keep_terms])
+        run.deny_families = dict(ov.mask_terms)
+        run.overrides = ov
         layout: list[tuple[Block, list[tuple[object, EditBuffer]] | EditBuffer]] = []
         for block in content.blocks:
             if block.type == BlockType.table:
                 layout.append((block, self._mask_table(block, run)))
             else:
+                uid = run.reserve_unit_id(block.block_id)
                 buf = EditBuffer(block.text)
-                self._mask_unit(buf, run)
-                run.add_unit(block.block_id, buf)
+                self._mask_unit(buf, run, uid)
+                run.units.append((uid, buf))
                 layout.append((block, buf))
         self._propagate(run)
         blocks = [self._render_block(block, part) for block, part in layout]
+        # Extractor metadata (PDF/DOCX author and title, XLSX sheet names) is raw and un-audited;
+        # the anonymized copy never carries it, in either storage mode.
         return AnonymizationOutput(
-            content=content.model_copy(update={"blocks": blocks}),
+            content=content.model_copy(update={"blocks": blocks, "metadata": {}}),
             entity_count=run.total,
             placeholders_used=run.mapper.counts(),
             by_source=run.by_source,
@@ -162,17 +211,30 @@ class Engine(AnonymizationEngine):
             block, lambda text, cached: self._detect(text, run, cached=cached), run.mapper)
         cells: list[tuple[object, EditBuffer]] = []
         for cell in block.cells:
+            uid = run.reserve_unit_id(_cell_id(block, cell.row, cell.col))
             buf = EditBuffer(cell.text)
             for start, end, replacement, entity_type in premask.get((cell.row, cell.col), []):
                 buf.apply_original(start, end, replacement, entity_type, "adjacency")
-            self._mask_unit(buf, run)
-            run.add_unit(_cell_id(block, cell.row, cell.col), buf)
+            self._mask_unit(buf, run, uid)
+            run.units.append((uid, buf))
             cells.append((cell, buf))
         return cells
 
-    def _mask_unit(self, buf: EditBuffer, run: _Run) -> None:
+    def _apply_forced(self, buf: EditBuffer, run: _Run, uid: str) -> None:
+        """A reviewer's "mask this occurrence" lands before detection, like a pre-mask."""
+        for start, end, fam in run.overrides.mask_ranges.get(uid, []):
+            if start >= end or end > len(buf.original) or buf.overlaps_edit(start, end):
+                continue
+            token = run.mapper.placeholder_for(fam, buf.original[start:end])
+            buf.apply_original(start, end, token, user_type(fam), "user")
+
+    def _mask_unit(self, buf: EditBuffer, run: _Run, uid: str) -> None:
+        self._apply_forced(buf, run, uid)
         src = buf.text()
         kept = self._detect(src, run, cached=True)
+        keep = run.keep_in_current(uid, buf)
+        if keep:  # "leave this occurrence unmasked"
+            kept = [s for s in kept if not any(s.start < b and a < s.end for a, b in keep)]
         for s in sorted(kept, key=lambda s: -s.start):  # right to left keeps offsets valid
             token = run.mapper.placeholder_for(family(s.entity_type), src[s.start:s.end])
             buf.apply(s.start, s.end, token, s.entity_type, s.source)
@@ -186,9 +248,12 @@ class Engine(AnonymizationEngine):
         surfaces = run.pools.surfaces()
         if not surfaces:
             return
-        for _uid, buf in run.units:
+        for uid, buf in run.units:
             text = buf.text()
             hits = find_variants(text, surfaces)
+            keep = run.keep_in_current(uid, buf)
+            if keep:
+                hits = [h for h in hits if not any(h[0] < b and a < h[1] for a, b in keep)]
             for start, end, fam, mode in sorted(hits, key=lambda h: -h[0]):
                 token = run.mapper.placeholder_for(fam, text[start:end])
                 buf.apply(start, end, token, fam, f"propagation:{mode}")
@@ -212,7 +277,7 @@ class Engine(AnonymizationEngine):
         if cached and text in run.cache:
             return run.cache[text]
         spans = self._analyze(text, run) + self._linewrap(text, run)
-        spans += deny_spans(text, run.deny)
+        spans += deny_spans(text, run.deny, run.deny_families)
         if run.detector is not None:
             spans.extend(run.detector.detect(text))
         # Never-mask filtering and the orthographic gates run BEFORE resolution: removing a span

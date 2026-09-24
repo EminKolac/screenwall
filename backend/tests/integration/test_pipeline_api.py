@@ -14,32 +14,30 @@ def test_pipeline_anonymizes_turkish_and_exposes_no_pii(docx_tr):
     assert j["status"] == "approved"
     gid = j["id"]
 
-    anon = client.get(f"/api/documents/{gid}/anonymized")
+    anon = client.get(f"/api/documents/{gid}/masked")
     assert anon.status_code == 200
     assert "Ahmet Yılmaz" not in anon.text  # name masked
     assert "<PERSON_" in anon.text
 
     detail = client.get(f"/api/documents/{gid}").json()
-    assert detail["iterations"]
+    assert detail["counts"]["masked"] >= 1
     # The sensitive placeholder->original mapping must never be serialized as a "mapping" key —
     # checked as a key-shaped pattern (not a bare substring) since `detail["mode"]` legitimately
     # has the string value "mapping" (the anonymization-mode field, unrelated to this mapping).
     assert '"mapping":' not in client.get(f"/api/documents/{gid}").text
 
-    findings = client.get(f"/api/documents/{gid}/findings").json()
-    assert "iterations" in findings
 
 
 def test_list_and_delete(docx_en):
     r = client.post("/api/documents", files={"file": ("a.docx", docx_en, _DOCX_MIME)})
     gid = r.json()["id"]
     assert any(d["id"] == gid for d in client.get("/api/documents").json()["documents"])
-    assert client.delete(f"/api/documents/{gid}").status_code == 200
+    assert client.delete(f"/api/documents/{gid}").status_code == 204
     assert client.get(f"/api/documents/{gid}").status_code == 404
 
 
-def test_anonymized_404_for_unknown():
-    assert client.get("/api/documents/nope/anonymized").status_code == 404
+def test_masked_404_for_unknown():
+    assert client.get("/api/documents/nope/masked").status_code == 404
 
 
 def _seed(doc_id: str, status):
@@ -59,7 +57,7 @@ def test_anonymized_preview_visible_during_human_review():
     from app.models.document import DocumentStatus
 
     _seed("na1", DocumentStatus.NEEDS_HUMAN_REVIEW)
-    r = client.get("/api/documents/na1/anonymized")
+    r = client.get("/api/documents/na1/masked")
     assert r.status_code == 200
     assert "residual maybe" in r.text
 
@@ -69,7 +67,7 @@ def test_anonymized_still_blocked_in_other_unapproved_states():
     from app.models.document import DocumentStatus
 
     _seed("na2", DocumentStatus.EXTRACTED)
-    assert client.get("/api/documents/na2/anonymized").status_code == 403
+    assert client.get("/api/documents/na2/masked").status_code == 409
 
 
 def test_pdf_download_stays_approval_only_during_review():

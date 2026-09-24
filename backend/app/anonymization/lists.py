@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 
 from app.anonymization.spans import EntitySpan
+from app.anonymization.types import user_type
 
 
 def _term_pattern(term: str) -> str | None:
@@ -28,10 +29,19 @@ def term_ranges(text: str, terms: list[str]) -> list[tuple[int, int]]:
     return ranges
 
 
-def deny_spans(text: str, terms: list[str]) -> list[EntitySpan]:
-    """Every occurrence of an always-mask term becomes a SENSITIVE span with full score."""
-    return [EntitySpan(start=a, end=b, entity_type="SENSITIVE", score=1.0, source="deny")
-            for a, b in term_ranges(text, terms)]
+def deny_spans(text: str, terms: list[str],
+               families: dict[str, str] | None = None) -> list[EntitySpan]:
+    """Every occurrence of an always-mask term becomes a full-score span. Terms a reviewer masked
+    for one document carry the family they chose ("USER:<FAMILY>", which outranks everything);
+    project-wide terms stay SENSITIVE."""
+    spans: list[EntitySpan] = []
+    for term in terms:
+        fam = (families or {}).get(term)
+        entity_type = user_type(fam) if fam else "SENSITIVE"
+        source = "user" if fam else "deny"
+        spans.extend(EntitySpan(start=a, end=b, entity_type=entity_type, score=1.0, source=source)
+                     for a, b in term_ranges(text, [term]))
+    return spans
 
 
 def is_allowed(span: EntitySpan, allow_ranges: list[tuple[int, int]]) -> bool:

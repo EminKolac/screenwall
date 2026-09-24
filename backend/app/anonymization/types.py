@@ -81,9 +81,21 @@ TYPES: dict[str, TypeInfo] = {
 }
 
 
+USER_PREFIX = "USER:"  # a human decision: "USER:ORG" masks with the ORG family and always wins
+
+
+def user_type(family_name: str) -> str:
+    return f"{USER_PREFIX}{family_name}"
+
+
 def info(entity_type: str) -> TypeInfo:
     """Unknown detector types keep their own name as family and sit in tier 1."""
-    return TYPES.get(entity_type) or TypeInfo(entity_type)
+    known = TYPES.get(entity_type)
+    if known is not None:
+        return known
+    if entity_type.startswith(USER_PREFIX):
+        return TypeInfo(entity_type[len(USER_PREFIX):] or "SENSITIVE", tier=0)
+    return TypeInfo(entity_type)
 
 
 def family(entity_type: str) -> str:

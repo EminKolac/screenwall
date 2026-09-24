@@ -1,17 +1,14 @@
-"""Ingest service: validate → extract → detect language. The single function the API calls.
+"""Ingest: validate → extract → detect language, plus the reasons a document needs a human.
 
-Codex Phase-2 review (H2): empty extraction (scanned/image-only PDFs, etc.) is NOT a success —
-it routes to human review. Corrupt files raise `ExtractionFailed` from the dispatcher and
-propagate to the API as 422. Persistence to storage layers is wired in Phase 5.
-
-v1 fail-closed: extraction can only PARTIALLY capture a document — a page needed OCR but Tesseract
-was unavailable (`OCR_UNAVAILABLE`), or an XLSX hit the cell cap (`WORKBOOK_TRUNCATED`). Auto-
-approving such a document could ship content that was never anonymized/audited, so any blocking
-warning also routes to human review.
+Empty extraction (scanned/image-only files) is not a success, and neither is a PARTIAL capture — a
+page needed OCR but Tesseract was unavailable, an XLSX hit the cell cap, or a mostly-image page
+kept its image text unread. Each of these is a blocking reason: the document goes to review,
+never to auto-approval. Corrupt files raise `ExtractionFailed`.
 """
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass, field
 
 from app.config import Settings
 from app.extraction.base import (
@@ -22,45 +19,60 @@ from app.extraction.base import (
 )
 from app.extraction.dispatcher import extract
 from app.language.detector import detect_content_language
-from app.models.document import Document, DocumentStatus, Language
+from app.models.document import Document, DocumentStatus, FileKind, Language
 
-_BLOCKING_WARNINGS = (OCR_UNAVAILABLE, WORKBOOK_TRUNCATED, IMAGE_TEXT_UNREAD)
-
-# Uyarı kodu → gözden geçirene gösterilecek cümle. Kod adları ("ocr_unavailable") arayüzde
-# hiçbir şey ifade etmiyordu; belgenin neden beklediğini anlatan tek yer burası.
-_REASON_TEXT = {
-    OCR_UNAVAILABLE: "Taranmış bir sayfa okunamadı (OCR kullanılamadı) — belgenin bir "
-                     "bölümü hiç çıkarılmamış olabilir.",
-    WORKBOOK_TRUNCATED: "Çalışma kitabı hücre sınırını aştı — tablonun tamamı okunmadı.",
-    IMAGE_TEXT_UNREAD: "Bir sayfanın büyük bölümü görüntü, ama sayfada yeterli metin "
-                       "olduğu için OCR çalışmadı — görüntü içindeki yazı okunmamış olabilir.",
+# Warning prefix → (reason code, sentence shown to the reviewer).
+_BLOCKING = {
+    OCR_UNAVAILABLE: ("ocr_unavailable", "Taranmış bir sayfa okunamadı (OCR kullanılamadı); "
+                                          "belgenin bir bölümü hiç çıkarılmamış olabilir."),
+    WORKBOOK_TRUNCATED: ("workbook_truncated",
+                         "Çalışma kitabı hücre sınırını aştı; tablonun tamamı okunmadı."),
+    IMAGE_TEXT_UNREAD: ("image_text_unread", "Bir sayfanın büyük bölümü görüntü, ama sayfada "
+                                              "yeterli metin olduğu için OCR çalışmadı; görüntü "
+                                              "içindeki yazı okunmamış olabilir."),
 }
+_NO_TEXT = ("no_text", "Belgeden hiç metin çıkarılamadı (büyük olasılıkla tamamı görüntü).")
 
 
-def _reasons(warnings: list[str], has_text: bool) -> list[str]:
-    out = [t for w, t in _REASON_TEXT.items() if any(x.startswith(w) for x in warnings)]
+@dataclass
+class ExtractResult:
+    kind: FileKind
+    content: ExtractedContent
+    language: Language
+    reasons: list[tuple[str, str]] = field(default_factory=list)  # blocking (code, sentence)
+
+    @property
+    def has_text(self) -> bool:
+        return bool(self.content.plain_text.strip())
+
+
+def extract_content(data: bytes, filename: str, settings: Settings) -> ExtractResult:
+    max_bytes = settings.max_upload_mb * 1024 * 1024
+    kind, content = extract(data, filename, max_bytes)  # UploadRejected / ExtractionFailed
+    reasons = [pair for prefix, pair in _BLOCKING.items()
+               if any(w.startswith(prefix) for w in content.warnings)]
+    has_text = bool(content.plain_text.strip())
     if not has_text:
-        out.append("Belgeden hiç metin çıkarılamadı (büyük olasılıkla tamamı görüntü).")
-    return out
+        content.warnings.append("no extractable text (possibly scanned/image-only)")
+        reasons.append(_NO_TEXT)
+    language = detect_content_language(content) if has_text else Language.unknown
+    return ExtractResult(kind=kind, content=content, language=language, reasons=reasons)
+
+
+def new_document(filename: str, kind: FileKind, mode: str) -> Document:
+    doc = Document(id=uuid.uuid4().hex, filename=filename, kind=kind)
+    doc.mode = mode  # type: ignore[assignment]
+    doc.transition(DocumentStatus.QUEUED)
+    return doc
 
 
 def ingest(data: bytes, filename: str, settings: Settings) -> tuple[Document, ExtractedContent]:
-    max_bytes = settings.max_upload_mb * 1024 * 1024
-    kind, content = extract(data, filename, max_bytes)  # UploadRejected / ExtractionFailed
-    doc = Document(id=uuid.uuid4().hex, filename=filename, kind=kind)
-
-    has_text = bool(content.plain_text.strip())
-    blocking = [w for w in content.warnings if w.startswith(_BLOCKING_WARNINGS)]
-    if not has_text:
-        # Parsed, but no usable text (likely scanned/image-only).
-        content.warnings.append("no extractable text (possibly scanned/image-only)")
-    if not has_text or blocking:
-        # Absent or only-partial capture must be a human decision, not an auto-approval.
-        doc.language = detect_content_language(content) if has_text else Language.unknown
-        doc.review_reason = _reasons(content.warnings, has_text)
-        doc.transition(DocumentStatus.NEEDS_HUMAN_REVIEW)
-        return doc, content
-
-    doc.transition(DocumentStatus.EXTRACTED)
-    doc.language = detect_content_language(content)
-    return doc, content
+    """Pre-v2 entry point (kept for callers and tests): one call that extracts and classifies."""
+    result = extract_content(data, filename, settings)
+    doc = Document(id=uuid.uuid4().hex, filename=filename, kind=result.kind)
+    doc.language = result.language
+    for code, text in result.reasons:
+        doc.add_reason(code, text)
+    doc.transition(DocumentStatus.NEEDS_HUMAN_REVIEW if result.reasons
+                   else DocumentStatus.EXTRACTED)
+    return doc, result.content

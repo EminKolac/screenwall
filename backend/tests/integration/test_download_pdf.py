@@ -27,7 +27,7 @@ def _pdf_text(data: bytes) -> str:
 def _approve_if_needed(doc_id: str) -> None:
     status = client.get(f"/api/documents/{doc_id}").json()["status"]
     if status != "approved":
-        client.post(f"/api/review/{doc_id}/approve")
+        client.post(f"/api/documents/{doc_id}/approve")
 
 
 def test_download_returns_masked_pdf(docx_tr):
@@ -44,7 +44,7 @@ def test_download_returns_masked_pdf(docx_tr):
     assert "Ahmet Yılmaz" not in txt        # original PII masked
     assert "<PERSON_" in txt                # placeholder present
     # Invariant: what is downloaded is exactly the audited anonymized content (layer 3).
-    anon = client.get(f"/api/documents/{doc_id}/anonymized").text
+    anon = client.get(f"/api/documents/{doc_id}/masked").text
     assert "<PERSON_" in anon and "Ahmet Yılmaz" not in anon
 
 
@@ -92,7 +92,7 @@ def test_partial_extraction_stays_downloadable(monkeypatch, xlsx_tr):
     j = client.post("/api/documents", files={"file": ("m.xlsx", xlsx_tr, _XLSX_MIME)}).json()
     assert j["status"] != "approved"            # blocking warning routed it to review
     doc_id = j["id"]
-    client.post(f"/api/review/{doc_id}/approve")
+    client.post(f"/api/documents/{doc_id}/approve")
     r = client.get(f"/api/documents/{doc_id}/download")
     assert r.status_code == 200 and r.content[:4] == b"%PDF"
 
