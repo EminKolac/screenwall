@@ -7,7 +7,6 @@ providers). This router resolves documents/providers and maps errors to the cont
   GET  /api/chat/providers   -> ProvidersResponse
   POST /api/chat/preview     -> ChatPreviewResponse  (no provider call)
   POST /api/chat             -> ChatResponse         (cloud: matching preview_hash required)
-  POST /api/chat/{doc_id}    -> {"answer"}           (legacy single-document local chat)
 
 Errors are {"detail": <ErrorCode>} only — never CLI stderr, provider text or exception messages.
 No external call happens for a non-approved document.
@@ -21,7 +20,6 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import TypeVar
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from app.chat import factory
 from app.chat.base import ChatError, ChatNotAllowed
@@ -119,7 +117,9 @@ def preview(body: ChatPreviewRequest) -> dict:
         settings = get_settings()
         docs = _documents(body.doc_ids)
         provider = factory.build_provider(body.provider, settings)
-        return factory.build_chat_service(settings).preview(docs, body.question, provider)
+        return factory.build_chat_service(settings).preview(
+            docs, body.question, provider, history=[m.model_dump() for m in body.history]
+        )
 
     return _guarded(call)
 
@@ -137,20 +137,5 @@ def ask(body: ChatRequest) -> dict:
             preview_hash=body.preview_hash,
             history=[m.model_dump() for m in body.history],
         )
-
-    return _guarded(call)
-
-
-class LegacyChatRequest(BaseModel):
-    messages: list[dict]
-
-
-@router.post("/{doc_id}")
-def chat(doc_id: str, body: LegacyChatRequest) -> dict:
-    """Legacy single-document chat for the old UI: always the local Ollama provider."""
-    def call() -> dict:
-        [doc] = _documents([doc_id])
-        answer = factory.build_chat_service(get_settings()).chat(doc, body.messages)
-        return {"answer": answer}
 
     return _guarded(call)

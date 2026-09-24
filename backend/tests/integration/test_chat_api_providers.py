@@ -1,10 +1,12 @@
-"""Chat API (contract "chat" section): providers, preview, consent-gated ask, legacy route.
+"""Chat API (contract "chat" section): providers, preview, consent-gated ask.
 
 The router is mounted on a bare FastAPI app so these tests do not depend on app/main.py
 (middleware such as CSRF is wired there separately). Ollama is replaced by an httpx
 MockTransport and the CLIs by the fake executables in tests/fixtures/fake_cli.
 """
 from __future__ import annotations
+
+import json
 
 import httpx
 import pytest
@@ -167,7 +169,7 @@ def test_preview_shape(client, ollama):
     assert len(body["preview_hash"]) == 64 and body["context_chars"] == len(MASKED)
     [source] = body["sources"]
     assert source == {"id": "S1", "doc_id": "d1", "unit_id": "context",
-                      "label": "Sunum.pdf · Bölüm 1", "excerpt": MASKED}
+                      "label": "Sunum.pdf · Parça 1", "excerpt": MASKED}
     assert "Sunum.pdf" not in body["sent_text"]  # filenames stay on this machine
     assert ollama["bodies"] == []  # a preview never calls a provider
 
@@ -202,7 +204,7 @@ def test_ollama_path_returns_citations_without_preview(client, ollama):
     assert body["provider"] == "ollama"
     [citation] = body["citations"]
     assert citation["id"] == "S1" and citation["doc_id"] == "d1"
-    assert citation["label"] == "Kira.docx · Bölüm 1" and "<PERSON_1>" in citation["excerpt"]
+    assert citation["label"] == "Kira.docx · Parça 1" and "<PERSON_1>" in citation["excerpt"]
     assert len(ollama["bodies"]) == 1
 
 
@@ -260,19 +262,67 @@ def test_malformed_requests_are_rejected(client, ollama, body):
     assert ollama["bodies"] == []
 
 
-# ------------------------------------------------------------------ legacy route (old UI)
+# ------------------------------------------------------------------ history is part of consent
+
+HISTORY = [
+    {"role": "user", "content": "Sözleşmenin tarafları kim?"},
+    {"role": "assistant", "content": "<PERSON_1> ve <ORG_1> [S1]."},
+]
 
 
-def test_legacy_single_document_route_still_works(client, ollama):
+@pytest.mark.parametrize("provider", ["claude_cli", "codex_cli"])
+def test_cloud_history_is_previewed_and_sent_byte_for_byte(client, fakes, provider):
     _seed("d1")
-    ollama["answer"] = "Eski arayüz cevabı"
+    preview = client.post("/api/chat/preview", json=_body(provider, history=HISTORY)).json()
+    assert "Sözleşmenin tarafları kim?" in preview["sent_text"]  # the consent shows the history
+    r = client.post("/api/chat", json=_body(provider, history=HISTORY,
+                                            preview_hash=preview["preview_hash"]))
+    assert r.status_code == 200, r.text
+    [call] = fakes[provider].chat_calls()
+    assert fakes[provider].stdin_bytes(call) == preview["sent_text"].encode("utf-8")
+
+
+def test_history_not_in_the_preview_voids_the_consent(client, fakes):
+    _seed("d1")
+    bare = client.post("/api/chat/preview", json=_body("claude_cli")).json()["preview_hash"]
+    r = client.post("/api/chat", json=_body("claude_cli", history=HISTORY, preview_hash=bare))
+    assert r.status_code == 409 and r.json() == {"detail": "preview_mismatch"}
+    assert fakes["claude_cli"].chat_calls() == []
+
+
+def test_cloud_send_is_recorded_without_content(client, fakes):
+    _seed("d1")
+    preview = client.post("/api/chat/preview", json=_body("codex_cli", history=HISTORY)).json()
+    r = client.post("/api/chat", json=_body("codex_cli", history=HISTORY,
+                                            preview_hash=preview["preview_hash"]))
+    assert r.status_code == 200, r.text
+    log = get_settings().storage_root / "chat_dispatches.jsonl"
+    assert oct(log.stat().st_mode & 0o777) == "0o600"
+    [row] = [json.loads(line) for line in log.read_text().splitlines()]
+    assert set(row) == {"at", "provider", "model", "doc_ids", "preview_hash", "chars"}
+    assert row["provider"] == "codex_cli" and row["doc_ids"] == ["d1"]
+    assert row["preview_hash"] == preview["preview_hash"]
+    assert row["chars"] == len(preview["sent_text"])
+    for text in (QUESTION, "Sözleşmenin", "<PERSON_1>", "Kira.docx"):
+        assert text not in log.read_text()
+
+
+def test_local_ollama_send_is_not_recorded(client, ollama):
+    _seed("d1")
+    assert client.post("/api/chat", json=_body("ollama")).status_code == 200
+    assert not (get_settings().storage_root / "chat_dispatches.jsonl").exists()
+
+
+def test_more_than_eight_history_messages_is_422(client, ollama):
+    _seed("d1")
+    history = [{"role": "user", "content": f"soru {i}"} for i in range(9)]
+    for path in ("/api/chat/preview", "/api/chat"):
+        assert client.post(path, json=_body("ollama", history=history)).status_code == 422
+    assert ollama["bodies"] == []
+
+
+def test_the_legacy_single_document_route_is_gone(client, ollama):
+    _seed("d1")
     r = client.post("/api/chat/d1", json={"messages": [{"role": "user", "content": "Kira?"}]})
-    assert r.status_code == 200 and r.json() == {"answer": "Eski arayüz cevabı"}
-    _seed("d2", DocumentStatus.NEEDS_HUMAN_REVIEW)
-    r = client.post("/api/chat/d2", json={"messages": [{"role": "user", "content": "Kira?"}]})
-    assert r.status_code == 403 and r.json() == {"detail": "chat_not_allowed"}
-    r = client.post("/api/chat/none", json={"messages": []})
-    assert r.status_code == 404 and r.json() == {"detail": "document_not_found"}
-    ollama["down"] = True
-    r = client.post("/api/chat/d1", json={"messages": [{"role": "user", "content": "Kira?"}]})
-    assert r.status_code == 503 and r.json() == {"detail": "ollama_unreachable"}
+    assert r.status_code in (404, 405)
+    assert ollama["bodies"] == []

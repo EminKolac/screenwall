@@ -13,7 +13,7 @@ ProviderId = Literal["ollama", "claude_cli", "codex_cli"]
 
 MAX_DOCS = 20
 MAX_INPUT_CHARS = 20_000  # request bound; ChatService then caps to chat_max_message_chars
-MAX_HISTORY = 400
+MAX_HISTORY = 8  # ChatService sends the last 8 turns; a request may not carry more
 
 
 class ProviderStatus(BaseModel):
@@ -49,10 +49,17 @@ def _not_blank(value: str) -> str:
     return value
 
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=MAX_INPUT_CHARS)
+
+
 class ChatPreviewRequest(BaseModel):
     doc_ids: list[str] = Field(min_length=1, max_length=MAX_DOCS)
     question: str = Field(min_length=1, max_length=MAX_INPUT_CHARS)
     provider: ProviderId
+    # The exact history slice POST /api/chat will send: it is part of sent_text and preview_hash.
+    history: list[ChatMessage] = Field(default_factory=list, max_length=MAX_HISTORY)
 
     @field_validator("question")
     @classmethod
@@ -67,11 +74,6 @@ class ChatPreviewResponse(BaseModel):
     sources: list[ChatSource]
     sent_text: str
     context_chars: int
-
-
-class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str = Field(max_length=MAX_INPUT_CHARS)
 
 
 class ChatRequest(BaseModel):

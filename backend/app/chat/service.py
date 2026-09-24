@@ -1,18 +1,20 @@
 """Chat service — the single choke point for any external LLM call (Codex CRITICAL fix).
 
-ALL chat goes through `ChatService` (`chat` for the legacy single-document route; `preview` and
-`ask` for the multi-provider flow). For EVERY provider and EVERY selected document it enforces:
+ALL chat goes through `ChatService.preview` / `ChatService.ask`. For EVERY provider and EVERY
+selected document it enforces:
   1. document status is APPROVED (`ensure_chat_allowed`);
   2. the requested data is the externally-shareable chat-context layer (`assert_shareable`);
   3. an approved chat-context artifact actually exists.
-Only storage layer 5 (CHAT_CONTEXT) is ever read. User-supplied messages are length-capped and
-PII-redacted before leaving the machine, so a user cannot smuggle raw PII into the provider call.
+Only storage layer 5 (CHAT_CONTEXT) is ever read. User-supplied messages (the question and every
+history turn) are PII-redacted, then length-capped, before leaving the machine.
 
 Cloud providers (Claude / Codex CLI, `provider.local is False`) add a fourth gate, consent: `ask`
-refuses unless the request carries the `preview_hash` that `preview` returned for the same
-provider, documents, question and sources — recomputed from fresh reads, so a changed document
-drops the consent (plan §5.6). The preview's `sent_text` is `provider.render(...)`, i.e. exactly
-the text `provider.chat` sends (for a CLI: the stdin envelope, byte for byte).
+refuses unless the request carries the `preview_hash` that `preview` returned. The hash covers
+the provider, the model, the documents and `sent_text` — the exact text `provider.chat` sends
+(for a CLI: the stdin envelope, byte for byte), which includes the system prompt, the sources,
+the history and the question. It is recomputed from fresh reads, so a changed document, question
+or history drops the consent (plan §5.6). Every cloud send is recorded without content
+(`chat/dispatches.py`) before the provider is called.
 """
 from __future__ import annotations
 
@@ -23,8 +25,8 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.chat import retrieval
-from app.chat.base import ChatError, ChatNotAllowed, ChatProvider, ensure_chat_allowed
+from app.chat import dispatches, retrieval
+from app.chat.base import ChatError, ChatNotAllowed, SelectableProvider, ensure_chat_allowed
 from app.chat.retrieval import Source
 from app.config import Settings
 from app.models.document import Document
@@ -35,35 +37,14 @@ _CONTEXT_NAME = "context.txt"
 _HISTORY_MESSAGES = 8  # earlier turns sent along with a question (V2: the last 8)
 _ROLES = frozenset({"user", "assistant"})
 
-_SYSTEM_TEMPLATE = (
-    "You are a helpful assistant. You may ONLY use the anonymized document context below. "
-    "It has been de-identified; do not attempt to guess or reconstruct any hidden values "
-    "(tokens like <PERSON_1>). If asked for information that is not present, say so.\n\n"
-    "=== ANONYMIZED CONTEXT ===\n{context}\n=== END CONTEXT ==="
-)
 
-
-def preview_hash(
-    provider_id: str, doc_ids: Sequence[str], question: str, sources: Sequence[Source]
-) -> str:
-    """sha256 over canonical JSON of what the user consents to: the destination, the documents,
-    the (sanitized) question and every source exactly as sent. Any change → another hash."""
+def preview_hash(provider_id: str, model: str, doc_ids: Sequence[str], sent_text: str) -> str:
+    """sha256 over canonical JSON of what the user consents to: where it goes (provider and
+    model), which documents, and the exact text that leaves the machine. Any change → another
+    hash."""
     canonical = json.dumps(
-        {
-            "provider": provider_id,
-            "doc_ids": sorted(doc_ids),
-            "question": question,
-            "sources": [
-                {
-                    "id": s.id,
-                    "doc_id": s.doc_id,
-                    "unit_id": s.unit_id,
-                    "label": s.label,
-                    "text": s.text,
-                }
-                for s in sources
-            ],
-        },
+        {"provider": provider_id, "model": model, "doc_ids": sorted(doc_ids),
+         "sent_text": sent_text},
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -73,6 +54,7 @@ def preview_hash(
 
 @dataclass(frozen=True)
 class _Prepared:
+    doc_ids: list[str]
     sources: list[Source]
     system_prompt: str
     messages: list[dict]
@@ -81,19 +63,19 @@ class _Prepared:
 
 
 class ChatService:
-    def __init__(self, provider: ChatProvider, storage: StorageBackend, settings: Settings) -> None:
-        self.provider = provider  # the local default; the legacy single-document route uses it
+    def __init__(self, storage: StorageBackend, settings: Settings) -> None:
         self.storage = storage
         self.settings = settings
 
     def _sanitize(self, messages: list[dict]) -> list[dict]:
-        """Cap length and redact structured PII from user content before any external call."""
+        """Redact structured PII from user content, then cap its length. Redacting first means a
+        cut can never leave half of a value that the redactor would no longer recognise."""
         cap = self.settings.chat_max_message_chars
         out = []
         for m in messages:
-            content = str(m.get("content", ""))[:cap]
+            content = redact(str(m.get("content", "")))[:cap]
             role = m.get("role")  # a client must not smuggle in a second "system" message
-            out.append({"role": role if role in _ROLES else "user", "content": redact(content)})
+            out.append({"role": role if role in _ROLES else "user", "content": content})
         return out
 
     def _approved_contexts(self, docs: Sequence[Document]) -> list[tuple[Document, str]]:
@@ -109,21 +91,11 @@ class ChatService:
             contexts.append((doc, raw.decode("utf-8")))
         return contexts
 
-    def chat(self, doc: Document, user_messages: list[dict]) -> str:
-        """Legacy single-document chat (old UI): the whole approved context, local provider."""
-        [(_, context)] = self._approved_contexts([doc])
-        system_prompt = _SYSTEM_TEMPLATE.format(context=context)
-        return self.provider.chat(
-            system_prompt, self._sanitize(user_messages), self.settings.chat_ollama_model
-        )
-
-    # ------------------------------------------------ multi-provider flow (contract "chat")
-
     def _prepare(
         self,
         docs: Sequence[Document],
         question: str,
-        provider,
+        provider: SelectableProvider,
         history: Sequence[dict] = (),
     ) -> _Prepared:
         # Sorted, de-duplicated ids: numbering, prompt and hash never depend on request order.
@@ -137,24 +109,36 @@ class ChatService:
         )
         if not sources:
             raise ChatNotAllowed("the approved chat context is empty")
-        earlier = [
-            {**m, "content": retrieval.strip_citations(m["content"])}
-            for m in self._sanitize(list(history)[-_HISTORY_MESSAGES:])
-        ]
+        # Old citation markers go BEFORE redaction: stripping them afterwards would glue a value
+        # split by a marker ("ali[S1]@example.com") back together behind the redactor's back.
+        earlier = self._sanitize([
+            {**m, "content": retrieval.strip_citations(str(m.get("content", "")))}
+            for m in list(history)[-_HISTORY_MESSAGES:]
+        ])
         messages = [*earlier, {"role": "user", "content": asked}]
         system_prompt = retrieval.system_prompt(sources)
         model = getattr(provider, "model", "")
+        doc_ids = [d.id for d in selected]
+        sent_text = provider.render(system_prompt, messages, model)
         return _Prepared(
+            doc_ids=doc_ids,
             sources=sources,
             system_prompt=system_prompt,
             messages=messages,
-            sent_text=provider.render(system_prompt, messages, model),
-            preview_hash=preview_hash(provider.id, [d.id for d in selected], asked, sources),
+            sent_text=sent_text,
+            preview_hash=preview_hash(provider.id, model, doc_ids, sent_text),
         )
 
-    def preview(self, docs: Sequence[Document], question: str, provider) -> dict:
-        """Contract ChatPreviewResponse. No provider call; the consent dialog's exact text."""
-        prepared = self._prepare(docs, question, provider)
+    def preview(
+        self,
+        docs: Sequence[Document],
+        question: str,
+        provider: SelectableProvider,
+        history: Sequence[dict] = (),
+    ) -> dict:
+        """Contract ChatPreviewResponse. No provider call; the consent dialog's exact text. The
+        caller must pass the same history it will send with `ask`."""
+        prepared = self._prepare(docs, question, provider, history)
         return {
             "provider": provider.id,
             "preview_hash": prepared.preview_hash,
@@ -168,12 +152,13 @@ class ChatService:
         self,
         docs: Sequence[Document],
         question: str,
-        provider,
+        provider: SelectableProvider,
         *,
         preview_hash: str | None = None,
         history: Sequence[dict] = (),
     ) -> dict:
-        """Contract ChatResponse. Cloud providers need the matching preview_hash (gate 4)."""
+        """Contract ChatResponse. Cloud providers need the matching preview_hash (gate 4), and
+        every cloud send is recorded before it happens."""
         started = time.monotonic()
         prepared = self._prepare(docs, question, provider, history)
         if not getattr(provider, "local", False):
@@ -183,6 +168,11 @@ class ChatService:
                 preview_hash.encode("utf-8"), prepared.preview_hash.encode("utf-8")
             ):
                 raise ChatError("preview_mismatch")
+            dispatches.record(
+                self.settings, provider=provider.id, model=getattr(provider, "model", ""),
+                doc_ids=prepared.doc_ids, preview_hash=prepared.preview_hash,
+                chars=len(prepared.sent_text),
+            )
         raw = provider.chat(
             prepared.system_prompt, prepared.messages, getattr(provider, "model", "")
         )

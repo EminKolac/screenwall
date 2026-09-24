@@ -31,8 +31,9 @@ _B = 0.75
 _PLACEHOLDER = re.compile(r"<[A-Z][A-Z0-9_]*_\d+>")
 _WORD = re.compile(r"[^\W_]+")
 _MARKER = re.compile(r"\[(S\d+)\]")
-_GROUP = re.compile(r"\[\s*(S\d+(?:\s*[,;]\s*S\d+)+)\s*\]")  # [S1, S2] / [S1; S2]
-_SEPARATOR = re.compile(r"\s*[,;]\s*")
+_BRACKET = re.compile(r"\[([^\[\]\n]{1,80})\]")
+_ID_LIST = re.compile(r"\s*[sS]0*\d+(?:\s*[,;]\s*[sS]0*\d+)*\s*")  # S1 / s01 / S1, S2 / S1; S2
+_ID = re.compile(r"[sS]0*(\d+)")
 
 _SYSTEM = (
     "You answer questions about the user's documents using ONLY the numbered sources below.\n"
@@ -57,7 +58,7 @@ class Source:
     doc_index: int  # 1-based position among the selected documents (sorted ids)
     part: int  # 1-based chunk number within its document
     unit_id: str
-    label: str  # "<filename> · Bölüm k" — local UI only, never sent to a provider
+    label: str  # "<filename> · Parça k" (a ~1200-char chunk) — local UI only, never sent
     text: str  # the full masked chunk, exactly as the provider sees it
 
     @property
@@ -177,7 +178,7 @@ def retrieve(
                 doc_index=doc_index,
                 part=part,
                 unit_id=UNKNOWN_UNIT,
-                label=f"{filename} · Bölüm {part}",
+                label=f"{filename} · Parça {part}",
                 text=chunk,
             )
         )
@@ -192,8 +193,14 @@ def system_prompt(sources: Sequence[Source]) -> str:
 
 
 def normalize_citations(answer: str) -> str:
-    """`[S1, S2]` / `[S1; S2]` → `[S1][S2]`, so every marker has the one canonical form."""
-    return _GROUP.sub(lambda m: "".join(f"[{i}]" for i in _SEPARATOR.split(m[1])), answer)
+    """`[S1, S2]`, `[S1; S2]`, `[s1]`, `[S01]` → `[S1][S2]` / `[S1]`: one canonical form. A range
+    such as `[S1-S3]` is left alone and so fails validation (fail-closed)."""
+    def canonical(match: re.Match[str]) -> str:
+        if not _ID_LIST.fullmatch(match[1]):
+            return match[0]
+        return "".join(f"[S{int(n)}]" for n in _ID.findall(match[1]))
+
+    return _BRACKET.sub(canonical, answer)
 
 
 def strip_citations(text: str) -> str:

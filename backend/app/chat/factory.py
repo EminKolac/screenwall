@@ -25,10 +25,9 @@ def build_provider(
 
 
 def build_chat_provider(settings: Settings) -> OllamaChatProvider:
-    """The local default (also what the legacy single-document route uses)."""
+    """The local default provider."""
     return OllamaChatProvider(settings.ollama_base_url, settings.chat_ollama_model)
 
 
 def build_chat_service(settings: Settings) -> ChatService:
-    backend = LocalStorageBackend(settings.storage_root)
-    return ChatService(build_chat_provider(settings), backend, settings)
+    return ChatService(LocalStorageBackend(settings.storage_root), settings)

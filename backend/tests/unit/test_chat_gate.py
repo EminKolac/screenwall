@@ -22,10 +22,15 @@ def test_gate_allows_approved():
 
 
 class _Provider:
-    name = "dummy"
+    id = name = "ollama"
+    local = True
+    model = ""
+
+    def render(self, system_prompt, messages, model=""):
+        return system_prompt + repr(messages)
 
     def chat(self, system_prompt, messages, model):
-        return "answer"
+        return "answer [S1]"
 
 
 class _Store:
@@ -49,11 +54,11 @@ class _Store:
 
 
 def test_service_blocks_non_approved():
-    svc = ChatService(_Provider(), _Store(), get_settings())
+    svc = ChatService(_Store(), get_settings())
     with pytest.raises(ChatNotAllowed):
-        svc.chat(_doc(DocumentStatus.EXTRACTED), [{"role": "user", "content": "hi"}])
+        svc.ask([_doc(DocumentStatus.EXTRACTED)], "hi", _Provider())
 
 
 def test_service_allows_approved():
-    svc = ChatService(_Provider(), _Store(), get_settings())
-    assert svc.chat(_doc(DocumentStatus.APPROVED), [{"role": "user", "content": "hi"}]) == "answer"
+    svc = ChatService(_Store(), get_settings())
+    assert svc.ask([_doc(DocumentStatus.APPROVED)], "hi", _Provider())["answer"] == "answer [S1]"

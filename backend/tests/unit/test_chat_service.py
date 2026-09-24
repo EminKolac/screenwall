@@ -72,8 +72,7 @@ def storage(tmp_path):
 
 @pytest.fixture
 def service(storage):
-    settings = get_settings()
-    return ChatService(build_provider("ollama", settings), storage, settings)
+    return ChatService(storage, get_settings())
 
 
 def _seed(storage, doc_id: str, context: str = MASKED) -> None:
@@ -158,7 +157,7 @@ def test_multi_document_sources_and_labels(service, storage):
     docs = [_doc("b-doc", filename="Fatura.pdf"), _doc("a-doc", filename="Kira.docx")]
     out = service.preview(docs, "Fatura kimin adına kesildi?", SpyProvider())
     assert out["sources"][0]["doc_id"] == "b-doc"
-    assert out["sources"][0]["label"] == "Fatura.pdf · Bölüm 1"
+    assert out["sources"][0]["label"] == "Fatura.pdf · Parça 1"
     assert {s["doc_id"] for s in out["sources"]} == {"a-doc", "b-doc"}
     # Documents are numbered by sorted id, whatever the request order: a-doc = 1, b-doc = 2.
     assert "document 2, part 1" in out["sent_text"]
@@ -184,8 +183,10 @@ def test_preview_hash_is_order_independent_and_tracks_every_input(service, stora
 
 
 def test_preview_hash_helper_is_canonical():
-    first = preview_hash("claude_cli", ["b", "a"], "q", [])
-    assert first == preview_hash("claude_cli", ["a", "b"], "q", [])
+    first = preview_hash("claude_cli", "", ["b", "a"], "text")
+    assert first == preview_hash("claude_cli", "", ["a", "b"], "text")
+    assert first != preview_hash("claude_cli", "some-model", ["a", "b"], "text")
+    assert first != preview_hash("claude_cli", "", ["a", "b"], "text ")
 
 
 def test_cloud_requires_matching_preview_hash(service, storage):
@@ -234,13 +235,45 @@ def test_answer_citations_are_validated(service, storage, answer):
     assert err.value.code == "invalid_citations"
 
 
-def test_legacy_chat_keeps_its_contract(service, storage):
+def test_history_is_part_of_the_consent(service, storage):
     _seed(storage, "d1")
-    spy = SpyProvider("ollama", local=True, answer="legacy")
-    legacy = ChatService(spy, storage, get_settings())
-    assert legacy.chat(_doc("d1"), [{"role": "user", "content": "hi"}]) == "legacy"
-    [(system_prompt, _)] = spy.calls
-    assert "=== ANONYMIZED CONTEXT ===" in system_prompt and "<PERSON_1>" in system_prompt
+    spy = SpyProvider()
+    history = [{"role": "user", "content": "Taraflar kim?"},
+               {"role": "assistant", "content": "<PERSON_1> ve <ORG_1> [S1]."}]
+    bare = service.preview([_doc("d1")], "Kira ne kadar?", spy)
+    with_history = service.preview([_doc("d1")], "Kira ne kadar?", spy, history)
+    assert with_history["preview_hash"] != bare["preview_hash"]
+    assert "Taraflar kim?" in with_history["sent_text"]
+    with pytest.raises(ChatError) as err:
+        service.ask([_doc("d1")], "Kira ne kadar?", spy, preview_hash=bare["preview_hash"],
+                    history=history)
+    assert err.value.code == "preview_mismatch" and spy.calls == []
+    service.ask([_doc("d1")], "Kira ne kadar?", spy, preview_hash=with_history["preview_hash"],
+                history=history)
+    [(_, messages)] = spy.calls
+    assert [m["content"] for m in messages[:2]] == ["Taraflar kim?", "<PERSON_1> ve <ORG_1> ."]
+
+
+def test_citation_markers_cannot_hide_a_value_from_the_redactor(service, storage):
+    _seed(storage, "d1")
+    spy = SpyProvider("ollama", local=True)
+    history = [{"role": "user", "content": "ali.veli[S1]@example.com ve 1234[S2]5678901"}]
+    service.ask([_doc("d1")], "Kira?", spy, history=history)
+    [(_, messages)] = spy.calls
+    sent = messages[0]["content"]
+    assert "ali.veli@example.com" not in sent and "12345678901" not in sent
+    assert "<EMAIL_REDACTED>" in sent and "<TCKN_REDACTED>" in sent
+
+
+def test_a_value_cut_by_the_length_cap_is_still_redacted(service, storage, monkeypatch):
+    _seed(storage, "d1")
+    spy = SpyProvider("ollama", local=True)
+    cap = get_settings().chat_max_message_chars
+    question = "x" * (cap - 10) + " ahmet.kanarya@example.com"  # the cap cuts the address
+    service.ask([_doc("d1")], question, spy)
+    [(_, messages)] = spy.calls
+    assert "ahmet.kanarya" not in messages[-1]["content"]
+    assert len(messages[-1]["content"]) <= cap
 
 
 # ------------------------------------------------------------------ canary through the CLIs

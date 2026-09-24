@@ -68,7 +68,7 @@ def test_bm25_ranks_the_relevant_chunk_first_and_numbers_sources():
     best = sources[0]
     assert "Kira bedeli" in best.text
     assert best.doc_id == "doc-b" and best.doc_index == 1
-    assert best.label == f"Sozlesme.docx · Bölüm {best.part}"
+    assert best.label == f"Sozlesme.docx · Parça {best.part}"
     assert best.unit_id == "context"
     public = best.public()
     assert set(public) == {"id", "doc_id", "unit_id", "label", "excerpt"}
@@ -126,3 +126,12 @@ def test_grouped_citations_are_normalized():
     assert retrieval.normalize_citations("A [S1, S2] B [S3; S1]") == "A [S1][S2] B [S3][S1]"
     assert retrieval.normalize_citations("[S1]") == "[S1]"
     assert retrieval.strip_citations("Önceki cevap [S2] ve [S1, S3].") == "Önceki cevap  ve ."
+
+
+def test_loose_citation_forms_are_normalized():
+    assert retrieval.normalize_citations("A [s1] B [S01] C [S02, s3]") == "A [S1] B [S1] C [S2][S3]"
+    # Ranges and anything that is not a list of ids stay as they are, so validation rejects them.
+    assert retrieval.normalize_citations("[S1-S3]") == "[S1-S3]"
+    assert retrieval.normalize_citations("[bkz. S1]") == "[bkz. S1]"
+    with pytest.raises(ChatError):
+        retrieval.cited_sources("Bkz. [S1-S3].", _sources())
