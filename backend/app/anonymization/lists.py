@@ -53,6 +53,21 @@ def term_ranges(text: str, terms: list[str]) -> list[tuple[int, int]]:
     return ranges
 
 
+# Turkish inflects a name after an apostrophe: "Yönetim Kurulu'nun", "Kurulu’na".
+_APOSTROPHE_SUFFIX = re.compile(r"['’][^\W\d_]+")
+
+
+def keep_ranges(text: str, terms: list[str]) -> list[tuple[int, int]]:
+    """`term_ranges` for never-mask and kept terms: an occurrence also covers a suffix written
+    after an apostrophe, so a kept "Yönetim Kurulu" still holds in "Yönetim Kurulu'nun". A suffix
+    glued on without an apostrophe is NOT followed: "Kaya" must not cover the surname "Kayaoğlu"."""
+    out: list[tuple[int, int]] = []
+    for start, end in term_ranges(text, terms):
+        suffix = _APOSTROPHE_SUFFIX.match(text, end)
+        out.append((start, suffix.end() if suffix else end))
+    return out
+
+
 def deny_spans(text: str, terms: list[str],
                families: dict[str, str] | None = None) -> list[EntitySpan]:
     """Every occurrence of an always-mask term becomes a full-score span. A term masked globally

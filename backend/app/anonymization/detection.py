@@ -12,7 +12,7 @@ import threading
 from dataclasses import dataclass, field
 
 from app.anonymization.gates import implausible_person_ner, lowercase_initial_ner
-from app.anonymization.lists import deny_spans, is_allowed, term_ranges
+from app.anonymization.lists import deny_spans, is_allowed, keep_ranges
 from app.anonymization.resolve import resolve_spans
 from app.anonymization.spans import EntitySpan
 from app.anonymization.types import ADJACENCY_SAFE
@@ -46,7 +46,7 @@ class Detection:
         # Never-mask filtering and the orthographic gates run BEFORE resolution: removing a span
         # afterwards could not resurrect a real span it had suppressed through overlap.
         if self.allow:
-            ranges = term_ranges(text, self.allow)
+            ranges = keep_ranges(text, self.allow)
             if ranges:
                 spans = [s for s in spans if not is_allowed(s, ranges, text)]
         spans = [s for s in spans

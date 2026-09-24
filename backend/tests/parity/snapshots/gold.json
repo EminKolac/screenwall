@@ -264,12 +264,12 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ YAZIŞMASI",
-"sheet-Content:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"sheet-Content:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
-"sheet-Content:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
-"sheet-Content:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
+"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
+"x1-t:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
 },
 "detect_allow": [
@@ -360,12 +360,12 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ YAZIŞMASI",
-"sheet-Content:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"sheet-Content:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
-"sheet-Content:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
-"sheet-Content:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
+"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
+"x1-t:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
 }
 },
@@ -634,12 +634,12 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ YAZIŞMASI",
-"sheet-Content:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"sheet-Content:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
-"sheet-Content:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
-"sheet-Content:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
+"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
+"x1-t:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
 },
 "detect_allow": [
@@ -730,12 +730,12 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ YAZIŞMASI",
-"sheet-Content:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"sheet-Content:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
-"sheet-Content:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
-"sheet-Content:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
+"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
+"x1-t:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
 }
 },
@@ -1297,25 +1297,25 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ HESAP ÖZETİ",
-"sheet-Content:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
-"sheet-Content:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"sheet-Content:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"sheet-Content:r13c0": "<PERSON_4> — <EMAIL_2>.",
-"sheet-Content:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
-"sheet-Content:r3c0": "<LOCATION_1>",
-"sheet-Content:r3c1": "Bilgi",
-"sheet-Content:r4c0": "IBAN",
-"sheet-Content:r4c1": "<IBAN_1>",
-"sheet-Content:r5c0": "Kart",
-"sheet-Content:r5c1": "<CARD_1>",
-"sheet-Content:r6c0": "Kayıtlı telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_2>",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
+"x1-t:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
+"x1-t:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
+"x1-t:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "<PERSON_4> — <EMAIL_2>.",
+"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r3c0": "<LOCATION_1>",
+"x1-t:r3c1": "Bilgi",
+"x1-t:r4c0": "IBAN",
+"x1-t:r4c1": "<IBAN_1>",
+"x1-t:r5c0": "Kart",
+"x1-t:r5c1": "<CARD_1>",
+"x1-t:r6c0": "Kayıtlı telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_2>"
 }
 },
 "detect_allow": [
@@ -1515,25 +1515,25 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ HESAP ÖZETİ",
-"sheet-Content:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
-"sheet-Content:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"sheet-Content:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"sheet-Content:r13c0": "<PERSON_6> — <EMAIL_2>.",
-"sheet-Content:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
-"sheet-Content:r3c0": "<LOCATION_1>",
-"sheet-Content:r3c1": "Bilgi",
-"sheet-Content:r4c0": "IBAN",
-"sheet-Content:r4c1": "<IBAN_1>",
-"sheet-Content:r5c0": "Kart",
-"sheet-Content:r5c1": "<CARD_1>",
-"sheet-Content:r6c0": "Kayıtlı telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_2>",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
+"x1-t:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
+"x1-t:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
+"x1-t:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "<PERSON_6> — <EMAIL_2>.",
+"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r3c0": "<LOCATION_1>",
+"x1-t:r3c1": "Bilgi",
+"x1-t:r4c0": "IBAN",
+"x1-t:r4c1": "<IBAN_1>",
+"x1-t:r5c0": "Kart",
+"x1-t:r5c1": "<CARD_1>",
+"x1-t:r6c0": "Kayıtlı telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_2>"
 }
 }
 },
@@ -2092,25 +2092,25 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ HESAP ÖZETİ",
-"sheet-Content:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
-"sheet-Content:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"sheet-Content:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"sheet-Content:r13c0": "<PERSON_4> — <EMAIL_2>.",
-"sheet-Content:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
-"sheet-Content:r3c0": "<LOCATION_1>",
-"sheet-Content:r3c1": "Bilgi",
-"sheet-Content:r4c0": "IBAN",
-"sheet-Content:r4c1": "<IBAN_1>",
-"sheet-Content:r5c0": "Kart",
-"sheet-Content:r5c1": "<CARD_1>",
-"sheet-Content:r6c0": "Kayıtlı telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_2>",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
+"x1-t:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
+"x1-t:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
+"x1-t:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "<PERSON_4> — <EMAIL_2>.",
+"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r3c0": "<LOCATION_1>",
+"x1-t:r3c1": "Bilgi",
+"x1-t:r4c0": "IBAN",
+"x1-t:r4c1": "<IBAN_1>",
+"x1-t:r5c0": "Kart",
+"x1-t:r5c1": "<CARD_1>",
+"x1-t:r6c0": "Kayıtlı telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_2>"
 }
 },
 "detect_allow": [
@@ -2309,25 +2309,25 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "MÜŞTERİ HESAP ÖZETİ",
-"sheet-Content:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
-"sheet-Content:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"sheet-Content:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"sheet-Content:r13c0": "<PERSON_6> — <EMAIL_2>.",
-"sheet-Content:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
-"sheet-Content:r3c0": "<LOCATION_1>",
-"sheet-Content:r3c1": "Bilgi",
-"sheet-Content:r4c0": "IBAN",
-"sheet-Content:r4c1": "<IBAN_1>",
-"sheet-Content:r5c0": "Kart",
-"sheet-Content:r5c1": "<CARD_1>",
-"sheet-Content:r6c0": "Kayıtlı telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_2>",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
+"x1-t:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
+"x1-t:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
+"x1-t:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "<PERSON_6> — <EMAIL_2>.",
+"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r3c0": "<LOCATION_1>",
+"x1-t:r3c1": "Bilgi",
+"x1-t:r4c0": "IBAN",
+"x1-t:r4c1": "<IBAN_1>",
+"x1-t:r5c0": "Kart",
+"x1-t:r5c1": "<CARD_1>",
+"x1-t:r6c0": "Kayıtlı telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_2>"
 }
 }
 },
@@ -2677,13 +2677,13 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "HASTA DEĞERLENDİRME FORMU",
-"sheet-Content:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
-"sheet-Content:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
-"sheet-Content:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
-"sheet-Content:r5c0": "Değerlendiren hekim: <PERSON_2>. Kontrol randevusu Kalite Kontrol biriminden alınacaktır.",
-"sheet-Content:r6c0": "<PERSON_3> ile telefonla teyit edildi.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "HASTA DEĞERLENDİRME FORMU",
+"x1-t:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"x1-t:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
+"x1-t:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
+"x1-t:r5c0": "Değerlendiren hekim: <PERSON_2>. Kontrol randevusu Kalite Kontrol biriminden alınacaktır.",
+"x1-t:r6c0": "<PERSON_3> ile telefonla teyit edildi."
 }
 },
 "detect_allow": [
@@ -2808,19 +2808,19 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "HASTA DEĞERLENDİRME FORMU",
-"sheet-Content:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
-"sheet-Content:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
-"sheet-Content:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
-"sheet-Content:r5c0": "Değerlendiren hekim: <PERSON_3>. <PERSON_5> randevusu <PERSON_2> biriminden alınacaktır.",
-"sheet-Content:r6c0": "<PERSON_4> ile telefonla teyit edildi.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "HASTA DEĞERLENDİRME FORMU",
+"x1-t:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"x1-t:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
+"x1-t:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
+"x1-t:r5c0": "Değerlendiren hekim: <PERSON_3>. <PERSON_5> randevusu <PERSON_2> biriminden alınacaktır.",
+"x1-t:r6c0": "<PERSON_4> ile telefonla teyit edildi."
 }
 }
 },
 "hr-000.docx": {
 "allow": {
-"entity_count": 15,
+"entity_count": 16,
 "mapping": {
 "<EMAIL_1>": "30b05698a28b5e11",
 "<IBAN_1>": "be619c184391df1b",
@@ -2831,6 +2831,7 @@
 "<PERSON_3>": "a1ad29d1c697f094",
 "<PERSON_4>": "a1c2e468b70fa463",
 "<PERSON_5>": "5cb5aba8a2c7cc35",
+"<PERSON_6>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e144cb23068e4bf9",
 "<PHONE_2>": "a07ff107e1bb230a",
 "<SENSITIVE_1>": "57bec061e2468fc9",
@@ -2842,7 +2843,7 @@
 "IBAN": 1,
 "LOCATION": 1,
 "ORG": 1,
-"PERSON": 5,
+"PERSON": 6,
 "PHONE": 2,
 "SENSITIVE": 2,
 "TCKN": 1
@@ -2852,7 +2853,7 @@
 "p2": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
 "p4": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
 "p5": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"p6": "Dosya Risk Değerlendirmesi kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"p6": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
 "tbl3:r0c0": "Alan",
 "tbl3:r0c1": "Değer",
 "tbl3:r1c0": "Ad Soyad",
@@ -2931,6 +2932,11 @@
 471,
 503,
 "IBAN_CODE"
+],
+[
+535,
+561,
+"PERSON"
 ],
 [
 573,
@@ -3076,7 +3082,7 @@
 },
 "hr-000.pdf": {
 "allow": {
-"entity_count": 15,
+"entity_count": 16,
 "mapping": {
 "<EMAIL_1>": "30b05698a28b5e11",
 "<IBAN_1>": "be619c184391df1b",
@@ -3087,6 +3093,7 @@
 "<PERSON_2>": "a1ad29d1c697f094",
 "<PERSON_3>": "a1c2e468b70fa463",
 "<PERSON_4>": "5cb5aba8a2c7cc35",
+"<PERSON_5>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e144cb23068e4bf9",
 "<SALARY_1>": "a3f8365d97ecc99c",
 "<SENSITIVE_1>": "57bec061e2468fc9",
@@ -3098,7 +3105,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "SENSITIVE": 2,
@@ -3109,7 +3116,7 @@
 "p1-b10": "Maaş bandı | <SALARY_1>",
 "p1-b11": "Öğrenim durumu | yüksek lisans\nSağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
 "p1-b12": "Sendika: <PERSON_2> üyesi. Ücret ödemesi <IBAN_1> numaralı\nhesaba yapılmaktadır.",
-"p1-b13": "Dosya Risk Değerlendirmesi kapsamında <PERSON_4> tarafından incelenmiştir. <PERSON_3> ile\ngörüşme yapılmıştır.",
+"p1-b13": "<PERSON_5> kapsamında <PERSON_4> tarafından incelenmiştir. <PERSON_3> ile\ngörüşme yapılmıştır.",
 "p1-b2": "PERSONEL ÖZLÜK DOSYASI",
 "p1-b3": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
 "p1-b4": "Alan | Değer",
@@ -3180,6 +3187,11 @@
 491,
 523,
 "IBAN_CODE"
+],
+[
+555,
+581,
+"PERSON"
 ],
 [
 593,
@@ -3318,7 +3330,7 @@
 },
 "hr-000.xlsx": {
 "allow": {
-"entity_count": 15,
+"entity_count": 16,
 "mapping": {
 "<EMAIL_1>": "30b05698a28b5e11",
 "<IBAN_1>": "be619c184391df1b",
@@ -3329,6 +3341,7 @@
 "<PERSON_3>": "a1ad29d1c697f094",
 "<PERSON_4>": "a1c2e468b70fa463",
 "<PERSON_5>": "5cb5aba8a2c7cc35",
+"<PERSON_6>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e144cb23068e4bf9",
 "<PHONE_2>": "a07ff107e1bb230a",
 "<SENSITIVE_1>": "57bec061e2468fc9",
@@ -3340,34 +3353,34 @@
 "IBAN": 1,
 "LOCATION": 1,
 "ORG": 1,
-"PERSON": 5,
+"PERSON": 6,
 "PHONE": 2,
 "SENSITIVE": 2,
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "PERSONEL ÖZLÜK DOSYASI",
-"sheet-Content:r10c0": "Öğrenim durumu",
-"sheet-Content:r10c1": "yüksek lisans",
-"sheet-Content:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
-"sheet-Content:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"sheet-Content:r14c0": "Dosya Risk Değerlendirmesi kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
-"sheet-Content:r2c0": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
-"sheet-Content:r3c0": "Alan",
-"sheet-Content:r3c1": "Değer",
-"sheet-Content:r4c0": "Ad Soyad",
-"sheet-Content:r4c1": "<PERSON_1>",
-"sheet-Content:r5c0": "<PERSON_2> No",
-"sheet-Content:r5c1": "<TCKN_1>",
-"sheet-Content:r6c0": "Telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_1>",
-"sheet-Content:r9c0": "Maaş bandı",
-"sheet-Content:r9c1": "<PHONE_2> TL",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "PERSONEL ÖZLÜK DOSYASI",
+"x1-t:r10c0": "Öğrenim durumu",
+"x1-t:r10c1": "yüksek lisans",
+"x1-t:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
+"x1-t:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
+"x1-t:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"x1-t:r2c0": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
+"x1-t:r3c0": "Alan",
+"x1-t:r3c1": "Değer",
+"x1-t:r4c0": "Ad Soyad",
+"x1-t:r4c1": "<PERSON_1>",
+"x1-t:r5c0": "<PERSON_2> No",
+"x1-t:r5c1": "<TCKN_1>",
+"x1-t:r6c0": "Telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_1>",
+"x1-t:r9c0": "Maaş bandı",
+"x1-t:r9c1": "<PHONE_2> TL"
 }
 },
 "detect_allow": [
@@ -3430,6 +3443,11 @@
 479,
 511,
 "IBAN_CODE"
+],
+[
+543,
+569,
+"PERSON"
 ],
 [
 581,
@@ -3549,34 +3567,34 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "PERSONEL ÖZLÜK DOSYASI",
-"sheet-Content:r10c0": "Öğrenim durumu",
-"sheet-Content:r10c1": "yüksek lisans",
-"sheet-Content:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
-"sheet-Content:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"sheet-Content:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
-"sheet-Content:r2c0": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
-"sheet-Content:r3c0": "Alan",
-"sheet-Content:r3c1": "Değer",
-"sheet-Content:r4c0": "Ad Soyad",
-"sheet-Content:r4c1": "<PERSON_1>",
-"sheet-Content:r5c0": "<PERSON_2> No",
-"sheet-Content:r5c1": "<TCKN_1>",
-"sheet-Content:r6c0": "Telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_1>",
-"sheet-Content:r9c0": "Maaş bandı",
-"sheet-Content:r9c1": "<PHONE_2> TL",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "PERSONEL ÖZLÜK DOSYASI",
+"x1-t:r10c0": "Öğrenim durumu",
+"x1-t:r10c1": "yüksek lisans",
+"x1-t:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
+"x1-t:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
+"x1-t:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"x1-t:r2c0": "Çalışan: <PERSON_1> — yazılım geliştirici. İşyeri: <ORG_1>.",
+"x1-t:r3c0": "Alan",
+"x1-t:r3c1": "Değer",
+"x1-t:r4c0": "Ad Soyad",
+"x1-t:r4c1": "<PERSON_1>",
+"x1-t:r5c0": "<PERSON_2> No",
+"x1-t:r5c1": "<TCKN_1>",
+"x1-t:r6c0": "Telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_1>",
+"x1-t:r9c0": "Maaş bandı",
+"x1-t:r9c1": "<PHONE_2> TL"
 }
 }
 },
 "hr-024.docx": {
 "allow": {
-"entity_count": 14,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "931c4f2f76d0475a",
 "<IBAN_1>": "47e10227dbe0e865",
@@ -3587,6 +3605,7 @@
 "<PERSON_3>": "a1ad29d1c697f094",
 "<PERSON_4>": "23944ca72fd72327",
 "<PERSON_5>": "53b326ef96cbba99",
+"<PERSON_6>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e4804d2162e479a0",
 "<SENSITIVE_1>": "57bec061e2468fc9",
 "<SENSITIVE_2>": "0c25c233c8b55160",
@@ -3597,7 +3616,7 @@
 "IBAN": 1,
 "LOCATION": 1,
 "ORG": 1,
-"PERSON": 5,
+"PERSON": 6,
 "PHONE": 1,
 "SENSITIVE": 2,
 "TCKN": 1
@@ -3607,7 +3626,7 @@
 "p2": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
 "p4": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
 "p5": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"p6": "Dosya Risk Değerlendirmesi kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"p6": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
 "tbl3:r0c0": "Alan",
 "tbl3:r0c1": "Değer",
 "tbl3:r1c0": "Ad Soyad",
@@ -3681,6 +3700,11 @@
 427,
 459,
 "IBAN_CODE"
+],
+[
+491,
+517,
+"PERSON"
 ],
 [
 529,
@@ -3820,7 +3844,7 @@
 },
 "hr-024.pdf": {
 "allow": {
-"entity_count": 15,
+"entity_count": 16,
 "mapping": {
 "<EMAIL_1>": "931c4f2f76d0475a",
 "<IBAN_1>": "47e10227dbe0e865",
@@ -3831,6 +3855,7 @@
 "<PERSON_2>": "a1ad29d1c697f094",
 "<PERSON_3>": "23944ca72fd72327",
 "<PERSON_4>": "53b326ef96cbba99",
+"<PERSON_5>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e4804d2162e479a0",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<SENSITIVE_1>": "57bec061e2468fc9",
@@ -3842,7 +3867,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "SENSITIVE": 2,
@@ -3853,7 +3878,7 @@
 "p1-b10": "Maaş bandı | <SALARY_1>",
 "p1-b11": "Öğrenim durumu | lisans\nSağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
 "p1-b12": "Sendika: <PERSON_2> üyesi. Ücret ödemesi <IBAN_1> numaralı\nhesaba yapılmaktadır.",
-"p1-b13": "Dosya Risk Değerlendirmesi kapsamında <PERSON_4> tarafından incelenmiştir. <PERSON_3> ile görüşme\nyapılmıştır.",
+"p1-b13": "<PERSON_5> kapsamında <PERSON_4> tarafından incelenmiştir. <PERSON_3> ile görüşme\nyapılmıştır.",
 "p1-b2": "PERSONEL ÖZLÜK DOSYASI",
 "p1-b3": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
 "p1-b4": "Alan | Değer",
@@ -3919,6 +3944,11 @@
 447,
 479,
 "IBAN_CODE"
+],
+[
+511,
+537,
+"PERSON"
 ],
 [
 549,
@@ -4052,7 +4082,7 @@
 },
 "hr-024.xlsx": {
 "allow": {
-"entity_count": 14,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "931c4f2f76d0475a",
 "<IBAN_1>": "47e10227dbe0e865",
@@ -4063,6 +4093,7 @@
 "<PERSON_3>": "a1ad29d1c697f094",
 "<PERSON_4>": "23944ca72fd72327",
 "<PERSON_5>": "53b326ef96cbba99",
+"<PERSON_6>": "10b4b51c3ab7d5cf",
 "<PHONE_1>": "e4804d2162e479a0",
 "<SENSITIVE_1>": "57bec061e2468fc9",
 "<SENSITIVE_2>": "0c25c233c8b55160",
@@ -4073,34 +4104,34 @@
 "IBAN": 1,
 "LOCATION": 1,
 "ORG": 1,
-"PERSON": 5,
+"PERSON": 6,
 "PHONE": 1,
 "SENSITIVE": 2,
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "PERSONEL ÖZLÜK DOSYASI",
-"sheet-Content:r10c0": "Öğrenim durumu",
-"sheet-Content:r10c1": "lisans",
-"sheet-Content:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
-"sheet-Content:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"sheet-Content:r14c0": "Dosya Risk Değerlendirmesi kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
-"sheet-Content:r2c0": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
-"sheet-Content:r3c0": "Alan",
-"sheet-Content:r3c1": "Değer",
-"sheet-Content:r4c0": "Ad Soyad",
-"sheet-Content:r4c1": "<PERSON_1>",
-"sheet-Content:r5c0": "<PERSON_2> No",
-"sheet-Content:r5c1": "<TCKN_1>",
-"sheet-Content:r6c0": "Telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_1>",
-"sheet-Content:r9c0": "Maaş bandı",
-"sheet-Content:r9c1": "120.000 TL üzeri",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "PERSONEL ÖZLÜK DOSYASI",
+"x1-t:r10c0": "Öğrenim durumu",
+"x1-t:r10c1": "lisans",
+"x1-t:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
+"x1-t:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
+"x1-t:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"x1-t:r2c0": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
+"x1-t:r3c0": "Alan",
+"x1-t:r3c1": "Değer",
+"x1-t:r4c0": "Ad Soyad",
+"x1-t:r4c1": "<PERSON_1>",
+"x1-t:r5c0": "<PERSON_2> No",
+"x1-t:r5c1": "<TCKN_1>",
+"x1-t:r6c0": "Telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_1>",
+"x1-t:r9c0": "Maaş bandı",
+"x1-t:r9c1": "120.000 TL üzeri"
 }
 },
 "detect_allow": [
@@ -4158,6 +4189,11 @@
 435,
 467,
 "IBAN_CODE"
+],
+[
+499,
+525,
+"PERSON"
 ],
 [
 537,
@@ -4271,28 +4307,28 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "PERSONEL ÖZLÜK DOSYASI",
-"sheet-Content:r10c0": "Öğrenim durumu",
-"sheet-Content:r10c1": "lisans",
-"sheet-Content:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
-"sheet-Content:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
-"sheet-Content:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
-"sheet-Content:r2c0": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
-"sheet-Content:r3c0": "Alan",
-"sheet-Content:r3c1": "Değer",
-"sheet-Content:r4c0": "Ad Soyad",
-"sheet-Content:r4c1": "<PERSON_1>",
-"sheet-Content:r5c0": "<PERSON_2> No",
-"sheet-Content:r5c1": "<TCKN_1>",
-"sheet-Content:r6c0": "Telefon",
-"sheet-Content:r6c1": "<PHONE_1>",
-"sheet-Content:r7c0": "E-posta",
-"sheet-Content:r7c1": "<EMAIL_1>",
-"sheet-Content:r8c0": "Adres",
-"sheet-Content:r8c1": "<LOCATION_1>",
-"sheet-Content:r9c0": "Maaş bandı",
-"sheet-Content:r9c1": "120.000 TL üzeri",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "PERSONEL ÖZLÜK DOSYASI",
+"x1-t:r10c0": "Öğrenim durumu",
+"x1-t:r10c1": "lisans",
+"x1-t:r12c0": "Sağlık raporu: <SENSITIVE_2>. Engel durumu: <SENSITIVE_1>.",
+"x1-t:r13c0": "Sendika: <PERSON_3> üyesi. Ücret ödemesi <IBAN_1> numaralı hesaba yapılmaktadır.",
+"x1-t:r14c0": "<PERSON_6> kapsamında <PERSON_5> tarafından incelenmiştir. <PERSON_4> ile görüşme yapılmıştır.",
+"x1-t:r2c0": "Çalışan: <PERSON_1> — avukat. İşyeri: <ORG_1>.",
+"x1-t:r3c0": "Alan",
+"x1-t:r3c1": "Değer",
+"x1-t:r4c0": "Ad Soyad",
+"x1-t:r4c1": "<PERSON_1>",
+"x1-t:r5c0": "<PERSON_2> No",
+"x1-t:r5c1": "<TCKN_1>",
+"x1-t:r6c0": "Telefon",
+"x1-t:r6c1": "<PHONE_1>",
+"x1-t:r7c0": "E-posta",
+"x1-t:r7c1": "<EMAIL_1>",
+"x1-t:r8c0": "Adres",
+"x1-t:r8c1": "<LOCATION_1>",
+"x1-t:r9c0": "Maaş bandı",
+"x1-t:r9c1": "120.000 TL üzeri"
 }
 }
 },
@@ -4682,13 +4718,13 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "HİZMET SÖZLEŞMESİ",
-"sheet-Content:r2c0": "İşbu sözleşme, bir tarafta <PERSON_2> (T.C. <TCKN_1>, adres: <LOCATION_1>) ile diğer tarafta <PERSON_1> arasında akdedilmiştir.",
-"sheet-Content:r3c0": "<LOCATION_2> 1 — Sözleşme Bedeli: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
-"sheet-Content:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
-"sheet-Content:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
-"sheet-Content:r6c0": "İmza: <PERSON_3> — <PERSON_4>.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "HİZMET SÖZLEŞMESİ",
+"x1-t:r2c0": "İşbu sözleşme, bir tarafta <PERSON_2> (T.C. <TCKN_1>, adres: <LOCATION_1>) ile diğer tarafta <PERSON_1> arasında akdedilmiştir.",
+"x1-t:r3c0": "<LOCATION_2> 1 — Sözleşme Bedeli: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
+"x1-t:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
+"x1-t:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
+"x1-t:r6c0": "İmza: <PERSON_3> — <PERSON_4>."
 }
 },
 "detect_allow": [
@@ -4830,13 +4866,13 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "<PERSON_1>",
-"sheet-Content:r2c0": "İşbu sözleşme, bir tarafta <PERSON_3> (T.C. <TCKN_1>, adres: <LOCATION_1>) ile diğer tarafta <PERSON_2> arasında akdedilmiştir.",
-"sheet-Content:r3c0": "<LOCATION_2> 1 — <PERSON_4>: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
-"sheet-Content:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
-"sheet-Content:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
-"sheet-Content:r6c0": "İmza: <PERSON_5> — <PERSON_6>.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "<PERSON_1>",
+"x1-t:r2c0": "İşbu sözleşme, bir tarafta <PERSON_3> (T.C. <TCKN_1>, adres: <LOCATION_1>) ile diğer tarafta <PERSON_2> arasında akdedilmiştir.",
+"x1-t:r3c0": "<LOCATION_2> 1 — <PERSON_4>: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
+"x1-t:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
+"x1-t:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
+"x1-t:r6c0": "İmza: <PERSON_5> — <PERSON_6>."
 }
 }
 },
@@ -5246,13 +5282,13 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "HİZMET SÖZLEŞMESİ",
-"sheet-Content:r2c0": "İşbu sözleşme, bir tarafta <PERSON_1> (T.C. <TCKN_1>, adres: <LOCATION_2>) ile diğer tarafta <LOCATION_1> arasında akdedilmiştir.",
-"sheet-Content:r3c0": "<LOCATION_3> 1 — Sözleşme Bedeli: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
-"sheet-Content:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
-"sheet-Content:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
-"sheet-Content:r6c0": "İmza: <PERSON_2> — <LOCATION_4>.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "HİZMET SÖZLEŞMESİ",
+"x1-t:r2c0": "İşbu sözleşme, bir tarafta <PERSON_1> (T.C. <TCKN_1>, adres: <LOCATION_2>) ile diğer tarafta <LOCATION_1> arasında akdedilmiştir.",
+"x1-t:r3c0": "<LOCATION_3> 1 — Sözleşme Bedeli: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
+"x1-t:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
+"x1-t:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
+"x1-t:r6c0": "İmza: <PERSON_2> — <LOCATION_4>."
 }
 },
 "detect_allow": [
@@ -5404,13 +5440,13 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "<PERSON_1>",
-"sheet-Content:r2c0": "İşbu sözleşme, bir tarafta <PERSON_2> (T.C. <TCKN_1>, adres: <LOCATION_2>) ile diğer tarafta <LOCATION_1> arasında akdedilmiştir.",
-"sheet-Content:r3c0": "<LOCATION_3> 1 — <PERSON_3>: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
-"sheet-Content:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
-"sheet-Content:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
-"sheet-Content:r6c0": "İmza: <PERSON_4> — <LOCATION_4>.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "<PERSON_1>",
+"x1-t:r2c0": "İşbu sözleşme, bir tarafta <PERSON_2> (T.C. <TCKN_1>, adres: <LOCATION_2>) ile diğer tarafta <LOCATION_1> arasında akdedilmiştir.",
+"x1-t:r3c0": "<LOCATION_3> 1 — <PERSON_3>: 480.000 TL + KDV. Ödeme Planı: üç eşit taksit.",
+"x1-t:r4c0": "Madde 2 — Teslim Tarihi: 30 Kasım 2026.",
+"x1-t:r5c0": "Ödemeler <IBAN_1> hesabına yapılacaktır. İletişim: <EMAIL_1> / <PHONE_1>.",
+"x1-t:r6c0": "İmza: <PERSON_4> — <LOCATION_4>."
 }
 }
 },
@@ -5787,14 +5823,14 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "BAŞVURU DİLEKÇESİ",
-"sheet-Content:r2c0": "Başvuran: <PERSON_1>, <TCKN_1>, ikamet: <LOCATION_1>.",
-"sheet-Content:r3c0": "Mesleğim veri analisti olup <ORG_1> bünyesinde çalışmaktayım. Öğrenim durumum: lise.",
-"sheet-Content:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
-"sheet-Content:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
-"sheet-Content:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"sheet-Content:r7c0": "<LOCATION_2> yürüten <PERSON_3>. Yönetim Kurulu kararı beklenmektedir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "BAŞVURU DİLEKÇESİ",
+"x1-t:r2c0": "Başvuran: <PERSON_1>, <TCKN_1>, ikamet: <LOCATION_1>.",
+"x1-t:r3c0": "Mesleğim veri analisti olup <ORG_1> bünyesinde çalışmaktayım. Öğrenim durumum: lise.",
+"x1-t:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
+"x1-t:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
+"x1-t:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
+"x1-t:r7c0": "<LOCATION_2> yürüten <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
 }
 },
 "detect_allow": [
@@ -5929,14 +5965,14 @@
 "TCKN": 1
 },
 "units": {
-"sheet-Content:r0c0": "BAŞVURU DİLEKÇESİ",
-"sheet-Content:r2c0": "Başvuran: <PERSON_1>, <TCKN_1>, ikamet: <LOCATION_1>.",
-"sheet-Content:r3c0": "Mesleğim veri analisti olup <ORG_1> bünyesinde çalışmaktayım. Öğrenim durumum: lise.",
-"sheet-Content:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
-"sheet-Content:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
-"sheet-Content:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"sheet-Content:r7c0": "<LOCATION_2> yürüten <PERSON_4>. <PERSON_3> kararı beklenmektedir.",
-"sheet-h-Content": "Content"
+"x1-h": "Content",
+"x1-t:r0c0": "BAŞVURU DİLEKÇESİ",
+"x1-t:r2c0": "Başvuran: <PERSON_1>, <TCKN_1>, ikamet: <LOCATION_1>.",
+"x1-t:r3c0": "Mesleğim veri analisti olup <ORG_1> bünyesinde çalışmaktayım. Öğrenim durumum: lise.",
+"x1-t:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
+"x1-t:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
+"x1-t:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
+"x1-t:r7c0": "<LOCATION_2> yürüten <PERSON_4>. <PERSON_3> kararı beklenmektedir."
 }
 }
 }

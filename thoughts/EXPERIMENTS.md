@@ -590,3 +590,19 @@ adını ise ("Zeynep Hanım", "Cem Bey", "C. Koç") yalnız İngilizce model bul
 "için\nnalan.ozdemir@…" metnini "içinnalan…" diye birleştirip e-posta span'ine önceki kelimeyi
 katıyor. Aynı ekranda "adınız Ali Çetin" ve "Adresinizi Fevzi Çakmak…" da span'e fazladan
 kelime almış. Deney 3'ün (span sınırı) ilk hedefleri bunlar.
+
+## Parity snapshot'ları yenilendi (2026-09-24, Faz 3 sağlamlaştırma sonrası)
+
+Faz 1'in dondurulmuş snapshot'ları `archive/parity_snapshots_faz1/` altına kopyalandı. Yeni
+snapshot'lar üç kasıtlı değişikliği içeriyor, 74 farklı kaydın hepsi açıklandı:
+
+- **58 kayıt, yalnız yeniden adlandırma** (18 gold, 40 stres): XLSX blok kimlikleri artık sıra
+  tabanlı (`x{n}-h` / `x{n}-t`); ham sayfa adı yok etme modunda diske yazılmasın diye (ebf27f9).
+  Kimlikler eşlenince metin, eşleme ve sayılar birebir aynı.
+- **16 kayıt, tam kapsama kuralı** (006614a), hepsi "liste açık" varyantında: izin ya da "açık
+  bırak" terimi artık yalnız tamamen içinde kalan span'i bastırıyor. Eski örtüşme kuralı
+  "Barış" kararıyla "Barış Demir"i açıyordu. Listesiz varyantlarda ve probe setinde hiç fark yok.
+- **Kesme işareti eki**: korunan terim, kesme işaretiyle yazılan eki de kapsıyor ("Yönetim
+  Kurulu'nun"); bitişik ek kapsanmıyor ("Kaya" → "Kayaoğlu" açılmaz). Tam kapsamanın gerçek
+  belgelerde getirdiği artışın yaklaşık üçte birini geri aldı: BİM 2013'te liste açıkken
+  maskelenen varlık 297 (eski) → 405 (tam kapsama) → 366 (kesme işareti kuralıyla).

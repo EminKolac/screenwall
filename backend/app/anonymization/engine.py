@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from app.anonymization import units as unit_naming
 from app.anonymization.analyzer import get_analyzer
 from app.anonymization.detection import LANGS, Detection
-from app.anonymization.lists import contained, term_key, term_ranges
+from app.anonymization.lists import contained, keep_ranges, term_key
 from app.anonymization.overrides import Overrides, apply_forced, keep_in_current
 from app.anonymization.placeholders import PlaceholderMapper
 from app.anonymization.propagate import VariantPools, find_variants
@@ -210,7 +210,7 @@ class Engine(AnonymizationEngine):
             text = buf.text()
             hits = find_variants(text, surfaces)
             # The reviewer's keeps (this occurrence, or this term in the document) hold here too.
-            keep = run.keep(uid, buf) + term_ranges(text, run.overrides.keep_terms)
+            keep = run.keep(uid, buf) + keep_ranges(text, run.overrides.keep_terms)
             if keep:
                 hits = [h for h in hits if not contained(h[0], h[1], keep, text)]
             for start, end, fam, mode in sorted(hits, key=lambda h: -h[0]):

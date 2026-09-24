@@ -1,0 +1,2272 @@
+{
+"canary-acct-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"p0": "<ACCOUNT_1>"
+}
+},
+"detect_allow": [
+[
+0,
+14,
+"TR_ACCOUNT"
+]
+],
+"detect_noallow": [
+[
+0,
+14,
+"TR_ACCOUNT"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"p0": "<ACCOUNT_1>"
+}
+}
+},
+"canary-acct-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"p0": "Müşteri No <ACCOUNT_1>"
+}
+},
+"detect_allow": [
+[
+11,
+25,
+"TR_ACCOUNT"
+]
+],
+"detect_noallow": [
+[
+11,
+25,
+"TR_ACCOUNT"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<ACCOUNT_1>": "18a4e5f526850022"
+},
+"placeholders_used": {
+"ACCOUNT": 1
+},
+"units": {
+"p0": "Müşteri No <ACCOUNT_1>"
+}
+}
+},
+"canary-adr-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1>"
+}
+},
+"detect_allow": [
+[
+0,
+38,
+"TR_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+0,
+38,
+"TR_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1>"
+}
+}
+},
+"canary-adr-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "adres <LOCATION_1>"
+}
+},
+"detect_allow": [
+[
+6,
+44,
+"TR_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+6,
+44,
+"TR_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "1c858b0ec5bd4cd7"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "adres <LOCATION_1>"
+}
+}
+},
+"canary-card-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<CARD_1>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"p0": "<CARD_1>"
+}
+},
+"detect_allow": [
+[
+0,
+19,
+"CREDIT_CARD"
+]
+],
+"detect_noallow": [
+[
+0,
+19,
+"CREDIT_CARD"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<CARD_1>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"p0": "<CARD_1>"
+}
+}
+},
+"canary-card-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<CARD_1>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"p0": "kart <CARD_1>"
+}
+},
+"detect_allow": [
+[
+5,
+24,
+"CREDIT_CARD"
+]
+],
+"detect_noallow": [
+[
+5,
+24,
+"CREDIT_CARD"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<CARD_1>": "6a7e0e79b018d08c"
+},
+"placeholders_used": {
+"CARD": 1
+},
+"units": {
+"p0": "kart <CARD_1>"
+}
+}
+},
+"canary-eml-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p0": "<EMAIL_1>"
+}
+},
+"detect_allow": [
+[
+0,
+27,
+"EMAIL_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+0,
+27,
+"EMAIL_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p0": "<EMAIL_1>"
+}
+}
+},
+"canary-eml-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p0": "e-posta <EMAIL_1>"
+}
+},
+"detect_allow": [
+[
+8,
+35,
+"EMAIL_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+8,
+35,
+"EMAIL_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<EMAIL_1>": "c1e82faed4b42261"
+},
+"placeholders_used": {
+"EMAIL": 1
+},
+"units": {
+"p0": "e-posta <EMAIL_1>"
+}
+}
+},
+"canary-gsm_tr-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+},
+"detect_allow": [
+[
+0,
+14,
+"TR_GSM"
+]
+],
+"detect_noallow": [
+[
+0,
+14,
+"TR_GSM"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+}
+},
+"canary-gsm_tr-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "cep <PHONE_1>"
+}
+},
+"detect_allow": [
+[
+4,
+18,
+"TR_GSM"
+]
+],
+"detect_noallow": [
+[
+4,
+18,
+"TR_GSM"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "4884a389bd97c00b"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "cep <PHONE_1>"
+}
+}
+},
+"canary-iban-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"p0": "<IBAN_1>"
+}
+},
+"detect_allow": [
+[
+0,
+32,
+"TR_IBAN"
+]
+],
+"detect_noallow": [
+[
+0,
+32,
+"TR_IBAN"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"p0": "<IBAN_1>"
+}
+}
+},
+"canary-iban-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"p0": "IBAN <IBAN_1>"
+}
+},
+"detect_allow": [
+[
+5,
+37,
+"TR_IBAN"
+]
+],
+"detect_noallow": [
+[
+5,
+37,
+"TR_IBAN"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IBAN_1>": "05f6f732db98e73a"
+},
+"placeholders_used": {
+"IBAN": 1
+},
+"units": {
+"p0": "IBAN <IBAN_1>"
+}
+}
+},
+"canary-ip-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"p0": "<IP_1>"
+}
+},
+"detect_allow": [
+[
+0,
+14,
+"IP_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+0,
+14,
+"IP_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"p0": "<IP_1>"
+}
+}
+},
+"canary-ip-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"p0": "IP <IP_1>"
+}
+},
+"detect_allow": [
+[
+3,
+17,
+"IP_ADDRESS"
+]
+],
+"detect_noallow": [
+[
+3,
+17,
+"IP_ADDRESS"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<IP_1>": "f9a882758087026c"
+},
+"placeholders_used": {
+"IP": 1
+},
+"units": {
+"p0": "IP <IP_1>"
+}
+}
+},
+"canary-lnd_tr-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+},
+"detect_allow": [
+[
+0,
+14,
+"UK_PHONE"
+]
+],
+"detect_noallow": [
+[
+0,
+14,
+"UK_PHONE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+}
+},
+"canary-lnd_tr-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "tel <PHONE_1>"
+}
+},
+"detect_allow": [
+[
+4,
+18,
+"UK_PHONE"
+]
+],
+"detect_noallow": [
+[
+4,
+18,
+"UK_PHONE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "048169761fd5c3d5"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "tel <PHONE_1>"
+}
+}
+},
+"canary-passport-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p0": "<PASSPORT_1>"
+}
+},
+"detect_allow": [
+[
+0,
+9,
+"TR_PASSPORT"
+]
+],
+"detect_noallow": [
+[
+0,
+9,
+"TR_PASSPORT"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p0": "<PASSPORT_1>"
+}
+}
+},
+"canary-passport-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p0": "passport <PASSPORT_1>"
+}
+},
+"detect_allow": [
+[
+9,
+18,
+"TR_PASSPORT"
+]
+],
+"detect_noallow": [
+[
+9,
+18,
+"TR_PASSPORT"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PASSPORT_1>": "bade599644e76d29"
+},
+"placeholders_used": {
+"PASSPORT": 1
+},
+"units": {
+"p0": "passport <PASSPORT_1>"
+}
+}
+},
+"canary-phn_uk-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+},
+"detect_allow": [
+[
+0,
+15,
+"UK_PHONE"
+]
+],
+"detect_noallow": [
+[
+0,
+15,
+"UK_PHONE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "<PHONE_1>"
+}
+}
+},
+"canary-phn_uk-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "phone <PHONE_1>"
+}
+},
+"detect_allow": [
+[
+6,
+21,
+"UK_PHONE"
+]
+],
+"detect_noallow": [
+[
+6,
+21,
+"UK_PHONE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PHONE_1>": "6934c402e0e659e3"
+},
+"placeholders_used": {
+"PHONE": 1
+},
+"units": {
+"p0": "phone <PHONE_1>"
+}
+}
+},
+"canary-plate-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "a9ec492e4bcb5df9"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p0": "<PLATE_1>"
+}
+},
+"detect_allow": [
+[
+0,
+10,
+"TR_PLATE"
+]
+],
+"detect_noallow": [
+[
+0,
+10,
+"TR_PLATE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "a9ec492e4bcb5df9"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p0": "<PLATE_1>"
+}
+}
+},
+"canary-plate-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "a9ec492e4bcb5df9"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p0": "plaka <PLATE_1>"
+}
+},
+"detect_allow": [
+[
+6,
+16,
+"TR_PLATE"
+]
+],
+"detect_noallow": [
+[
+6,
+16,
+"TR_PLATE"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PLATE_1>": "a9ec492e4bcb5df9"
+},
+"placeholders_used": {
+"PLATE": 1
+},
+"units": {
+"p0": "plaka <PLATE_1>"
+}
+}
+},
+"canary-prs_en-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+},
+"detect_allow": [
+[
+0,
+18,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+18,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+}
+},
+"canary-prs_en-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "Mr. <PERSON_1>"
+}
+},
+"detect_allow": [
+[
+4,
+22,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+4,
+22,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "930a86a2a82fbe62"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "Mr. <PERSON_1>"
+}
+}
+},
+"canary-prs_tr-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "3e9af6a39fc2e8ac"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+},
+"detect_allow": [
+[
+0,
+12,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+12,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "3e9af6a39fc2e8ac"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+}
+},
+"canary-prs_tr-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "d8fa8d71ba12fab9"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+},
+"detect_allow": [
+[
+0,
+18,
+"TR_PERSON_CTX"
+]
+],
+"detect_noallow": [
+[
+0,
+18,
+"TR_PERSON_CTX"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "d8fa8d71ba12fab9"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1>"
+}
+}
+},
+"canary-secret-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p0": "<SECRET_1>"
+}
+},
+"detect_allow": [
+[
+0,
+26,
+"SECRET_KEY"
+]
+],
+"detect_noallow": [
+[
+0,
+26,
+"SECRET_KEY"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p0": "<SECRET_1>"
+}
+}
+},
+"canary-secret-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p0": "secret <SECRET_1>"
+}
+},
+"detect_allow": [
+[
+7,
+33,
+"SECRET_KEY"
+]
+],
+"detect_noallow": [
+[
+7,
+33,
+"SECRET_KEY"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<SECRET_1>": "29e91953791b49b5"
+},
+"placeholders_used": {
+"SECRET": 1
+},
+"units": {
+"p0": "secret <SECRET_1>"
+}
+}
+},
+"canary-tckn-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<TCKN_1>": "8cd215667ef88035"
+},
+"placeholders_used": {
+"TCKN": 1
+},
+"units": {
+"p0": "<TCKN_1>"
+}
+},
+"detect_allow": [
+[
+0,
+11,
+"TR_TCKN"
+]
+],
+"detect_noallow": [
+[
+0,
+11,
+"TR_TCKN"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<TCKN_1>": "8cd215667ef88035"
+},
+"placeholders_used": {
+"TCKN": 1
+},
+"units": {
+"p0": "<TCKN_1>"
+}
+}
+},
+"canary-tckn-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<TCKN_1>": "8cd215667ef88035"
+},
+"placeholders_used": {
+"TCKN": 1
+},
+"units": {
+"p0": "TCKN <TCKN_1>"
+}
+},
+"detect_allow": [
+[
+5,
+16,
+"TR_TCKN"
+]
+],
+"detect_noallow": [
+[
+5,
+16,
+"TR_TCKN"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<TCKN_1>": "8cd215667ef88035"
+},
+"placeholders_used": {
+"TCKN": 1
+},
+"units": {
+"p0": "TCKN <TCKN_1>"
+}
+}
+},
+"canary-url_tok-bare": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p0": "<URL_1>"
+}
+},
+"detect_allow": [
+[
+0,
+45,
+"URL"
+]
+],
+"detect_noallow": [
+[
+0,
+45,
+"URL"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p0": "<URL_1>"
+}
+}
+},
+"canary-url_tok-ctx": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p0": "link <URL_1>"
+}
+},
+"detect_allow": [
+[
+5,
+50,
+"URL"
+]
+],
+"detect_noallow": [
+[
+5,
+50,
+"URL"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<URL_1>": "0b7b69e1964e9a22"
+},
+"placeholders_used": {
+"URL": 1
+},
+"units": {
+"p0": "link <URL_1>"
+}
+}
+},
+"neutral-00": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "39aafcf2526d6881"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> merkezi ticaret siciline tescil edilmiştir."
+}
+},
+"detect_allow": [
+[
+0,
+6,
+"LOCATION"
+]
+],
+"detect_noallow": [
+[
+0,
+6,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "39aafcf2526d6881"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> merkezi ticaret siciline tescil edilmiştir."
+}
+}
+},
+"neutral-01": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Konsolide finansal tablolar hazırlanmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Konsolide finansal tablolar hazırlanmıştır."
+}
+}
+},
+"neutral-02": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Faaliyet raporu bağımsız denetimden geçmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [
+[
+0,
+8,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "c84dfa2f467f0c09"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> raporu bağımsız denetimden geçmiştir."
+}
+}
+},
+"neutral-03": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "bedc6ce116ecd49a"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> hükümleri saklıdır."
+}
+},
+"detect_allow": [
+[
+0,
+17,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+17,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "bedc6ce116ecd49a"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> hükümleri saklıdır."
+}
+}
+},
+"neutral-04": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İlgili şirket merkezi ticaret siciline tescil edilmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İlgili şirket merkezi ticaret siciline tescil edilmiştir."
+}
+}
+},
+"neutral-05": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ekte sunulan konsolide finansal tablolar hazırlanmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ekte sunulan konsolide finansal tablolar hazırlanmıştır."
+}
+}
+},
+"neutral-06": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Bu dönem faaliyet raporu bağımsız denetimden geçmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Bu dönem faaliyet raporu bağımsız denetimden geçmiştir."
+}
+}
+},
+"neutral-07": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Söz konusu işlemde Vergi Usul Kanunu hükümleri saklıdır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Söz konusu işlemde Vergi Usul Kanunu hükümleri saklıdır."
+}
+}
+},
+"neutral-08": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İş bu tutanak iki nüsha olarak düzenlenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İş bu tutanak iki nüsha olarak düzenlenmiştir."
+}
+}
+},
+"neutral-09": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ödeme planı taraflarca mutabık kalınarak belirlenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ödeme planı taraflarca mutabık kalınarak belirlenmiştir."
+}
+}
+},
+"neutral-10": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Görev süresi üç yıldır ve yeniden seçilmek mümkündür."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Görev süresi üç yıldır ve yeniden seçilmek mümkündür."
+}
+}
+},
+"neutral-11": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Toplantı nisabı sağlanamadığı için ertelenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Toplantı nisabı sağlanamadığı için ertelenmiştir."
+}
+}
+},
+"neutral-12": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Amortisman gideri dönem sonunda kayıtlara alınmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Amortisman gideri dönem sonunda kayıtlara alınmıştır."
+}
+}
+},
+"neutral-13": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Bilanço aktif toplamı geçen yıla göre artmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [
+[
+0,
+7,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "8506c381dd1bcbca"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> aktif toplamı geçen yıla göre artmıştır."
+}
+}
+},
+"neutral-14": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Tahakkuk eden faiz tutarı hesaplara yansıtılmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Tahakkuk eden faiz tutarı hesaplara yansıtılmıştır."
+}
+}
+},
+"neutral-15": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Serbest nakit akışı projeksiyonu güncellenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Serbest nakit akışı projeksiyonu güncellenmiştir."
+}
+}
+},
+"neutral-16": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Özkaynak değişimleri ilgili tabloda gösterilmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Özkaynak değişimleri ilgili tabloda gösterilmiştir."
+}
+}
+},
+"neutral-17": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "db763a2d8cf9e32a"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> dağıtımı genel kurulda görüşülecektir."
+}
+},
+"detect_allow": [
+[
+0,
+10,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+10,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "db763a2d8cf9e32a"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> dağıtımı genel kurulda görüşülecektir."
+}
+}
+},
+"neutral-18": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Tebligat usulüne uygun olarak yapılmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Tebligat usulüne uygun olarak yapılmıştır."
+}
+}
+},
+"neutral-19": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İtiraz süresi kararın tebliğinden itibaren başlar."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İtiraz süresi kararın tebliğinden itibaren başlar."
+}
+}
+},
+"neutral-20": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "aba7a5bc798e30a2"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> durdurma talebi reddedilmiştir."
+}
+},
+"detect_allow": [
+[
+0,
+9,
+"LOCATION"
+]
+],
+"detect_noallow": [
+[
+0,
+9,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "aba7a5bc798e30a2"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> durdurma talebi reddedilmiştir."
+}
+}
+},
+"neutral-21": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Islah dilekçesi süresi içinde sunulmuştur."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Islah dilekçesi süresi içinde sunulmuştur."
+}
+}
+},
+"neutral-22": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "f64d18c39ce954e9"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> yoluna başvuru hakkı saklıdır."
+}
+},
+"detect_allow": [
+[
+0,
+12,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+12,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "f64d18c39ce954e9"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> yoluna başvuru hakkı saklıdır."
+}
+}
+},
+"neutral-23": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Delil listesi duruşmada mahkemeye ibraz edilmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Delil listesi duruşmada mahkemeye ibraz edilmiştir."
+}
+}
+},
+"neutral-24": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Performans değerlendirmesi yılda iki kez yapılır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Performans değerlendirmesi yılda iki kez yapılır."
+}
+}
+},
+"neutral-25": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İşe alım süreci üç aşamadan oluşmaktadır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "İşe alım süreci üç aşamadan oluşmaktadır."
+}
+}
+},
+"neutral-26": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Zimmet tutanağı personel dosyasına eklenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Zimmet tutanağı personel dosyasına eklenmiştir."
+}
+}
+},
+"neutral-27": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Fazla mesai ücretleri bordroya yansıtılmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [
+[
+0,
+5,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "91f75fa71c7eef3b"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> mesai ücretleri bordroya yansıtılmıştır."
+}
+}
+},
+"neutral-28": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "ed34e4d5ecc1c27d"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> programı ilk hafta tamamlanır."
+}
+},
+"detect_allow": [
+[
+0,
+11,
+"LOCATION"
+]
+],
+"detect_noallow": [
+[
+0,
+11,
+"LOCATION"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<LOCATION_1>": "ed34e4d5ecc1c27d"
+},
+"placeholders_used": {
+"LOCATION": 1
+},
+"units": {
+"p0": "<LOCATION_1> programı ilk hafta tamamlanır."
+}
+}
+},
+"neutral-29": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "b569012624a7341b"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> kararı yazılı olarak bildirilir."
+}
+},
+"detect_allow": [
+[
+0,
+15,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+15,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "b569012624a7341b"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> kararı yazılı olarak bildirilir."
+}
+}
+},
+"neutral-30": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Başvuru formu eksiksiz doldurulmalıdır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Başvuru formu eksiksiz doldurulmalıdır."
+}
+}
+},
+"neutral-31": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Harç bedeli vezneye yatırılmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Harç bedeli vezneye yatırılmıştır."
+}
+}
+},
+"neutral-32": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ruhsat yenileme işlemi tamamlanmıştır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Ruhsat yenileme işlemi tamamlanmıştır."
+}
+}
+},
+"neutral-33": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Encümen kararı ilgili birime gönderilmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Encümen kararı ilgili birime gönderilmiştir."
+}
+}
+},
+"neutral-34": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Askı süresi otuz gün olarak belirlenmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Askı süresi otuz gün olarak belirlenmiştir."
+}
+}
+},
+"neutral-35": {
+"allow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "e9d7ea0699e76e0d"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> belgesi ektedir."
+}
+},
+"detect_allow": [
+[
+0,
+11,
+"PERSON"
+]
+],
+"detect_noallow": [
+[
+0,
+11,
+"PERSON"
+]
+],
+"noallow": {
+"entity_count": 1,
+"mapping": {
+"<PERSON_1>": "e9d7ea0699e76e0d"
+},
+"placeholders_used": {
+"PERSON": 1
+},
+"units": {
+"p0": "<PERSON_1> belgesi ektedir."
+}
+}
+},
+"neutral-36": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Toplantı gündemi ekte sunulmuştur."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Toplantı gündemi ekte sunulmuştur."
+}
+}
+},
+"neutral-37": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Karar defteri notere tasdik ettirilmiştir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Karar defteri notere tasdik ettirilmiştir."
+}
+}
+},
+"neutral-38": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Yetki devri yazılı onayla yapılır."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Yetki devri yazılı onayla yapılır."
+}
+}
+},
+"neutral-39": {
+"allow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Arşiv düzenlemesi ay sonuna kadar bitirilecektir."
+}
+},
+"detect_allow": [],
+"detect_noallow": [],
+"noallow": {
+"entity_count": 0,
+"mapping": {},
+"placeholders_used": {},
+"units": {
+"p0": "Arşiv düzenlemesi ay sonuna kadar bitirilecektir."
+}
+}
+}
+}

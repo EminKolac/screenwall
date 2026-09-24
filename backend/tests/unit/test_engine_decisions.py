@@ -120,3 +120,14 @@ def test_a_document_keep_still_beats_a_global_mask() -> None:
                              extra_deny_terms=["Zeytinfon"],
                              overrides=Overrides(keep_terms=["zeytinfon"]))
     assert _text(out) == "Zeytinfon raporu."
+
+
+def test_a_kept_term_covers_an_apostrophe_suffix_but_not_a_glued_surname():
+    from app.anonymization.lists import keep_ranges
+
+    text = "Yönetim Kurulu'nun kararı ile Kaya ve Kayaoğlu geldi. Yönetim Kurulu’na iletildi."
+    ranges = keep_ranges(text, ["Yönetim Kurulu", "Kaya"])
+    covered = {text[a:b] for a, b in ranges}
+    assert "Yönetim Kurulu'nun" in covered and "Yönetim Kurulu’na" in covered
+    assert "Kaya" in covered
+    assert not any(text[a:b].startswith("Kayaoğlu") for a, b in ranges)
