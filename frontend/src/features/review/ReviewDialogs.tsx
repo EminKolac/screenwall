@@ -42,7 +42,7 @@ function ApproveDialog() {
       onClose={close}
       size="sm"
       title={tr.review.approveDialog.title}
-      description={tr.review.approveDialog.body}
+      description={approve.isPending ? tr.review.approveDialog.checking : tr.review.approveDialog.body}
       initialFocus={confirmRef}
       footer={
         <>
