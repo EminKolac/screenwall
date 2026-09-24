@@ -171,6 +171,12 @@ def detection_metrics(rows: list[dict]) -> dict:
     crit_entities = {r.entity_id for r in crit}
     blob["critical_mentions"] = len(crit)
     blob["critical_entities"] = len(crit_entities)
+    # Critical mentions whose value is not in the extracted text cannot be scored and are left
+    # out of `critical_mentions` (the recall denominator) — counted here so the exclusion shows.
+    blob["critical_not_located"] = sum(
+        1 for r in results
+        if not r.located and r.identifier_class != IdentifierClass.NO_MASK.value
+        and r.criticality == Criticality.CRITICAL.value)
     blob["char_precision_is_approximate"] = True
     return blob
 

@@ -32,6 +32,7 @@ import re
 import time
 from pathlib import Path
 
+from app.config import Settings
 from app.export.render_pdf import render_content_pdf
 from app.extraction.base import ExtractionFailed, UploadRejected
 from app.extraction.dispatcher import extract
@@ -55,6 +56,7 @@ from evaluation.llm_flag import (
     build_settings,
     check_resume,
     ensure_llm_ready,
+    llm_audit_counts,
     llm_config,
 )
 
@@ -77,10 +79,12 @@ def _norm(text: str) -> str:
     return _WS.sub(" ", text or "")
 
 
-def _repo(mode: str, llm: str = LLM_DEFAULT):
-    """Mod başına İZOLE storage kökü — modlar arası karışma sızıntı sonucunu anlamsızlaştırır."""
-    root = DATA / "work" / f"stress-{mode}" / "storage"
-    settings = build_settings(llm, storage_root=root, anonymization_mode=mode)
+def _repo(mode: str, llm: str = LLM_DEFAULT, *, root: Path | None = None, **overrides):
+    """Mod başına İZOLE storage kökü — modlar arası karışma sızıntı sonucunu anlamsızlaştırır.
+    `root` paylaşılan kökün yerine geçer (skor kartı kendi koşu dizinini verir); `overrides` ek
+    Settings alanlarıdır (skor kartı terim listelerini kapatır)."""
+    root = root or DATA / "work" / f"stress-{mode}" / "storage"
+    settings = build_settings(llm, storage_root=root, anonymization_mode=mode, **overrides)
     ensure_llm_ready(settings)
     return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
@@ -137,28 +141,33 @@ def _verdict(case: StressCase, status: str, leaked: bool) -> str:
     return VERDICT_FAIL if leaked else VERDICT_PASS
 
 
-def _process(case: StressCase, data: bytes, settings, repo, mode: str) -> tuple[str, bool]:
-    """(actual_status, planted_leaked) döndürür. İstisnalar sonuç olarak kodlanır."""
+def _process(case: StressCase, data: bytes, settings, repo,
+             mode: str) -> tuple[str, bool, dict | None]:
+    """(actual_status, planted_leaked, llm_audit_counts) döndürür; pipeline'a hiç girmeyen belgede
+    sayımlar None'dır. İstisnalar sonuç olarak kodlanır."""
     max_bytes = settings.max_upload_mb * 1024 * 1024
     filename = f"{case.case_id}.{case.fmt}"
     try:
         doc = run_pipeline(data, filename, settings, repo, mode=mode)
     except UploadRejected as e:
-        return f"rejected:{getattr(e, 'code', 'invalid')}", False
+        return f"rejected:{getattr(e, 'code', 'invalid')}", False, None
     except ExtractionFailed:
-        return "extraction_failed", False
+        return "extraction_failed", False, None
     except Exception as e:  # noqa: BLE001
-        return f"error:{type(e).__name__}", False
+        return f"error:{type(e).__name__}", False, None
 
     anon = repo.get_anonymized(doc.id)
     anon_text = anon.plain_text if anon is not None else ""
     leaked = _leaked(case.planted_values, anon_text, _export_text(anon, max_bytes))
-    return doc.status.value, leaked
+    return doc.status.value, leaked, llm_audit_counts(doc)
 
 
 def run_mode(mode: str, corpus: list[tuple[StressCase, bytes]], out_path: Path,
-             llm: str = LLM_DEFAULT) -> None:
-    settings, repo = _repo(mode, llm)
+             llm: str = LLM_DEFAULT, *, root: Path | None = None,
+             overrides: dict | None = None) -> Settings:
+    """Stres belgelerini `out_path`'e işler (devam ettirilebilir). Her belgenin koştuğu Settings'i
+    döndürür; çağıran, pipeline'ın gerçekte ne kullandığını kaydedebilsin diye."""
+    settings, repo = _repo(mode, llm, root=root, **(overrides or {}))
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     todo = [(c, d) for c, d in corpus if c.case_id not in already]
@@ -169,9 +178,9 @@ def run_mode(mode: str, corpus: list[tuple[StressCase, bytes]], out_path: Path,
             t0 = time.monotonic()
             if not case.generated:
                 # Üretilemeyen vaka SESSİZCE düşürülmez — gerekçesiyle kayda girer.
-                status, leaked = "not_generated", False
+                status, leaked, llm_audits = "not_generated", False, None
             else:
-                status, leaked = _process(case, data, settings, repo, mode)
+                status, leaked, llm_audits = _process(case, data, settings, repo, mode)
             verdict = _verdict(case, status, leaked)
             rec = {
                 "case_id": case.case_id, "fmt": case.fmt, "scenario": case.scenario,
@@ -187,12 +196,15 @@ def run_mode(mode: str, corpus: list[tuple[StressCase, bytes]], out_path: Path,
                 ),
                 # Ham değer ASLA yazılmaz — yalnızca geri döndürülemez hash.
                 "planted_vhashes": [value_hash(v) for v in case.planted_values],
+                # Denetim çağrıları: kaç tanesi gerçek LLM kararı aldı, kaçında LLM çöktü.
+                "llm_audits": llm_audits,
                 "seconds": round(time.monotonic() - t0, 2),
             }
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
             fh.flush()
             if i % 10 == 0 or i == len(todo):
                 print(f"  [{i}/{len(todo)}] {case.case_id} {status} → {verdict}")
+    return settings
 
 
 def summarize(out_path: Path) -> dict:

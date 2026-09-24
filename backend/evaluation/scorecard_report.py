@@ -1,7 +1,10 @@
 """Scorecard gates (plan §3 hard gates) and the Markdown rendering of `scorecard.json`."""
 from __future__ import annotations
 
+from evaluation.scorecard_common import EMPTY_TERM_LISTS_SHA256, LLM_SECTIONS
+
 PASS, FAIL, NOT_MEASURED = "PASS", "FAIL", "NOT_MEASURED"
+LLM_GATE = "LLM denetçisi gerçekten çalıştı (süre + sıfır LLM hatası)"
 
 
 def fmt_frac(f: dict | None) -> str:
@@ -39,10 +42,25 @@ def _gate_subset(g: dict | None) -> dict:
     return _gate(name, target, fmt_frac(f), PASS if passed else FAIL)
 
 
+def _docs(block: dict) -> str:
+    return f"{block['documents']}/{block['expected_documents']} belge"
+
+
 def _gate_regression(g: dict | None) -> dict:
-    value = fmt_frac(g["full"]["critical_recall"]) if _ok(g) else None
-    return _gate("Fable skorlayıcısı, 60 belge: Faz 0 tabanından geri gidiş yok", ">= taban",
-                 value, NOT_MEASURED, "otomatik taban yok; Faz 0 taban skor kartıyla karşılaştırın")
+    name = "Fable skorlayıcısı, holdout kritik recall: Faz 0 tabanından geri gidiş yok"
+    if not _ok(g):
+        return _gate(name, ">= taban", None, NOT_MEASURED, "gold bölümü koşulmadı")
+    full = g["full"]
+    value = f"{fmt_frac(full['critical_recall'])} ({_docs(full)})"
+    note = "otomatik taban yok; Faz 0 taban skor kartıyla karşılaştırın"
+    if not g.get("complete"):
+        note = f"kısmi: {_docs(full)}; tam koşuyla ve tabanla karşılaştırılamaz"
+    return _gate(name, ">= taban", value, NOT_MEASURED, note)
+
+
+def _llm_passed(section: dict | None) -> bool:
+    evidence = (section or {}).get("llm_evidence") or {}
+    return evidence.get("passed") is True
 
 
 def _gates_stress(s: dict | None, llm: str) -> list[dict]:
@@ -59,23 +77,35 @@ def _gates_stress(s: dict | None, llm: str) -> list[dict]:
         elif llm != "on":
             out.append(_gate(name, target, fmt_frac(s[key]), NOT_MEASURED,
                              "kapı --llm on ister; bu koşu yalnız sezgisel denetçiyle"))
+        elif not check(s[key]):
+            out.append(_gate(name, target, fmt_frac(s[key]), FAIL))  # a failure stands anyway
+        elif not _llm_passed(s):
+            out.append(_gate(name, target, fmt_frac(s[key]), NOT_MEASURED,
+                             "LLM her belgeyi denetlemedi; 'canlı LLM' ile geçti denemez "
+                             f"(bkz. {LLM_GATE})"))
         else:
-            out.append(_gate(name, target, fmt_frac(s[key]), PASS if check(s[key]) else FAIL))
+            out.append(_gate(name, target, fmt_frac(s[key]), PASS))
     return out
 
 
 def _gate_llm_ran(sections: dict, llm: str) -> dict:
-    name, target = "LLM denetçisi gerçekten çalıştı (medyan sn/dosya)", ">= 1.0 sn"
+    name, target = LLM_GATE, ">= 1.0 sn medyan ve 0 LLM hatası"
     if llm != "on":
         return _gate(name, target, None, NOT_MEASURED, "--llm off")
-    evidence = [(n, sections[n]["llm_evidence"]) for n in ("gold", "stress")
+    evidence = [(n, sections[n]["llm_evidence"]) for n in LLM_SECTIONS
                 if _ok(sections.get(n)) and sections[n].get("llm_evidence")]
     if not evidence:
         return _gate(name, target, None, NOT_MEASURED, "LLM kullanan bölüm koşulmadı")
-    value = ", ".join(f"{n} {e['median_seconds_per_file']} sn" for n, e in evidence)
-    suspect = [n for n, e in evidence if not e["plausible"]]
-    note = f"şüpheli: {', '.join(suspect)}" if suspect else ""
-    return _gate(name, target, value, FAIL if suspect else PASS, note)
+    value = ", ".join(f"{n} {e['median_seconds_per_file']} sn, "
+                      f"{_num(e.get('llm_failures'))} LLM hatası" for n, e in evidence)
+    problems = []  # a missing key counts as a problem: no evidence, no pass
+    for n, e in evidence:
+        if not e.get("plausible"):
+            problems.append(f"{n}: süre şüpheli")
+        if not e.get("every_audit_had_llm"):
+            problems.append(f"{n}: {_num(e.get('documents_not_fully_llm_audited'))} belge "
+                            "LLM kararı almadan denetlendi")
+    return _gate(name, target, value, FAIL if problems else PASS, "; ".join(problems))
 
 
 def evaluate_gates(sections: dict, llm: str) -> list[dict]:
@@ -110,32 +140,85 @@ def _not_ok(title: str, section: dict) -> str:
     return f"{title}\n\nDurum: **{section.get('status')}** {detail}".rstrip()
 
 
+def _llm_line(card: dict) -> str:
+    cfg, llm_cfg = card["config"], card["config"].get("llm_settings") or {}
+    ran = [n for n in LLM_SECTIONS
+           if n in card["sections"] and card["sections"][n].get("status") != "skipped"]
+    if not ran:
+        return (f"- LLM denetçisi: kullanılmadı — denetçiyi çalıştıran bölüm (gold, stress) "
+                f"koşulmadı; `--llm {cfg['llm']}` bu koşuda etkisiz")
+    return (f"- LLM denetçisi: **{cfg['llm']}** ({', '.join(ran)} bölümünde; "
+            f"auditor_provider={llm_cfg.get('auditor_provider')}, "
+            f"require_llm_auditor={llm_cfg.get('require_llm_auditor')}, "
+            f"model={llm_cfg.get('auditor_model') or '—'})")
+
+
+def _term_lists_line(sections: dict) -> str:
+    recs = [(n, s["term_lists"]) for n, s in sections.items() if s.get("term_lists")]
+    if not recs:
+        return "- Terim listeleri (allow/deny): kayıt yok"
+    sizes = " · ".join(f"{n} {t['allow']}/{t['deny']}" for n, t in recs)
+    hashes = {t["sha256"] for _, t in recs}
+    digest = (f"sha256 `{next(iter(hashes))[:16]}…`" if len(hashes) == 1
+              else "sha256 bölüme göre farklı (JSON'a bakın)")
+    empty = " = boş listeler" if hashes == {EMPTY_TERM_LISTS_SHA256} else ""
+    return f"- Terim listeleri (allow/deny, motora giden): {sizes} · {digest}{empty}"
+
+
+def _completeness_banner(card: dict) -> list[str]:
+    if card["complete"]:
+        return []
+    skipped = card.get("skipped") or []
+    named = ", ".join(f"{s['section']} ({s['reason']})" for s in skipped)
+    partial = card["config"]["limit"] or any(
+        s.get("status") == "error" or (s.get("status") == "ok" and s.get("complete") is not True)
+        for s in card["sections"].values())
+    if not partial:
+        return ["", f"> **EKSİK KOŞU** — atlanan: {named}. Koşulan bölümler tamdır; "
+                    "atlananlar bu koşuda ölçülmedi."]
+    tail = f" Atlanan: {named}." if named else ""
+    return ["", "> **KISMİ KOŞU** — `--limit`, hatalı ya da eksik bölüm var; bu sayılar tam "
+                f"koşularla karşılaştırılamaz.{tail}"]
+
+
 def _header(card: dict) -> str:
     cfg, git = card["config"], card["config"].get("git") or {}
-    llm_cfg = cfg.get("llm_settings") or {}
     dirty = git.get("uncommitted_paths")
     lines = [
         f"# Fable skor kartı — {card['run_id']}", "",
         f"- Zaman: {card['started_at']} → {card['finished_at']}",
         f"- Kod: {git.get('branch') or '?'} @ {(git.get('commit') or '?')[:10]}"
         + (f" (+{dirty} commit edilmemiş yol)" if dirty else ""),
-        f"- app/ kaynak parmak izi: `{(cfg.get('app_source_sha256') or '?')[:16]}`",
-        f"- LLM denetçisi: **{cfg['llm']}** (auditor_provider={llm_cfg.get('auditor_provider')}, "
-        f"require_llm_auditor={llm_cfg.get('require_llm_auditor')}, "
-        f"model={llm_cfg.get('auditor_model') or '—'})",
+        f"- Kaynak parmak izi: app/ `{(cfg.get('app_source_sha256') or '?')[:16]}` · "
+        f"evaluation/ `{(cfg.get('evaluation_source_sha256') or '?')[:16]}` "
+        "(results/ ve önbellekler hariç)",
+        _llm_line(card),
+        _term_lists_line(card["sections"]),
         f"- Bölümler: {', '.join(cfg['sections'])} · limit: {cfg['limit'] or 'yok'} · "
         f"gerçek belge: {cfg['real']}",
         f"- Korpus: `{cfg['corpus']}`",
     ]
-    if not card["complete"]:
-        lines += ["", "> **KISMİ KOŞU** — `--limit`, hatalı ya da eksik bölüm var; bu sayılar "
-                      "tam koşularla karşılaştırılamaz."]
-    return "\n".join(lines)
+    return "\n".join(lines + _completeness_banner(card))
 
 
 def _gates_md(gates: list[dict]) -> str:
     rows = [[g["gate"], g["target"], _num(g["value"]), g["verdict"], g["note"]] for g in gates]
     return "## Kapılar (plan §3)\n\n" + _table(["Kapı", "Hedef", "Değer", "Sonuç", "Not"], rows)
+
+
+def _no_mask_row(full: dict, sub: dict) -> list:
+    if full.get("no_mask_violations") is None:
+        return ["NO_MASK ihlali", "— (kirli: allow-list açıktı)", "—",
+                "yerine (b) must_keep satırı"]
+    return ["NO_MASK ihlali (liste yok, dürüst)", fmt_frac(full["no_mask_violations"]),
+            fmt_frac(sub["no_mask_violations"]), "pipeline, liste yok"]
+
+
+def _llm_audits_cell(block: dict) -> str:
+    a = block.get("llm_audits") or {}
+    if not a:
+        return "—"
+    return f"{a['audits']} / {a['llm_ok']} / {a['llm_failed']}"
 
 
 def _gold_rows(full: dict, sub: dict) -> list[list]:
@@ -145,7 +228,9 @@ def _gold_rows(full: dict, sub: dict) -> list[list]:
     by_fmt = " · ".join(f"{k} {fmt_frac(v)}" for k, v in full["critical_recall_by_format"].items())
     return [
         ["Kritik recall (mention × format)", *both("critical_recall", fmt_frac), "pipeline"],
-        ["Kritik recall, format başına (60 belge)", by_fmt, "", "pipeline"],
+        ["Kritik mention, metinde bulunamayan (recall'dan hariç)",
+         *both("critical_not_located"), "çıkarım"],
+        [f"Kritik recall, format başına ({full['documents']} belge)", by_fmt, "", "pipeline"],
         ["Mention recall", *both("mention_recall"), "pipeline"],
         ["Entity recall", *both("entity_recall"), "pipeline"],
         ["Karakter recall", *both("char_recall"), "detect"],
@@ -153,13 +238,30 @@ def _gold_rows(full: dict, sub: dict) -> list[list]:
         ["F2", *both("f2"), "detect"],
         ["Kısmi sızıntı (mention)", *both("partial_leaks"), "pipeline"],
         ["Export'ta sızıntı", *both("leaked_in_export"), "pipeline export"],
-        ["NO_MASK ihlali (kirli, alıntılamayın)", *both("no_mask_violations", fmt_frac),
-         "pipeline + varsayılan allow-list"],
+        _no_mask_row(full, sub),
         ["Belge / kayıt / işlenen",
          *[f"{b['documents']} / {b['records']} / {b['processed']}" for b in (full, sub)], ""],
         ["Durumlar", _counts(full["status_counts"]), _counts(sub["status_counts"]), ""],
+        ["Denetim / LLM kararı / LLM hatası", _llm_audits_cell(full), _llm_audits_cell(sub), ""],
         ["Medyan sn/dosya", *both("median_seconds_per_file"), ""],
     ]
+
+
+def _llm_evidence_note(ev: dict) -> str:
+    verdict = "geçti" if ev.get("passed") else "GEÇMEDİ"
+    return (f"- LLM kanıtı ({verdict}): medyan {ev['median_seconds_per_file']} sn/dosya "
+            f"({'makul' if ev['plausible'] else 'ŞÜPHELİ'}); {_num(ev.get('llm_failures'))} "
+            f"denetim LLM kararı almadı ({_num(ev.get('documents_not_fully_llm_audited'))} belge); "
+            f"beklenen: {ev['expected']}.")
+
+
+def _pipeline_lists(terms: dict) -> str:
+    if not terms:
+        return "terim listesi kaydı yok"
+    if terms.get("allow") == 0 and terms.get("deny") == 0:
+        return ("terim listeleri kapalı (allow 0 / deny 0: varsayılan allow-list, "
+                "ALLOW_TERMS / DENY_TERMS ve kullanıcı listeleri yok)")
+    return f"terim listeleri AÇIK (allow {terms.get('allow')} / deny {terms.get('deny')})"
 
 
 def _gold_md(g: dict | None) -> str:
@@ -169,21 +271,26 @@ def _gold_md(g: dict | None) -> str:
     if g["status"] != "ok":
         return _not_ok(title, g)
     full, sub = g["full"], g["subset20"]
+    honest = full.get("no_mask_violations") is not None
     notes = [
         f"- 20 belgelik alt küme: {sub['rule']}. Bugünkü sıra bu kurala uyuyor: "
         f"{'evet' if sub['rule_matches_holdout_order'] else 'HAYIR'}.",
         "- **detect**: `engine.detect()` orijinal metinde (yayılım, tablo geçişi, allow-list yok). "
-        "**pipeline**: değer `run_pipeline` çıktısında yok; pipeline varsayılan 87 terimlik "
-        "allow-list'i ekler.",
-        "- NO_MASK satırı allow-list ile ölçülür ve liste 8 must_keep teriminin hepsini içerir. "
-        "Dürüst aşırı maskeleme sayısı (b) bölümündeki must_keep satırıdır.",
+        "**pipeline**: değer `run_pipeline` çıktısında yok; "
+        f"{_pipeline_lists(g.get('term_lists') or {})}.",
+        "- Kritik recall yalnız çıkarılan metinde bulunan mention'ları sayar; bulunamayanlar "
+        "ayrı satırda.",
+        "- NO_MASK satırı liste olmadan ölçülür, yani dürüsttür: must_keep terimlerini koruyan "
+        "bir allow-list yok. Aynı soruyu motor düzeyinde (b) bölümündeki must_keep satırı ölçer."
+        if honest else
+        "- NO_MASK sayısı verilmez: pipeline allow-list ile koştu ve varsayılan liste her "
+        "must_keep terimini içerir. Dürüst aşırı maskeleme sayısı (b) bölümündeki must_keep "
+        "satırıdır.",
     ]
     if g.get("llm_evidence"):
-        ev = g["llm_evidence"]
-        notes.append(f"- LLM kanıtı: medyan {ev['median_seconds_per_file']} sn/dosya "
-                     f"({'makul' if ev['plausible'] else 'ŞÜPHELİ'}; {ev['expected']}).")
-    table = _table(["Ölçüm", "60 belge", "v5 alt kümesi (20)", "Ölçüm yolu"],
-                   _gold_rows(full, sub))
+        notes.append(_llm_evidence_note(g["llm_evidence"]))
+    table = _table(["Ölçüm", f"Holdout ({_docs(full)})", f"v5 alt kümesi ({_docs(sub)})",
+                    "Ölçüm yolu"], _gold_rows(full, sub))
     return f"{title}\n\nLLM: {g['llm']}\n\n{table}\n\n" + "\n".join(notes)
 
 
@@ -212,11 +319,12 @@ def _strict_md(s: dict | None) -> str:
 
 
 def _stress_md(s: dict | None) -> str:
-    title = "## (c) Stres — 72 sabit dosya, tam pipeline"
+    title = "## (c) Stres — sabit dosyalar, tam pipeline"
     if not s:
         return ""
     if s["status"] != "ok":
         return _not_ok(title, s)
+    title = f"## (c) Stres — {s['files']}/{s['corpus']['files']} sabit dosya, tam pipeline"
     rows = [
         ["Onaylı çıktıya sızıntı, kritik yanlış onay (düşük iyi)", fmt_frac(s["leaks_approved"])],
         ["Herhangi bir durumda sızıntı", fmt_frac(s["leaked_any_status"])],
@@ -225,11 +333,15 @@ def _stress_md(s: dict | None) -> str:
         ["İnsana yönlendirilen (temkinli)", s["routed_to_review"]],
         ["Gerçekten test edilen ve geçen", fmt_frac(s["actually_tested_pass"])],
         ["Durumlar", _counts(s["status_counts"])],
+        ["Denetim / LLM kararı / LLM hatası", _llm_audits_cell(s)],
         ["Medyan sn/dosya (pipeline'a giren)", _num(s["median_seconds_per_file"])],
     ]
     ev = s.get("llm_evidence")
-    note = f"LLM: **{s['llm']}**" + (
-        f" · kanıt: {'makul' if ev['plausible'] else 'ŞÜPHELİ'} ({ev['expected']})" if ev else "")
+    note = f"LLM: **{s['llm']}**"
+    if ev:
+        note += (f" · kanıt: {'geçti' if ev.get('passed') else 'GEÇMEDİ'} (süre "
+                 f"{'makul' if ev['plausible'] else 'ŞÜPHELİ'}, "
+                 f"{_num(ev.get('llm_failures'))} LLM hatası; {ev['expected']})")
     note += f" · manifest sha256 `{s['corpus']['manifest_sha256'][:16]}…`"
     return f"{title}\n\n{_table(['Ölçüm', 'Değer'], rows)}\n\n{note}"
 
@@ -273,8 +385,10 @@ NOTES = """## Notlar
 - Rapor ham değer içermez: değerler yalnız vhash (sha256'nın ilk 16 hanesi) olarak geçer ve dosya
   yazılmadan önce bilinen bütün sentetik değerlere karşı taranır (`pii_scan`).
 - Öğe başına ham çıktılar git dışındaki `backend/data/scorecard/<koşu>/` altındadır.
-- (a) ve (c) mevcut koşucuları (`run_gold`, `run_stress`) aynen kullanır; `--llm on` =
-  `auditor_provider=ollama` + `require_llm_auditor=True`, model yoksa koşu başlamadan durur."""
+- (a) ve (c) mevcut koşucuları (`run_gold`, `run_stress`) kullanır, ama koşunun kendi storage
+  kökünde ve terim listeleri kapalı (`term_lists=False`, boş ALLOW_TERMS / DENY_TERMS).
+- `--llm on` = `auditor_provider=ollama` + `require_llm_auditor=True`; model yoksa koşu başlamadan
+  durur. Koşu sırasında düşen her LLM çağrısı belge başına sayılır; LLM kapısı sıfır hata ister."""
 
 
 def render_markdown(card: dict) -> str:

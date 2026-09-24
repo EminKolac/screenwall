@@ -24,7 +24,12 @@ from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 
-from evaluation.scorecard_common import SectionContext, median_or_none
+from evaluation.scorecard_common import (
+    NO_TERM_LISTS,
+    SectionContext,
+    median_or_none,
+    term_list_record,
+)
 
 RAW = Path(__file__).resolve().parents[1] / "data" / "corpus_bist10" / "raw"
 PLACEHOLDER_RE = re.compile(r"<([A-Z][A-Z_]*)_\d+>")
@@ -135,7 +140,7 @@ def run_real_section(ctx: SectionContext) -> dict:
     from evaluation.llm_flag import build_settings
 
     n = min(ctx.real, ctx.limit) if ctx.limit else ctx.real
-    settings = build_settings("off", storage_root=ctx.work_dir / "storage")
+    settings = build_settings("off", storage_root=ctx.work_dir / "storage", **NO_TERM_LISTS)
     selected, skipped = select_real_pdfs(RAW, n, max_pages=ctx.real_max_pages,
                                          max_mb=settings.max_upload_mb)
     engine = PresidioEngine()
@@ -143,14 +148,20 @@ def run_real_section(ctx: SectionContext) -> dict:
     out = ctx.work_dir / "real.jsonl"
     out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in recs),
                    encoding="utf-8")
+    summary = summarize_real(recs)
     return {
-        **summarize_real(recs),
+        **summary,
         "requested": ctx.real,
-        "complete": len(recs) == ctx.real,
+        # every requested document selected AND measured without an error
+        "complete": len(recs) == ctx.real and summary["errors"] == 0,
         "skipped": skipped,
         "selection_rule": SELECTION_RULE,
         "max_pages": ctx.real_max_pages,
         "path": "ingest + engine.anonymize (no allow-list, no deny-list, no auditor)",
+        # measure_pdf calls engine.anonymize(content, language): no list.
+        "term_lists": term_list_record(
+            [], [], "engine.anonymize without extra_allow_terms / extra_deny_terms "
+                    "(evaluation/scorecard_real.py)"),
         "llm": "n/a (engine only)",
         "per_document": recs,
         "raw_results": str(out),

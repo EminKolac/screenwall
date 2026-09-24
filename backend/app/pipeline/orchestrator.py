@@ -35,6 +35,12 @@ class PipelineResult:
     audit: AuditResult | None
     approved: bool
 
+    @property
+    def llm_ok(self) -> bool | None:
+        """The final audit's LLM signal (see `AuditResult.llm_ok`); None without an audit. Every
+        iteration's own signal stays on `document.iterations[i].audit`."""
+        return self.audit.llm_ok if self.audit is not None else None
+
     # Pre-v2 readers used these two names.
     @property
     def anonymized(self) -> ExtractedContent | None:

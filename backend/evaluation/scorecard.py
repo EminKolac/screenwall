@@ -11,13 +11,22 @@ Sections (`--sections`, default all):
   stress (c) the 72 pinned stress files through the full pipeline, `--llm on|off`.
   real   (d) `--real N` real BIST-10 PDFs: redaction density + placeholder families.
 
-Output: evaluation/results/<YYYY-MM-DD>-<tag>/scorecard.{json,md} — counts, rates and vhashes
-only, scanned against every known synthetic value before anything is written. Per-item raw
-outputs go to data/scorecard/<run id>/ (git-ignored). An existing run id is never overwritten;
-"-2", "-3", … is appended instead.
+No number depends on a term list: gold and stress run the pipeline with `term_lists=False` and
+empty ALLOW_TERMS / DENY_TERMS in a storage root of their own under data/scorecard/<run id>/, and
+every section records the lists its engine got (0/0 + sha256).
 
-Exit codes: 0 ok · 1 a section failed · 2 bad setup (e.g. --llm on, model unreachable) ·
-3 refused to write because a raw value reached the report.
+`complete` is true only when all four sections ran in full: no `--limit`, none skipped (a
+`--sections` subset or `--real 0` names what was skipped under `skipped`), no error.
+
+Output: evaluation/results/<YYYY-MM-DD>-<tag>/scorecard.{json,md} — counts, rates and vhashes
+only, scanned before anything is written against every known synthetic value: the maskable
+surfaces of the holdout the gold section scores plus V2's corpus (gold must_mask, canaries,
+stress planted values). Per-item raw outputs go to data/scorecard/<run id>/ (git-ignored). An
+existing run id is never overwritten; "-2", "-3", … is appended instead.
+
+Exit codes: 0 ok · 1 a section failed · 2 bad setup (e.g. --llm on, model unreachable; term
+lists not off; the raw-value guard has no value to check) · 3 refused to write because a raw
+value reached the report or the guard checked nothing.
 """
 from __future__ import annotations
 
@@ -41,10 +50,18 @@ from evaluation.llm_flag import (
     ensure_llm_ready,
     llm_config,
 )
-from evaluation.scorecard_common import SectionContext, vhash
+from evaluation.scorecard_common import (
+    LLM_SECTIONS,
+    NO_TERM_LISTS,
+    SectionContext,
+    TermListsActiveError,
+    pipeline_term_lists,
+    vhash,
+)
 from evaluation.scorecard_real import run_real_section
 from evaluation.scorecard_report import evaluate_gates, render_markdown
 from evaluation.scorecard_sections import (
+    load_holdout_rows,
     run_gold_section,
     run_stress_section,
     run_strict_section,
@@ -52,7 +69,6 @@ from evaluation.scorecard_sections import (
 
 SCHEMA = "fable-scorecard/1"
 SECTIONS = ("gold", "strict", "stress", "real")
-LLM_SECTIONS = frozenset({"gold", "stress"})
 BACKEND = Path(__file__).resolve().parents[1]
 RESULTS_ROOT = BACKEND / "evaluation" / "results"
 WORK_ROOT = BACKEND / "data" / "scorecard"
@@ -69,6 +85,10 @@ class RawValueLeakError(RuntimeError):
     def __init__(self, vhashes: list[str]) -> None:
         super().__init__(f"raw values in report (vhash {', '.join(vhashes)})")
         self.vhashes = vhashes
+
+
+class EmptyGuardError(RuntimeError):
+    """The raw-value guard has no value to check, so a clean scan would prove nothing."""
 
 
 def default_runners() -> dict:
@@ -152,13 +172,29 @@ def run_sections(opts: argparse.Namespace, runners: dict, work_dir: Path) -> dic
 
 
 def preflight(opts: argparse.Namespace) -> str | None:
-    """`--llm on` must fail before any work when the model is unreachable."""
-    if opts.llm == "on" and LLM_SECTIONS & set(opts.sections):
+    """Stop before any work when a measurement could not be honest: `--llm on` with the model
+    unreachable, or the pipeline still assembling a term list with `NO_TERM_LISTS` applied."""
+    if opts.llm == "on" and set(LLM_SECTIONS) & set(opts.sections):
         try:
             ensure_llm_ready(build_settings("on"))
         except LLMUnavailableError as e:
             return str(e)
+    try:
+        pipeline_term_lists(build_settings("off", **NO_TERM_LISTS))
+    except TermListsActiveError as e:
+        return f"term lists are not off: {e}"
     return None
+
+
+def skipped_sections(opts: argparse.Namespace, sections: dict) -> list[dict]:
+    """Exactly what this run did not measure, in section order."""
+    out = []
+    for name in SECTIONS:
+        if name not in sections:
+            out.append({"section": name, "reason": "not in --sections"})
+        elif sections[name]["status"] == "skipped":
+            out.append({"section": name, "reason": sections[name].get("reason", "skipped")})
+    return out
 
 
 # ------------------------------------------------------------------------------- metadata
@@ -185,14 +221,24 @@ def git_meta(repo: Path) -> dict:
             "uncommitted_paths": None if status is None else len(status.splitlines())}
 
 
-def source_fingerprint(app_dir: Path) -> str | None:
-    """One sha256 over every app/**/*.py (path + content hash): identifies the code measured."""
-    if not app_dir.is_dir():
+CACHE_DIRS = frozenset({"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"})
+CACHE_FILES = frozenset({".DS_Store"})
+
+
+def source_fingerprint(root: Path, pattern: str = "*.py", *,
+                       exclude_top: frozenset[str] = frozenset()) -> str | None:
+    """One sha256 over every `root/**/pattern` file (relative path + content hash), skipping
+    caches and the top-level directories in `exclude_top`: identifies the code measured."""
+    if not root.is_dir():
         return None
     h = hashlib.sha256()
-    for p in sorted(app_dir.rglob("*.py")):
+    for p in sorted(root.rglob(pattern)):
+        rel = p.relative_to(root)
+        if (not p.is_file() or rel.parts[0] in exclude_top or p.name in CACHE_FILES
+                or p.suffix == ".pyc" or CACHE_DIRS.intersection(rel.parts)):
+            continue
         digest = hashlib.sha256(p.read_bytes()).hexdigest()
-        h.update(f"{p.relative_to(app_dir).as_posix()}\0{digest}\n".encode())
+        h.update(f"{rel.as_posix()}\0{digest}\n".encode())
     return h.hexdigest()
 
 
@@ -204,11 +250,17 @@ def _corpus_hashes(corpus: Path) -> dict:
 def collect_config(opts: argparse.Namespace) -> dict:
     return {
         "tag": opts.tag, "llm": opts.llm, "sections": list(opts.sections), "limit": opts.limit,
+        # --llm only reaches the auditor in these sections; empty = the flag had no effect
+        "llm_applies_to": [s for s in opts.sections if s in LLM_SECTIONS],
         "real": opts.real, "real_max_pages": opts.real_max_pages,
         "corpus": display_path(opts.corpus), "corpus_sha256": _corpus_hashes(opts.corpus),
         "llm_settings": llm_config(opts.llm, build_settings(opts.llm)),
+        "pipeline_settings_overrides": dict(NO_TERM_LISTS),
         "env": dict(OFFLINE_ENV), "python": platform.python_version(),
         "git": git_meta(BACKEND.parent), "app_source_sha256": source_fingerprint(BACKEND / "app"),
+        # all files under evaluation/ except results/ (scorecard output) and caches
+        "evaluation_source_sha256": source_fingerprint(
+            BACKEND / "evaluation", "*", exclude_top=frozenset({"results"})),
     }
 
 
@@ -216,14 +268,16 @@ def assemble(opts, run_id: str, started: datetime, sections: dict, work_dir: Pat
     for data in sections.values():
         if "raw_results" in data:
             data["raw_results"] = display_path(data["raw_results"])
-    complete = opts.limit == 0 and all(
-        s["status"] == "skipped" or (s["status"] == "ok" and s.get("complete", True))
-        for s in sections.values())
+    skipped = skipped_sections(opts, sections)
+    # Partial runs never pass as complete: every section ran, in full, without an error.
+    complete = opts.limit == 0 and not skipped and all(
+        s["status"] == "ok" and s.get("complete") is True for s in sections.values())
     return {
         "schema": SCHEMA, "run_id": run_id,
         "started_at": started.isoformat(timespec="seconds"),
         "finished_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "complete": complete,
+        "skipped": skipped,
         "config": collect_config(opts),
         "gates": evaluate_gates(sections, opts.llm),
         "sections": sections,
@@ -237,9 +291,13 @@ def _read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
 
 
-def known_synthetic_values(corpus: Path) -> list[str]:
-    """Every synthetic value the corpus plants: gold must_mask surfaces, canary values and
-    stress planted values. None of them may appear in a report."""
+def _scannable(values: set[str]) -> set[str]:
+    return {v for v in values if len(v.strip()) >= MIN_SCAN_LENGTH}
+
+
+def v2_corpus_values(corpus: Path) -> set[str]:
+    """V2's corpus (strict + stress sections): gold must_mask surfaces, canary values and stress
+    planted values."""
     values: set[str] = set()
     for case in _read_json(corpus / "goldbench-holdout.json") or []:
         values.update(m["surface"] for m in case.get("must_mask", []))
@@ -247,7 +305,23 @@ def known_synthetic_values(corpus: Path) -> list[str]:
     values.update(c["value"] for c in probes.get("canaries", []))
     for m in _read_json(corpus / "stress-manifest.json") or []:
         values.update(m.get("planted_values", []))
-    return sorted(v for v in values if len(v.strip()) >= MIN_SCAN_LENGTH)
+    return _scannable(values)
+
+
+def holdout_gold_values(rows: list[dict]) -> set[str]:
+    """The gold section's holdout: every maskable mention surface. NO_MASK terms are ordinary
+    business words a report may legitimately contain, so they are not scanned."""
+    return _scannable({m["surface"] for r in rows for m in r.get("mentions", [])
+                       if m.get("identifier_class") != "NO_MASK"})
+
+
+def known_synthetic_values(corpus: Path) -> tuple[list[str], dict[str, int]]:
+    """(values, count per source): every synthetic value either corpus plants. None of them may
+    appear in a report."""
+    sources = {"goldbench_holdout": holdout_gold_values(load_holdout_rows()),
+               "v2_corpus": v2_corpus_values(corpus)}
+    values = set().union(*sources.values())
+    return sorted(values), {name: len(vals) for name, vals in sources.items()}
 
 
 def find_raw_values(texts: list[str], values: list[str]) -> list[str]:
@@ -256,6 +330,8 @@ def find_raw_values(texts: list[str], values: list[str]) -> list[str]:
 
 
 def write_outputs(card: dict, markdown: str, out_dir: Path, values: list[str]) -> None:
+    if not values:
+        raise EmptyGuardError("the raw-value guard has no value to check")
     text = json.dumps(card, ensure_ascii=False, indent=2) + "\n"
     hits = find_raw_values([text, markdown], values)
     if hits:
@@ -272,16 +348,22 @@ def _execute(opts, runners: dict, results_root: Path, work_root: Path) -> int:
     if problem:
         print(f"[scorecard] {problem}", file=sys.stderr)
         return EXIT_SETUP
+    values, per_source = known_synthetic_values(opts.corpus)
+    if not values:  # before any work: a guard with nothing to check would prove nothing
+        print("[scorecard] the raw-value guard has no value to check: holdout gold "
+              "(data/goldbench/holdout_gold/gold.jsonl) and --corpus both missing or empty",
+              file=sys.stderr)
+        return EXIT_SETUP
     run_id = allocate_run_id(opts.tag, results_root, work_root)
     work_dir = work_root / run_id
     work_dir.mkdir(parents=True)
     started = datetime.now().astimezone()
     card = assemble(opts, run_id, started, run_sections(opts, runners, work_dir), work_dir)
-    values = known_synthetic_values(opts.corpus)
-    card["pii_scan"] = {"values_checked": len(values), "min_length": MIN_SCAN_LENGTH, "hits": 0}
+    card["pii_scan"] = {"values_checked": len(values), "sources": per_source,
+                        "min_length": MIN_SCAN_LENGTH, "hits": 0}
     try:
         write_outputs(card, render_markdown(card), results_root / run_id, values)
-    except RawValueLeakError as e:
+    except (RawValueLeakError, EmptyGuardError) as e:
         print(f"[scorecard] REFUSED to write the report: {e}", file=sys.stderr)
         return EXIT_RAW_VALUE
     print(f"[scorecard] → {display_path(results_root / run_id)}/scorecard.md")

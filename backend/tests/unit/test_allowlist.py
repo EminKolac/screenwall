@@ -77,3 +77,41 @@ def test_allow_list_is_reusable_via_detect_for_eval_harness():
                                     extra_allow_terms=["Genel Kurul"])
     assert not any(s.entity_type in ("ORGANIZATION", "LOCATION", "NRP") for s in spans
                   if 0 <= s.start < len("Genel Kurul"))
+
+
+# -------------------------------------------------- Settings.term_lists: all lists at once
+
+def _user_lists(root) -> None:
+    import json
+
+    (root / "user_settings.json").write_text(
+        json.dumps({"never_mask": ["Genel Kurul"], "always_mask": ["Gizli Fon"]}), "utf-8")
+
+
+def test_term_lists_on_assembles_every_list(tmp_path, monkeypatch):
+    from app.config import Settings
+    from app.pipeline.terms import effective_terms
+
+    monkeypatch.setenv("ALLOW_TERMS", "Proje Adı")
+    monkeypatch.setenv("DENY_TERMS", "e2vc")
+    _user_lists(tmp_path)
+    deny, allow = effective_terms(Settings(storage_root=tmp_path))
+    assert deny == ["e2vc", "Gizli Fon"]
+    assert set(default_allow_list()) | {"Proje Adı", "Genel Kurul"} == set(allow)
+
+
+def test_term_lists_off_turns_every_list_off_without_reading_user_settings(tmp_path,
+                                                                            monkeypatch):
+    import pytest
+
+    import app.pipeline.terms as terms
+    from app.config import Settings
+
+    monkeypatch.setenv("ALLOW_TERMS", "Proje Adı")
+    monkeypatch.setenv("DENY_TERMS", "e2vc")
+    _user_lists(tmp_path)
+    monkeypatch.setattr(terms, "load_user_settings",
+                        lambda s: pytest.fail("user_settings.json must not be read"))
+    assert terms.effective_terms(Settings(storage_root=tmp_path, term_lists=False)) == ([], [])
+    monkeypatch.setenv("TERM_LISTS", "false")
+    assert Settings().term_lists is False  # the env switch

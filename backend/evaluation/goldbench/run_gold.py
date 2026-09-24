@@ -29,7 +29,7 @@ from app.services.storage_repository import StorageDocumentRepository
 from app.storage.local import LocalStorageBackend
 from evaluation.corpus_bist10.verify_mode import check_destructive_mode, check_mapping_mode
 from evaluation.goldbench.generate import DOCS, GOLD_DIR, HOLDOUT_GOLD_DIR
-from evaluation.goldbench.schema import GoldMention
+from evaluation.goldbench.schema import GoldMention, IdentifierClass
 from evaluation.goldbench.score import Span, aggregate, evaluate_document
 from evaluation.llm_flag import (
     LLM_DEFAULT,
@@ -39,6 +39,7 @@ from evaluation.llm_flag import (
     build_settings,
     check_resume,
     ensure_llm_ready,
+    llm_audit_counts,
     llm_config,
 )
 
@@ -74,16 +75,27 @@ def done_ids(path: Path) -> set[str]:
     return out
 
 
-def _repo(sub: str, llm: str = LLM_DEFAULT):
-    root = Path("data/goldbench/work") / sub / "storage"
-    settings = build_settings(llm, storage_root=root)
+def _repo(sub: str, llm: str = LLM_DEFAULT, *, root: Path | None = None, **overrides):
+    """`root` replaces the shared data/goldbench/work/<sub>/storage (the scorecard passes its own
+    run directory); `overrides` are extra Settings fields (the scorecard turns term lists off)."""
+    root = root or Path("data/goldbench/work") / sub / "storage"
+    settings = build_settings(llm, storage_root=root, **overrides)
     ensure_llm_ready(settings)
     return settings, StorageDocumentRepository(LocalStorageBackend(root))
 
 
+def mode_check_canaries(gold: list[GoldMention]) -> list[str]:
+    """Values the M2/M3 mode checks must find masked: real PII only. NO_MASK terms are kept on
+    purpose, so passing them made M3 fail on every correct document."""
+    return [g.surface for g in gold if g.identifier_class != IdentifierClass.NO_MASK]
+
+
 def run_mode(rows: list[dict], mode: str, formats: tuple[str, ...], out_path: Path,
-             limit: int = 0, llm: str = LLM_DEFAULT) -> None:
-    settings, repo = _repo(mode, llm)
+             limit: int = 0, llm: str = LLM_DEFAULT, *, root: Path | None = None,
+             overrides: dict | None = None) -> Settings:
+    """Process `rows` x `formats` into `out_path` (resumable). Returns the Settings every document
+    ran with, so a caller can record what the pipeline actually used."""
+    settings, repo = _repo(mode, llm, root=root, **(overrides or {}))
     already = done_ids(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     max_bytes = settings.max_upload_mb * 1024 * 1024
@@ -112,6 +124,7 @@ def run_mode(rows: list[dict], mode: str, formats: tuple[str, ...], out_path: Pa
             try:
                 data = path.read_bytes()
                 doc = run_pipeline(data, path.name, settings, repo, mode=mode)
+                rec["llm_audits"] = llm_audit_counts(doc)
                 _, orig = extract(data, path.name, max_bytes)
                 original_text = orig.plain_text
                 spans = [Span(s.start, s.end, s.entity_type)
@@ -133,7 +146,7 @@ def run_mode(rows: list[dict], mode: str, formats: tuple[str, ...], out_path: Pa
                 det_chars = sum(s.length for s in spans)
 
                 # Mod bütünlüğü (Benchmark M / D) — v2'de yazılan kontroller yeniden kullanılır.
-                canary_values = [g.surface for g in gold]
+                canary_values = mode_check_canaries(gold)
                 if mode == "mapping":
                     chk = check_mapping_mode(
                         doc.id, repo, canary_values=canary_values,
@@ -156,6 +169,7 @@ def run_mode(rows: list[dict], mode: str, formats: tuple[str, ...], out_path: Pa
             fh.flush()
             if i % 20 == 0 or i == len(todo):
                 print(f"  [{i}/{len(todo)}] {rec_id} {rec.get('result')} {rec['seconds']}s")
+    return settings
 
 
 def main(argv=None) -> int:

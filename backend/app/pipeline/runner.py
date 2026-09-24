@@ -132,7 +132,9 @@ def record_audit(doc: Document, repo: DocumentRepository, result: PipelineResult
     repo.save_findings(doc.id, findings)
     doc.pending_count = sum(1 for f in findings if f["status"] == "open")
     doc.add_reason("audit_residual", REVIEW_REASONS["audit_residual"])
-    if audit.summary.startswith("Fail-closed"):
+    # llm_ok=False covers a call that failed mid-run too, not only an LLM missing at build time
+    # (the combined auditor's summary has no "Fail-closed" prefix in that case).
+    if result.llm_ok is False or audit.summary.startswith("Fail-closed"):
         doc.add_reason("auditor_unavailable", REVIEW_REASONS["auditor_unavailable"])
     if unlocated:
         doc.add_reason("audit_unlocated",

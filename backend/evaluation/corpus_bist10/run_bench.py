@@ -46,6 +46,7 @@ from evaluation.llm_flag import (
     build_settings,
     check_resume,
     ensure_llm_ready,
+    llm_audit_counts,
     llm_config,
 )
 
@@ -131,6 +132,7 @@ def run_operational(
             t0 = time.monotonic()
             try:
                 doc = run_pipeline(data, d["filename"], settings, repo, mode=mode)
+                rec["llm_audits"] = llm_audit_counts(doc)
                 anon = repo.get_anonymized(doc.id)
                 anon_text = anon.plain_text if anon is not None else ""
                 ext = repo.get_extracted(doc.id)
@@ -207,6 +209,7 @@ def run_canary(
                     continue
                 all_values.extend(p.value for p in places)
                 doc = run_pipeline(data, d["filename"], settings, repo, mode=mode)
+                rec["llm_audits"] = llm_audit_counts(doc)
                 _, orig = extract(data, d["filename"], max_bytes)
                 original_text = orig.plain_text
                 from app.anonymization.presidio_engine import PresidioEngine

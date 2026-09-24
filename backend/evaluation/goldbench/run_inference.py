@@ -37,6 +37,7 @@ from evaluation.llm_flag import (
     add_llm_argument,
     build_settings,
     ensure_llm_ready,
+    llm_audit_counts,
     llm_config,
 )
 
@@ -94,6 +95,7 @@ def run_mode(scenarios: list[InferenceScenario], mode: str, fmt: str, outdir: Pa
                 _, orig = extract(data, path.name, max_bytes)
                 original_text = orig.plain_text
                 doc = run_pipeline(data, path.name, settings, repo, mode=mode)
+                rec["llm_audits"] = llm_audit_counts(doc)
                 anon = repo.get_anonymized(doc.id)
                 anon_text = anon.plain_text if anon is not None else ""
 

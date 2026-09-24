@@ -3,6 +3,11 @@ added when Ollama is reachable. Approval requires BOTH to be CLEAN (defense in d
 
 Codex review: the LLM must pass the full clean-approval predicate (not just `approved=true`), and
 `require_llm_auditor` removes the silent fail-open when Ollama is down.
+
+Every combined result carries `llm_ok`: None when no LLM is configured (heuristic only), False
+when the LLM was required but missing or its call failed (the result is then never an approval),
+True when the LLM answered. A per-call failure keeps no "Fail-closed" summary prefix here, so
+callers must read `llm_ok`, not the summary.
 """
 from __future__ import annotations
 
@@ -37,8 +42,11 @@ class CompositeAuditor:
                 return AuditResult.fail_closed("LLM auditor required but unavailable")
             return h
         ll = self.llm.audit(anonymized_text)
+        # PrivacyAuditor always sets llm_ok; a failed call (False) can never approve.
+        llm_ok = ll.llm_ok is not False
         # Both auditors must be CLEAN (full predicate), not merely `approved=true`.
-        approved = h.is_clean_approval(self.max_risk) and ll.is_clean_approval(self.max_risk)
+        approved = (llm_ok and h.is_clean_approval(self.max_risk)
+                    and ll.is_clean_approval(self.max_risk))
         items = (h.remaining_sensitive_items + ll.remaining_sensitive_items)[:30]
         worst = max([h.risk_level, ll.risk_level], key=lambda r: _RISK_ORDER[r])
         res = AuditResult(
@@ -46,7 +54,9 @@ class CompositeAuditor:
             risk_level=RiskLevel.low if approved else worst,
             remaining_sensitive_items=[] if approved else items,
             recommended_next_action=NextAction.approve if approved else NextAction.reanonymize,
-            summary=f"heuristic={'ok' if h.approved else 'flag'}; llm={'ok' if ll.approved else 'flag'}",
+            summary=(f"heuristic={'ok' if h.approved else 'flag'}; "
+                     f"llm={'ok' if ll.approved else 'flag'}"),
+            llm_ok=llm_ok,
         )
         res.raw_terms = list(dict.fromkeys([*h.raw_terms, *ll.raw_terms]))
         return res

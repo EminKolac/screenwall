@@ -3,14 +3,19 @@
 Upstream: screenwall-v2 `benchmark/run.py`, sha256 41c382a0…f43. The only changes:
   1. `evaluation.strict.scorer` (byte-identical copy) replaces `benchmark.scorer`.
   2. `--system fable` imports THIS repo's engine through the normal package path; V2's
-     `--reference` + `sys.path` insert are gone. `--system studio` needs V2's own engine and is
-     refused here.
+     `--reference` + `sys.path` insert are gone. `--system` defaults to `fable` (V2: `studio`);
+     `--system studio` needs V2's own engine and is refused here.
   3. `--privacy-mode` defaults to `mapping`, the only mode the fable adapter supports.
   4. `--out` is accepted as an alias of V2's `--output`.
-  5. `--limit N` keeps the first N items of every panel (smoke runs only); the summary then says
-     `complete: false` and must not be compared with full runs.
+  5. `--limit N` keeps the first N items of every panel (smoke runs only); the summary records
+     `limit` and `complete` (false whenever N > 0), and such a run must not be compared with
+     full runs.
   6. The body is `run_strict()` so the scorecard can call it in-process; the socket guard is
      restored when it returns.
+  7. The summary (`metrics.json`) gains two more keys: `allow_list` (a label: the engine gets
+     no list) and `upstream_run_sha256` (the V2 file this copy follows).
+  8. Every file read and write passes `encoding="utf-8"` explicitly (V2 relied on the platform
+     default, which is UTF-8 on macOS but not everywhere).
 
 Unchanged: panels, prompts, scorer calls, output files, offline env vars and the loopback-only
 socket guard. As in V2 the engine is called WITHOUT any allow-list

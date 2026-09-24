@@ -11,6 +11,17 @@ from pathlib import Path
 # qwen3.5:4b takes ~5-7 s per file; the heuristic auditor alone ~0.1 s. A median under this
 # threshold with --llm on means the LLM most likely did not run.
 LLM_PLAUSIBLE_MIN_SECONDS = 1.0
+# The sections whose pipeline runs the auditor; `--llm` has no effect anywhere else.
+LLM_SECTIONS = ("gold", "stress")
+
+# Plan rule: no allow-list and no deny-list behind any reported number. `term_lists=False` makes
+# `app.pipeline.terms.effective_terms` return ([], []): no seeded allow-list, no ALLOW_TERMS /
+# DENY_TERMS, no user Settings lists. The two env-backed fields are blanked as well.
+NO_TERM_LISTS = {"term_lists": False, "allow_terms": "", "deny_terms": ""}
+
+
+class TermListsActiveError(RuntimeError):
+    """A section's engine received a non-empty always-mask or never-mask list."""
 
 
 @dataclass(frozen=True)
@@ -52,13 +63,68 @@ def load_jsonl(path: Path) -> list[dict]:
             if line.strip()]
 
 
-def llm_evidence(llm: str, median_seconds: float | None) -> dict | None:
-    """Did the LLM auditor really run? Judged from per-file time. None when the flag is off."""
+def term_list_record(deny: list[str], allow: list[str], source: str) -> dict:
+    """Sizes and a sha256 of the always-mask / never-mask lists an engine received — never the
+    terms themselves."""
+    blob = json.dumps({"allow": list(allow), "deny": list(deny)}, ensure_ascii=False)
+    return {"allow": len(allow), "deny": len(deny),
+            "sha256": hashlib.sha256(blob.encode("utf-8")).hexdigest(), "source": source}
+
+
+EMPTY_TERM_LISTS_SHA256 = term_list_record([], [], "")["sha256"]
+
+
+def pipeline_term_lists(settings) -> dict:
+    """What `run_pipeline` assembles for these settings (the one place lists are built), checked
+    to be empty: a reported number must not depend on a list."""
+    from app.pipeline.terms import effective_terms
+
+    deny, allow = effective_terms(settings)
+    record = term_list_record(deny, allow, "app.pipeline.terms.effective_terms(settings)")
+    record["term_lists_setting"] = settings.term_lists
+    if deny or allow:
+        raise TermListsActiveError(
+            f"pipeline ran with term lists (allow {len(allow)}, deny {len(deny)})")
+    return record
+
+
+def llm_audit_totals(rows: list[dict]) -> dict:
+    """Sums of the runners' per-document `llm_audits` counts (`llm_flag.llm_audit_counts`).
+    `without_llm` = audits that had neither an LLM verdict nor an LLM failure (heuristic only)."""
+    counts = [r["llm_audits"] for r in rows if r.get("llm_audits")]
+    audits = sum(c["audits"] for c in counts)
+    ok = sum(c["llm_ok"] for c in counts)
+    failed = sum(c["llm_failed"] for c in counts)
+    return {
+        "documents_audited": sum(1 for c in counts if c["audits"]),
+        "audits": audits,
+        "llm_ok": ok,
+        "llm_failed": failed,
+        "without_llm": audits - ok - failed,
+        "documents_not_fully_llm_audited": sum(1 for c in counts if c["llm_ok"] < c["audits"]),
+    }
+
+
+def llm_evidence(llm: str, median_seconds: float | None, audits: dict | None) -> dict | None:
+    """Did the LLM auditor really audit every document? None when the flag is off.
+
+    Two independent checks, both required: the per-file time is plausible for a local LLM, and
+    every audit call of every document that reached the audit got a real LLM verdict (zero
+    failed calls, zero heuristic-only calls). A few calls failing mid-run barely move the median
+    time, so timing alone cannot show them."""
     if llm != "on":
         return None
     plausible = median_seconds is not None and median_seconds >= LLM_PLAUSIBLE_MIN_SECONDS
+    failures = None if audits is None else audits["llm_failed"] + audits["without_llm"]
+    every_audit = bool(audits) and audits["audits"] > 0 and failures == 0
     return {
         "median_seconds_per_file": median_seconds,
         "plausible": plausible,
-        "expected": "~5-7 s/file with qwen3.5:4b; ~0.1 s/file without an LLM",
+        "audits": None if audits is None else audits["audits"],
+        "llm_failures": failures,
+        "documents_not_fully_llm_audited":
+            None if audits is None else audits["documents_not_fully_llm_audited"],
+        "every_audit_had_llm": every_audit,
+        "passed": plausible and every_audit,
+        "expected": "~5-7 s/file with qwen3.5:4b; ~0.1 s/file without an LLM; 0 LLM failures",
     }

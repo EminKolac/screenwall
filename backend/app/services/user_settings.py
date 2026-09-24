@@ -2,7 +2,10 @@
 
 Environment variables (app.config.Settings) provide the defaults; this file stores what the user
 chose. The term lists are global: "always mask" and "never mask" apply to every document. They
-are empty by default and are never used by the evaluation harness.
+are empty by default. `pipeline.terms.effective_terms` adds them to every pipeline run whose
+storage root holds this file — the standalone evaluation runners included — unless
+`Settings.term_lists` is False. The scorecard runs with it False and a fresh storage root under
+its own work directory, so these lists never reach a reported number.
 """
 from __future__ import annotations
 

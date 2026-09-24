@@ -70,6 +70,11 @@ class AuditResult(BaseModel):
     # Raw residual strings for re-anonymization feedback. Excluded from serialization/logs so the
     # validation layer stays PII-safe; lives only in-memory during the iteration loop.
     raw_terms: list[str] = Field(default_factory=list, exclude=True, repr=False)
+    # Did the local LLM auditor deliver a verdict for THIS audit? True = it answered with valid
+    # JSON; False = it was required or configured but failed (unreachable, provider error or
+    # timeout, no JSON, schema-invalid) and the audit failed closed; None = no LLM configured
+    # (heuristic only). Set by the auditors, never taken from the model's own output.
+    llm_ok: bool | None = None
 
     def is_clean_approval(self, max_risk: RiskLevel) -> bool:
         """Approval requires ALL invariants — not just `approved` (CRITICAL fix)."""
@@ -82,11 +87,13 @@ class AuditResult(BaseModel):
 
     @classmethod
     def fail_closed(cls, reason: str) -> "AuditResult":
+        """Every caller is an LLM auditor that could not deliver a verdict, hence llm_ok=False."""
         return cls(
             approved=False,
             risk_level=RiskLevel.high,
             summary=f"Fail-closed: {reason}",
             recommended_next_action=NextAction.human_review,
+            llm_ok=False,
         )
 
     @classmethod
@@ -100,11 +107,13 @@ class AuditResult(BaseModel):
             it["snippet"] for it in raw_items
             if isinstance(it, dict) and isinstance(it.get("snippet"), str) and it["snippet"].strip()
         ]
+        obj.pop("llm_ok", None)  # the model must not vouch for itself; set below
         try:
             result = cls.model_validate(obj)
         except ValidationError as e:
             return cls.fail_closed(f"schema validation error: {e.error_count()} issue(s)")
         result.raw_terms = raw_terms
+        result.llm_ok = True
         return result
 
 

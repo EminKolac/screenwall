@@ -108,3 +108,134 @@ def test_runner_cli_exposes_the_flag(module, capsys):
         mod.main(["--help"])
     assert exc.value.code == 0
     assert "--llm {on,off}" in capsys.readouterr().out
+
+
+# ------------------------------------------------------- resuming pre-flag directories
+
+def test_results_without_a_config_count_as_off_and_refuse_on(tmp_path):
+    """The 18 pre-flag directories: stress.jsonl, no run_config.json, heuristic-only rows."""
+    old = tmp_path / "llm-gercek-mapping"
+    old.mkdir()
+    (old / "stress.jsonl").write_text('{"case_id": "a"}\n', encoding="utf-8")
+    (old / "summary.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(llm_flag.LLMModeMismatchError, match="predate the --llm flag"):
+        llm_flag.check_resume(old, "on")
+    llm_flag.check_resume(old, "off")  # same (heuristic-only) mode: resuming is honest
+
+
+def test_empty_results_without_a_config_are_nothing_to_resume(tmp_path):
+    (tmp_path / "stress.jsonl").write_text("\n", encoding="utf-8")
+    (tmp_path / "mode_checks.jsonl").touch()
+    llm_flag.check_resume(tmp_path, "on")
+    llm_flag.check_resume(tmp_path, "off")
+
+
+@pytest.mark.parametrize("content", ["{not json", "[]", '"on"'])
+@pytest.mark.parametrize("llm", ["on", "off"])
+def test_an_unreadable_config_refuses_either_mode(tmp_path, content, llm):
+    (tmp_path / "run_config.json").write_text(content, encoding="utf-8")
+    with pytest.raises(llm_flag.RunConfigUnreadableError, match="new --tag"):
+        llm_flag.check_resume(tmp_path, llm)
+
+
+def test_unreadable_config_is_caught_by_the_runners_mismatch_handler(tmp_path, monkeypatch,
+                                                                     capsys):
+    from evaluation.goldbench import run_stress
+
+    monkeypatch.setattr(run_stress, "OUT", tmp_path)
+    (tmp_path / "x-mapping").mkdir()
+    (tmp_path / "x-mapping" / "run_config.json").write_text("{", encoding="utf-8")
+    monkeypatch.setattr(run_stress, "build_corpus", lambda: [])
+    assert run_stress.main(["--tag", "x"]) == 2
+    assert "HATA" in capsys.readouterr().out
+    assert (tmp_path / "x-mapping" / "run_config.json").read_text(encoding="utf-8") == "{"
+
+
+def test_pre_flag_directory_is_not_relabelled_by_run_stress(tmp_path, monkeypatch):
+    from evaluation.goldbench import run_stress
+
+    monkeypatch.setattr(run_stress, "OUT", tmp_path)
+    old = tmp_path / "llm-gercek-mapping"
+    old.mkdir()
+    (old / "stress.jsonl").write_text('{"case_id": "a"}\n', encoding="utf-8")
+    monkeypatch.setattr(run_stress, "ensure_llm_ready", lambda s: None)
+    monkeypatch.setattr(run_stress, "build_corpus", lambda: [])
+    assert run_stress.main(["--tag", "llm-gercek", "--llm", "on"]) == 2
+    assert not (old / "run_config.json").exists()  # no config claiming "LLM on"
+
+
+# --------------------------------------------- runners: own root, overrides, LLM counts
+
+@pytest.mark.parametrize("module", ["evaluation.goldbench.run_gold",
+                                    "evaluation.goldbench.run_stress"])
+def test_runner_repo_accepts_a_root_and_settings_overrides(module, tmp_path, monkeypatch):
+    mod = importlib.import_module(module)
+    monkeypatch.setattr(mod, "ensure_llm_ready", lambda s: None)
+    monkeypatch.setenv("ALLOW_TERMS", "Proje Adı")
+    settings, repo = mod._repo("mapping", "off", root=tmp_path / "own",
+                               term_lists=False, allow_terms="")
+    assert settings.storage_root == tmp_path / "own"
+    assert repo.backend.root == tmp_path / "own"
+    assert (settings.term_lists, settings.allow_terms) == (False, "")
+
+
+def test_run_stress_writes_per_document_llm_counts(tmp_path, monkeypatch):
+    import httpx
+
+    import app.pipeline.runner as runner
+    from app.audit.auditor import PrivacyAuditor
+    from app.audit.factory import CompositeAuditor
+    from app.audit.heuristic import HeuristicAuditor
+    from app.models.findings import RiskLevel
+    from evaluation.goldbench import run_stress
+    from evaluation.goldbench.stress import StressCase
+    from evaluation.scorecard_common import NO_TERM_LISTS
+    from tests.conftest import TR_PARA, make_docx
+
+    class Timeout:
+        name = "fake"
+
+        def is_available(self) -> bool:
+            return True
+
+        def complete(self, system_prompt: str, user_prompt: str) -> str:
+            raise httpx.ReadTimeout("slow")
+
+    monkeypatch.setattr(runner, "build_auditor", lambda s: CompositeAuditor(
+        HeuristicAuditor(), PrivacyAuditor(Timeout()), RiskLevel.low, require_llm=True))
+    case = StressCase(case_id="docx-clean-00", fmt="docx", scenario="clean",
+                      expected="safe_output")
+    skipped = StressCase(case_id="pdf-x-00", fmt="pdf", scenario="x", expected="safe_output",
+                         generated=False, skip_reason="test")
+    out = tmp_path / "stress.jsonl"
+    settings = run_stress.run_mode("mapping", [(case, make_docx([TR_PARA])), (skipped, b"")],
+                                   out, root=tmp_path / "store", overrides=NO_TERM_LISTS)
+    assert settings.storage_root == tmp_path / "store" and settings.term_lists is False
+    rows = [json.loads(x) for x in out.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["actual_status"] == "needs_human_review"
+    counts = rows[0]["llm_audits"]
+    assert counts["audits"] >= 1 and counts["llm_failed"] == counts["audits"]
+    assert counts["llm_ok"] == 0
+    assert rows[1]["llm_audits"] is None  # never reached the pipeline
+
+
+def test_mode_check_canaries_are_real_pii_only():
+    from evaluation.goldbench.run_gold import mode_check_canaries
+    from evaluation.goldbench.schema import (
+        Channel,
+        Criticality,
+        GoldMention,
+        IdentifierClass,
+        Necessity,
+    )
+
+    def mention(surface: str, cls: IdentifierClass) -> GoldMention:
+        return GoldMention(mention_id=surface, entity_id="e", subject_id="s", surface=surface,
+                           occurrence=0, entity_type="X", identifier_class=cls,
+                           necessity=Necessity.MANDATORY, criticality=Criticality.HIGH,
+                           channel=Channel.BODY)
+
+    gold = [mention("Ahmet Yılmaz", IdentifierClass.DIRECT),
+            mention("Mühendis", IdentifierClass.QUASI),
+            mention("Yönetim Kurulu", IdentifierClass.NO_MASK)]
+    assert mode_check_canaries(gold) == ["Ahmet Yılmaz", "Mühendis"]

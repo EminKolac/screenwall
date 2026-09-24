@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # happens to share a label). `allowlist_tr.py` is the seeded Turkish business/legal/accounting
     # dictionary; this field is for project-specific ADDITIONS on top of it.
     allow_terms: str = ""
+    # Master switch for every always-mask / never-mask list (`pipeline.terms.effective_terms`).
+    # False = the engine receives NO list: not the seeded Turkish allow-list, not ALLOW_TERMS /
+    # DENY_TERMS, not the user's Settings lists. The app keeps it on; the evaluation scorecard
+    # turns it off, because every reported number is measured without lists (plan rule).
+    term_lists: bool = True
 
     # OpenAI Privacy Filter — optional LOCAL (on-device) contextual PII detector: a 2nd detection
     # stage unioned with Presidio. Needs the [privacy] extra (transformers+torch) and the model
