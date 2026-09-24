@@ -129,7 +129,7 @@ uv run uvicorn app.main:app --reload
 cd frontend && npm install && npm run dev
 ```
 
-Tarayıcıda `http://localhost:5173`. Yerel denetçi LLM, Privacy Filter ve sohbet sağlayıcıları
+Tarayıcıda `http://localhost:5174`. Yerel denetçi LLM, Privacy Filter ve sohbet sağlayıcıları
 gibi opsiyonel parçalar için: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Ölçümleri kendiniz koşun

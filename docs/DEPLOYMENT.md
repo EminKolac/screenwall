@@ -28,7 +28,7 @@ human review, storage layers, and gated chat all work.
 ```bash
 cd frontend
 npm install
-npm run dev                               # http://localhost:5173 (proxies /api → :8000)
+npm run dev                               # http://localhost:5174 (proxies /api → :8000)
 ```
 
 ## 3. Full-power upgrades (optional)
