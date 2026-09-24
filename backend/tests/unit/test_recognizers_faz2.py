@@ -123,3 +123,20 @@ def test_new_recognizers_do_not_reintroduce_over_masking():
     out = _mask("Genel Kurul toplantısında Sözleşme Bedeli görüşüldü.", with_allow_list=True)
     assert "Genel Kurul" in out
     assert "Sözleşme Bedeli" in out
+
+
+def test_context_person_span_is_trimmed_to_the_name():
+    """Faz 2 deney 3a: the label/honorific is evidence, not part of the name, so the same person
+    gets one placeholder whether or not "Sayın" precedes it."""
+    from app.anonymization.engine import Engine
+    from app.extraction.base import Block, ExtractedContent
+    from app.models.document import FileKind, Language
+
+    lines = ["Sayın Ahmet Yılmaz, başvurunuz alınmıştır.",
+             "İlgili sözleşme Ahmet Yılmaz tarafından imzalanmıştır."]
+    content = ExtractedContent(kind=FileKind.docx,
+                               blocks=[Block(block_id=f"b{i}", text=t) for i, t in enumerate(lines)])
+    out = Engine().anonymize(content, Language.tr)
+    text = out.content.plain_text
+    assert "Sayın <PERSON_1>" in text and "sözleşme <PERSON_1> tarafından" in text
+    assert "<PERSON_2>" not in text

@@ -625,3 +625,24 @@ tanıyıcı adıyla sayıldı; son `detect()` span'iyle örtüşen sonuç "hayat
   ayarla çağırıyor. Bu ayar, ilk kullanımda listeyi publicsuffix.org'dan indirmeye çalışıyor.
   Tanıyıcı artık paketle gelen soneki listesini kullanan bir alt sınıf (`OfflineEmailRecognizer`);
   desen, puan ve bağlam aynı. Bir test, kontrolün soket açmadığını doğruluyor.
+
+## Faz 2 deney 3a — bağlamlı kişi span'i ada kırpılır (2026-09-24) — KEEP
+
+**Hipotez.** `TR_PERSON_CTX` deseni etiketi ya da hitabı ("Sayın", "adınız", "Müşteri") span'e
+katıyor. Bu yüzden aynı kişi iki yer tutucu alıyor ve etiket kelimesi gereksiz yere maskeleniyor.
+Sonucu desenin ad grubuna kırpmak recall'a dokunmadan hassasiyeti ve tutarlılığı artırmalı.
+
+**Değişiklik.** `_PersonContextRecognizer.analyze`: Presidio sonucu aynı desenle, adlandırılmış
+`name` grubuyla yeniden eşlenir; başlangıç ada kaydırılır.
+
+| Ölçüm (holdout, 60 belge, liste yok) | Önce | Sonra |
+|---|---|---|
+| Katı kritik recall | 472/489 | 472/489 |
+| Canary kaçağı | 0/32 | 0/32 |
+| must_keep kaybı / nötr cümle | 80/90 · 11/40 | 80/90 · 11/40 |
+| Karakter hassasiyeti (detect) | 0,792 | **0,838** |
+| Karakter recall (detect) | 0,888 | 0,888 |
+| Birden fazla yer tutucu alan gerçek kişi | 16/179 | **6/179** |
+
+Parity: 78 kayıt değişti. 36 `detect` farkının hepsinde tek değişiklik, aynı yerde biten ve daha
+geç başlayan TR_PERSON_CTX span'i. 42 `anonymize` farkı bunun sonucu. Snapshot'lar yenilendi.

@@ -7,7 +7,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
 "placeholders_used": {
@@ -20,7 +20,7 @@
 "units": {
 "p1": "MÜŞTERİ YAZIŞMASI",
 "p2": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p3": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"p3": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "p4": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p5": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
@@ -32,7 +32,7 @@
 "TR_PERSON_CTX"
 ],
 [
-91,
+98,
 107,
 "TR_PERSON_CTX"
 ],
@@ -64,7 +64,7 @@
 "TR_PERSON_CTX"
 ],
 [
-91,
+98,
 107,
 "TR_PERSON_CTX"
 ],
@@ -101,7 +101,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
@@ -115,7 +115,7 @@
 "units": {
 "p1": "MÜŞTERİ YAZIŞMASI",
 "p2": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p3": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"p3": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "p4": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p5": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
@@ -129,7 +129,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
 "placeholders_used": {
@@ -143,7 +143,7 @@
 "p1-b1": "Anonymized Document",
 "p1-b2": "MÜŞTERİ YAZIŞMASI",
 "p1-b3": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p1-b4": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
+"p1-b4": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
 "p1-b5": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p1-b6": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
@@ -155,7 +155,7 @@
 "TR_PERSON_CTX"
 ],
 [
-111,
+118,
 127,
 "TR_PERSON_CTX"
 ],
@@ -187,7 +187,7 @@
 "TR_PERSON_CTX"
 ],
 [
-111,
+118,
 127,
 "TR_PERSON_CTX"
 ],
@@ -224,7 +224,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
@@ -239,7 +239,7 @@
 "p1-b1": "Anonymized Document",
 "p1-b2": "MÜŞTERİ YAZIŞMASI",
 "p1-b3": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p1-b4": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
+"p1-b4": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
 "p1-b5": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p1-b6": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
@@ -253,7 +253,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
 "placeholders_used": {
@@ -267,7 +267,7 @@
 "x1-h": "Content",
 "x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
 "x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r3c0": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "x1-t:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
@@ -279,7 +279,7 @@
 "TR_PERSON_CTX"
 ],
 [
-99,
+106,
 115,
 "TR_PERSON_CTX"
 ],
@@ -311,7 +311,7 @@
 "TR_PERSON_CTX"
 ],
 [
-99,
+106,
 115,
 "TR_PERSON_CTX"
 ],
@@ -348,7 +348,7 @@
 "<IBAN_1>": "2474b4fab65fa7e2",
 "<LOCATION_1>": "a3b059e38f46e322",
 "<PERSON_1>": "793bc3d86fa03d36",
-"<PERSON_2>": "9365615384cc1536",
+"<PERSON_2>": "feb049dac9f66b42",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "77fb3d126425cb3e"
 },
@@ -363,7 +363,7 @@
 "x1-h": "Content",
 "x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
 "x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r3c0": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "x1-t:r5c0": "Tepebaşı şubemizde mimar olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
@@ -376,8 +376,8 @@
 "<EMAIL_1>": "8450ff7af0a77d40",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<TCKN_1>": "5506cd88b50feb89"
 },
 "placeholders_used": {
@@ -389,20 +389,20 @@
 },
 "units": {
 "p1": "MÜŞTERİ YAZIŞMASI",
-"p2": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p3": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"p2": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"p3": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "p4": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p5": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
 },
 "detect_allow": [
 [
-18,
+24,
 34,
 "TR_PERSON_CTX"
 ],
 [
-94,
+101,
 111,
 "TR_PERSON_CTX"
 ],
@@ -429,12 +429,12 @@
 ],
 "detect_noallow": [
 [
-18,
+24,
 34,
 "TR_PERSON_CTX"
 ],
 [
-94,
+101,
 111,
 "TR_PERSON_CTX"
 ],
@@ -470,8 +470,8 @@
 "<EMAIL_1>": "8450ff7af0a77d40",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "5506cd88b50feb89"
 },
@@ -484,8 +484,8 @@
 },
 "units": {
 "p1": "MÜŞTERİ YAZIŞMASI",
-"p2": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p3": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"p2": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"p3": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "p4": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p5": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
@@ -498,8 +498,8 @@
 "<EMAIL_1>": "2e7f21dcaf9c1a4a",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<TCKN_1>": "5506cd88b50feb89"
 },
 "placeholders_used": {
@@ -512,20 +512,20 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b2": "MÜŞTERİ YAZIŞMASI",
-"p1-b3": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p1-b4": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
+"p1-b3": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"p1-b4": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
 "p1-b5": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p1-b6": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca\niletilecektir."
 }
 },
 "detect_allow": [
 [
-38,
+44,
 54,
 "TR_PERSON_CTX"
 ],
 [
-114,
+121,
 131,
 "TR_PERSON_CTX"
 ],
@@ -552,12 +552,12 @@
 ],
 "detect_noallow": [
 [
-38,
+44,
 54,
 "TR_PERSON_CTX"
 ],
 [
-114,
+121,
 131,
 "TR_PERSON_CTX"
 ],
@@ -593,8 +593,8 @@
 "<EMAIL_1>": "2e7f21dcaf9c1a4a",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "5506cd88b50feb89"
 },
@@ -608,8 +608,8 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b2": "MÜŞTERİ YAZIŞMASI",
-"p1-b3": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"p1-b4": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
+"p1-b3": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"p1-b4": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir.\n<LOCATION_1>şeklinde güncelledik.",
 "p1-b5": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "p1-b6": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca\niletilecektir."
 }
@@ -622,8 +622,8 @@
 "<EMAIL_1>": "8450ff7af0a77d40",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<TCKN_1>": "5506cd88b50feb89"
 },
 "placeholders_used": {
@@ -636,20 +636,20 @@
 "units": {
 "x1-h": "Content",
 "x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
-"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r2c0": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "x1-t:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; Teslim Tarihi bilgisi ayrıca iletilecektir."
 }
 },
 "detect_allow": [
 [
-26,
+32,
 42,
 "TR_PERSON_CTX"
 ],
 [
-102,
+109,
 119,
 "TR_PERSON_CTX"
 ],
@@ -676,12 +676,12 @@
 ],
 "detect_noallow": [
 [
-26,
+32,
 42,
 "TR_PERSON_CTX"
 ],
 [
-102,
+109,
 119,
 "TR_PERSON_CTX"
 ],
@@ -717,8 +717,8 @@
 "<EMAIL_1>": "8450ff7af0a77d40",
 "<IBAN_1>": "a3677892670d37a2",
 "<LOCATION_1>": "b6d0d6e1219da2ec",
-"<PERSON_1>": "badeb5148c52d32e",
-"<PERSON_2>": "ad4d6b4188feeac7",
+"<PERSON_1>": "09d0abc60e2a7b53",
+"<PERSON_2>": "d48705c5f76ef9f2",
 "<PERSON_3>": "5a2adcc848625a89",
 "<TCKN_1>": "5506cd88b50feb89"
 },
@@ -732,8 +732,8 @@
 "units": {
 "x1-h": "Content",
 "x1-t:r0c0": "MÜŞTERİ YAZIŞMASI",
-"x1-t:r2c0": "<PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
-"x1-t:r3c0": "Kayıtlarımızda <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
+"x1-t:r2c0": "Sayın <PERSON_1>, 14 Ekim 2026 tarihli talebiniz alınmıştır.",
+"x1-t:r3c0": "Kayıtlarımızda adınız <PERSON_2> olarak, kimlik numaranız <TCKN_1> olarak görünmektedir. <LOCATION_1>şeklinde güncelledik.",
 "x1-t:r4c0": "İade tutarı <IBAN_1> hesabına aktarılacaktır. Sorularınız için <EMAIL_1> adresinden bize ulaşabilirsiniz.",
 "x1-t:r5c0": "Osmangazi şubemizde avukat olarak çalıştığınızı belirtmiştiniz; <PERSON_3> bilgisi ayrıca iletilecektir."
 }
@@ -751,10 +751,9 @@
 "<LOCATION_2>": "ae20cdf74353959e",
 "<LOCATION_3>": "9401cd022c55c6b8",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "60d09ae7336923ff",
-"<PERSON_3>": "12f6420e16369d3a",
-"<PERSON_4>": "88be63f225801aa8",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -765,18 +764,18 @@
 "IBAN": 1,
 "LOCATION": 3,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
 },
 "units": {
 "p1": "MÜŞTERİ HESAP ÖZETİ",
-"p2": "<PERSON_1> — T.C. <TCKN_1>.",
+"p2": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p4": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "p5": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"p6": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"p7": "<PERSON_4> — <EMAIL_2>.",
+"p6": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"p7": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
 "tbl3:r0c0": "<LOCATION_1>",
 "tbl3:r0c1": "Bilgi",
 "tbl3:r1c0": "IBAN",
@@ -793,7 +792,7 @@
 },
 "detect_allow": [
 [
-20,
+34,
 46,
 "TR_PERSON_CTX"
 ],
@@ -848,7 +847,7 @@
 "TR_COMPANY"
 ],
 [
-390,
+403,
 415,
 "TR_PERSON_CTX"
 ],
@@ -858,7 +857,7 @@
 "PERSON"
 ],
 [
-452,
+471,
 482,
 "TR_PERSON_CTX"
 ],
@@ -870,7 +869,7 @@
 ],
 "detect_noallow": [
 [
-20,
+34,
 46,
 "TR_PERSON_CTX"
 ],
@@ -935,7 +934,7 @@
 "PERSON"
 ],
 [
-390,
+403,
 415,
 "TR_PERSON_CTX"
 ],
@@ -945,7 +944,7 @@
 "PERSON"
 ],
 [
-452,
+471,
 482,
 "TR_PERSON_CTX"
 ],
@@ -966,12 +965,11 @@
 "<LOCATION_2>": "ae20cdf74353959e",
 "<LOCATION_3>": "9401cd022c55c6b8",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "60d09ae7336923ff",
-"<PERSON_5>": "12f6420e16369d3a",
-"<PERSON_6>": "88be63f225801aa8",
+"<PERSON_5>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -982,18 +980,18 @@
 "IBAN": 1,
 "LOCATION": 3,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
 },
 "units": {
 "p1": "MÜŞTERİ HESAP ÖZETİ",
-"p2": "<PERSON_1> — T.C. <TCKN_1>.",
+"p2": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p4": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "p5": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"p6": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"p7": "<PERSON_6> — <EMAIL_2>.",
+"p6": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"p7": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
 "tbl3:r0c0": "<LOCATION_1>",
 "tbl3:r0c1": "Bilgi",
 "tbl3:r1c0": "IBAN",
@@ -1020,10 +1018,9 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "11442eb7fbbab1b6",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "60d09ae7336923ff",
-"<PERSON_3>": "12f6420e16369d3a",
-"<PERSON_4>": "88be63f225801aa8",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -1034,7 +1031,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -1042,10 +1039,10 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b10": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"p1-b11": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"p1-b12": "<PERSON_4> — <EMAIL_2>.",
+"p1-b11": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"p1-b12": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
 "p1-b2": "MÜŞTERİ HESAP ÖZETİ",
-"p1-b3": "<PERSON_1> — T.C. <TCKN_1>.",
+"p1-b3": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p1-b4": "<LOCATION_1> | Bilgi",
 "p1-b5": "IBAN | <IBAN_1>",
 "p1-b6": "Kart | <CARD_1>",
@@ -1056,7 +1053,7 @@
 },
 "detect_allow": [
 [
-40,
+54,
 66,
 "TR_PERSON_CTX"
 ],
@@ -1111,7 +1108,7 @@
 "TR_COMPANY"
 ],
 [
-410,
+423,
 435,
 "TR_PERSON_CTX"
 ],
@@ -1121,7 +1118,7 @@
 "PERSON"
 ],
 [
-472,
+491,
 502,
 "TR_PERSON_CTX"
 ],
@@ -1133,7 +1130,7 @@
 ],
 "detect_noallow": [
 [
-40,
+54,
 66,
 "TR_PERSON_CTX"
 ],
@@ -1198,7 +1195,7 @@
 "PERSON"
 ],
 [
-410,
+423,
 435,
 "TR_PERSON_CTX"
 ],
@@ -1208,7 +1205,7 @@
 "PERSON"
 ],
 [
-472,
+491,
 502,
 "TR_PERSON_CTX"
 ],
@@ -1228,12 +1225,11 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "11442eb7fbbab1b6",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "60d09ae7336923ff",
-"<PERSON_5>": "12f6420e16369d3a",
-"<PERSON_6>": "88be63f225801aa8",
+"<PERSON_5>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -1244,7 +1240,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -1252,10 +1248,10 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b10": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"p1-b11": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"p1-b12": "<PERSON_6> — <EMAIL_2>.",
+"p1-b11": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"p1-b12": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
 "p1-b2": "MÜŞTERİ HESAP ÖZETİ",
-"p1-b3": "<PERSON_1> — T.C. <TCKN_1>.",
+"p1-b3": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p1-b4": "<LOCATION_1> | Bilgi",
 "p1-b5": "IBAN | <IBAN_1>",
 "p1-b6": "Kart | <CARD_1>",
@@ -1277,10 +1273,9 @@
 "<LOCATION_2>": "ae20cdf74353959e",
 "<LOCATION_3>": "9401cd022c55c6b8",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "60d09ae7336923ff",
-"<PERSON_3>": "12f6420e16369d3a",
-"<PERSON_4>": "88be63f225801aa8",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -1291,7 +1286,7 @@
 "IBAN": 1,
 "LOCATION": 3,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -1301,9 +1296,9 @@
 "x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
 "x1-t:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "x1-t:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"x1-t:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"x1-t:r13c0": "<PERSON_4> — <EMAIL_2>.",
-"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r12c0": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
+"x1-t:r2c0": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "x1-t:r3c0": "<LOCATION_1>",
 "x1-t:r3c1": "Bilgi",
 "x1-t:r4c0": "IBAN",
@@ -1320,7 +1315,7 @@
 },
 "detect_allow": [
 [
-28,
+42,
 54,
 "TR_PERSON_CTX"
 ],
@@ -1375,7 +1370,7 @@
 "TR_COMPANY"
 ],
 [
-398,
+411,
 423,
 "TR_PERSON_CTX"
 ],
@@ -1385,7 +1380,7 @@
 "PERSON"
 ],
 [
-460,
+479,
 490,
 "TR_PERSON_CTX"
 ],
@@ -1397,7 +1392,7 @@
 ],
 "detect_noallow": [
 [
-28,
+42,
 54,
 "TR_PERSON_CTX"
 ],
@@ -1462,7 +1457,7 @@
 "PERSON"
 ],
 [
-398,
+411,
 423,
 "TR_PERSON_CTX"
 ],
@@ -1472,7 +1467,7 @@
 "PERSON"
 ],
 [
-460,
+479,
 490,
 "TR_PERSON_CTX"
 ],
@@ -1493,12 +1488,11 @@
 "<LOCATION_2>": "ae20cdf74353959e",
 "<LOCATION_3>": "9401cd022c55c6b8",
 "<ORG_1>": "8c9256d9bc702f88",
-"<PERSON_1>": "9ead110e42f6283a",
+"<PERSON_1>": "305d6052e5a300f8",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "60d09ae7336923ff",
-"<PERSON_5>": "12f6420e16369d3a",
-"<PERSON_6>": "88be63f225801aa8",
+"<PERSON_5>": "4763c810430c42f6",
 "<PHONE_1>": "b13cb978a90b4bc9",
 "<SALARY_1>": "16ad8862b4fda785",
 "<TCKN_1>": "55cf6abeea0e6ca2"
@@ -1509,7 +1503,7 @@
 "IBAN": 1,
 "LOCATION": 3,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -1519,9 +1513,9 @@
 "x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
 "x1-t:r10c0": "<LOCATION_3> beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "x1-t:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"x1-t:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"x1-t:r13c0": "<PERSON_6> — <EMAIL_2>.",
-"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r12c0": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
+"x1-t:r2c0": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "x1-t:r3c0": "<LOCATION_1>",
 "x1-t:r3c1": "Bilgi",
 "x1-t:r4c0": "IBAN",
@@ -1548,10 +1542,9 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "09635111849ef668",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "eccd741b0c40664e",
-"<PERSON_3>": "b67e1f5c233d91ea",
-"<PERSON_4>": "341747cd05f2a79b",
+"<PERSON_3>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -1562,18 +1555,18 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
 },
 "units": {
 "p1": "MÜŞTERİ HESAP ÖZETİ",
-"p2": "<PERSON_1> — T.C. <TCKN_1>.",
+"p2": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p4": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "p5": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"p6": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"p7": "<PERSON_4> — <EMAIL_2>.",
+"p6": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"p7": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
 "tbl3:r0c0": "<LOCATION_1>",
 "tbl3:r0c1": "Bilgi",
 "tbl3:r1c0": "IBAN",
@@ -1590,7 +1583,7 @@
 },
 "detect_allow": [
 [
-20,
+34,
 48,
 "TR_PERSON_CTX"
 ],
@@ -1645,7 +1638,7 @@
 "TR_COMPANY"
 ],
 [
-408,
+421,
 435,
 "TR_PERSON_CTX"
 ],
@@ -1655,7 +1648,7 @@
 "PERSON"
 ],
 [
-473,
+492,
 502,
 "TR_PERSON_CTX"
 ],
@@ -1667,7 +1660,7 @@
 ],
 "detect_noallow": [
 [
-20,
+34,
 48,
 "TR_PERSON_CTX"
 ],
@@ -1732,7 +1725,7 @@
 "PERSON"
 ],
 [
-408,
+421,
 435,
 "TR_PERSON_CTX"
 ],
@@ -1742,7 +1735,7 @@
 "PERSON"
 ],
 [
-473,
+492,
 502,
 "TR_PERSON_CTX"
 ],
@@ -1762,12 +1755,11 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "09635111849ef668",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "eccd741b0c40664e",
-"<PERSON_5>": "b67e1f5c233d91ea",
-"<PERSON_6>": "341747cd05f2a79b",
+"<PERSON_5>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -1778,18 +1770,18 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
 },
 "units": {
 "p1": "MÜŞTERİ HESAP ÖZETİ",
-"p2": "<PERSON_1> — T.C. <TCKN_1>.",
+"p2": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p4": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "p5": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"p6": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"p7": "<PERSON_6> — <EMAIL_2>.",
+"p6": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"p7": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
 "tbl3:r0c0": "<LOCATION_1>",
 "tbl3:r0c1": "Bilgi",
 "tbl3:r1c0": "IBAN",
@@ -1816,10 +1808,9 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "0c27e56a084aefc0",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "eccd741b0c40664e",
-"<PERSON_3>": "b67e1f5c233d91ea",
-"<PERSON_4>": "341747cd05f2a79b",
+"<PERSON_3>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -1830,7 +1821,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -1838,10 +1829,10 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b10": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"p1-b11": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"p1-b12": "<PERSON_4> — <EMAIL_2>.",
+"p1-b11": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"p1-b12": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
 "p1-b2": "MÜŞTERİ HESAP ÖZETİ",
-"p1-b3": "<PERSON_1> — T.C. <TCKN_1>.",
+"p1-b3": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p1-b4": "<LOCATION_1> | Bilgi",
 "p1-b5": "IBAN | <IBAN_1>",
 "p1-b6": "Kart | <CARD_1>",
@@ -1852,7 +1843,7 @@
 },
 "detect_allow": [
 [
-40,
+54,
 68,
 "TR_PERSON_CTX"
 ],
@@ -1907,7 +1898,7 @@
 "TR_COMPANY"
 ],
 [
-428,
+441,
 455,
 "TR_PERSON_CTX"
 ],
@@ -1917,7 +1908,7 @@
 "PERSON"
 ],
 [
-493,
+512,
 522,
 "TR_PERSON_CTX"
 ],
@@ -1929,7 +1920,7 @@
 ],
 "detect_noallow": [
 [
-40,
+54,
 68,
 "TR_PERSON_CTX"
 ],
@@ -1994,7 +1985,7 @@
 "PERSON"
 ],
 [
-428,
+441,
 455,
 "TR_PERSON_CTX"
 ],
@@ -2004,7 +1995,7 @@
 "PERSON"
 ],
 [
-493,
+512,
 522,
 "TR_PERSON_CTX"
 ],
@@ -2024,12 +2015,11 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "0c27e56a084aefc0",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "eccd741b0c40664e",
-"<PERSON_5>": "b67e1f5c233d91ea",
-"<PERSON_6>": "341747cd05f2a79b",
+"<PERSON_5>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -2040,7 +2030,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -2048,10 +2038,10 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b10": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"p1-b11": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"p1-b12": "<PERSON_6> — <EMAIL_2>.",
+"p1-b11": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"p1-b12": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
 "p1-b2": "MÜŞTERİ HESAP ÖZETİ",
-"p1-b3": "<PERSON_1> — T.C. <TCKN_1>.",
+"p1-b3": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "p1-b4": "<LOCATION_1> | Bilgi",
 "p1-b5": "IBAN | <IBAN_1>",
 "p1-b6": "Kart | <CARD_1>",
@@ -2072,10 +2062,9 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "09635111849ef668",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "eccd741b0c40664e",
-"<PERSON_3>": "b67e1f5c233d91ea",
-"<PERSON_4>": "341747cd05f2a79b",
+"<PERSON_3>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -2086,7 +2075,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 4,
+"PERSON": 3,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -2096,9 +2085,9 @@
 "x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
 "x1-t:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "x1-t:r11c0": "Fatura Dönemi: Ekim 2026. Gider Pusulası ekte sunulmuştur.",
-"x1-t:r12c0": "<PERSON_3> (<PERSON_2>) ile teyit sağlanmıştır.",
-"x1-t:r13c0": "<PERSON_4> — <EMAIL_2>.",
-"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r12c0": "Hesap sahibi <PERSON_1> (<PERSON_2>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "Müşteri temsilcisi <PERSON_3> — <EMAIL_2>.",
+"x1-t:r2c0": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "x1-t:r3c0": "<LOCATION_1>",
 "x1-t:r3c1": "Bilgi",
 "x1-t:r4c0": "IBAN",
@@ -2115,7 +2104,7 @@
 },
 "detect_allow": [
 [
-28,
+42,
 56,
 "TR_PERSON_CTX"
 ],
@@ -2170,7 +2159,7 @@
 "TR_COMPANY"
 ],
 [
-416,
+429,
 443,
 "TR_PERSON_CTX"
 ],
@@ -2180,7 +2169,7 @@
 "PERSON"
 ],
 [
-481,
+500,
 510,
 "TR_PERSON_CTX"
 ],
@@ -2192,7 +2181,7 @@
 ],
 "detect_noallow": [
 [
-28,
+42,
 56,
 "TR_PERSON_CTX"
 ],
@@ -2257,7 +2246,7 @@
 "PERSON"
 ],
 [
-416,
+429,
 443,
 "TR_PERSON_CTX"
 ],
@@ -2267,7 +2256,7 @@
 "PERSON"
 ],
 [
-481,
+500,
 510,
 "TR_PERSON_CTX"
 ],
@@ -2287,12 +2276,11 @@
 "<LOCATION_1>": "fa95462bfacb3e0f",
 "<LOCATION_2>": "09635111849ef668",
 "<ORG_1>": "f4acbfb496a9ae7f",
-"<PERSON_1>": "28119120ecdf0ac6",
+"<PERSON_1>": "3ca58d269cd45392",
 "<PERSON_2>": "7546a2b58eec1263",
 "<PERSON_3>": "192104d20dabf798",
 "<PERSON_4>": "eccd741b0c40664e",
-"<PERSON_5>": "b67e1f5c233d91ea",
-"<PERSON_6>": "341747cd05f2a79b",
+"<PERSON_5>": "ce7c2b44081e56de",
 "<PHONE_1>": "2b4376cfd1b06dd6",
 "<SALARY_1>": "418db3e0cabfd7b8",
 "<TCKN_1>": "f104c0172fc4c96d"
@@ -2303,7 +2291,7 @@
 "IBAN": 1,
 "LOCATION": 2,
 "ORG": 1,
-"PERSON": 6,
+"PERSON": 5,
 "PHONE": 1,
 "SALARY": 1,
 "TCKN": 1
@@ -2313,9 +2301,9 @@
 "x1-t:r0c0": "MÜŞTERİ HESAP ÖZETİ",
 "x1-t:r10c0": "Gelir beyanı: <SALARY_1>. İşveren: <ORG_1>.",
 "x1-t:r11c0": "<PERSON_3>: Ekim 2026. <PERSON_2> ekte sunulmuştur.",
-"x1-t:r12c0": "<PERSON_5> (<PERSON_4>) ile teyit sağlanmıştır.",
-"x1-t:r13c0": "<PERSON_6> — <EMAIL_2>.",
-"x1-t:r2c0": "<PERSON_1> — T.C. <TCKN_1>.",
+"x1-t:r12c0": "Hesap sahibi <PERSON_1> (<PERSON_4>) ile teyit sağlanmıştır.",
+"x1-t:r13c0": "Müşteri temsilcisi <PERSON_5> — <EMAIL_2>.",
+"x1-t:r2c0": "Hesap sahibi: <PERSON_1> — T.C. <TCKN_1>.",
 "x1-t:r3c0": "<LOCATION_1>",
 "x1-t:r3c1": "Bilgi",
 "x1-t:r4c0": "IBAN",
@@ -2337,9 +2325,9 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "5a1d838adaf352ba",
-"<PERSON_3>": "c0c80b2925804a05",
+"<PERSON_3>": "76ea31064b02e680",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
 "<SENSITIVE_2>": "2b0105b58f1d6ad2",
@@ -2354,16 +2342,16 @@
 },
 "units": {
 "p1": "HASTA DEĞERLENDİRME FORMU",
-"p2": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"p2": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "p3": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "p4": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "p5": "Değerlendiren hekim: <PERSON_2>. Kontrol randevusu Kalite Kontrol biriminden alınacaktır.",
-"p6": "<PERSON_3> ile telefonla teyit edildi."
+"p6": "Hasta <PERSON_3> ile telefonla teyit edildi."
 }
 },
 "detect_allow": [
 [
-26,
+33,
 43,
 "TR_PERSON_CTX"
 ],
@@ -2403,14 +2391,14 @@
 "PERSON"
 ],
 [
-282,
+288,
 298,
 "TR_PERSON_CTX"
 ]
 ],
 "detect_noallow": [
 [
-26,
+33,
 43,
 "TR_PERSON_CTX"
 ],
@@ -2455,7 +2443,7 @@
 "PERSON"
 ],
 [
-282,
+288,
 298,
 "TR_PERSON_CTX"
 ]
@@ -2465,10 +2453,10 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "f29f27a1a2f46e4d",
 "<PERSON_3>": "5a1d838adaf352ba",
-"<PERSON_4>": "c0c80b2925804a05",
+"<PERSON_4>": "76ea31064b02e680",
 "<PERSON_5>": "2ef74d2207b739e6",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
@@ -2484,11 +2472,11 @@
 },
 "units": {
 "p1": "HASTA DEĞERLENDİRME FORMU",
-"p2": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"p2": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "p3": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "p4": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "p5": "Değerlendiren hekim: <PERSON_3>. <PERSON_5> randevusu <PERSON_2> biriminden alınacaktır.",
-"p6": "<PERSON_4> ile telefonla teyit edildi."
+"p6": "Hasta <PERSON_4> ile telefonla teyit edildi."
 }
 }
 },
@@ -2498,9 +2486,9 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "5a1d838adaf352ba",
-"<PERSON_3>": "c0c80b2925804a05",
+"<PERSON_3>": "76ea31064b02e680",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
 "<SENSITIVE_2>": "2b0105b58f1d6ad2",
@@ -2516,16 +2504,16 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b2": "HASTA DEĞERLENDİRME FORMU",
-"p1-b3": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"p1-b3": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "p1-b4": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "p1-b5": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "p1-b6": "Değerlendiren hekim: <PERSON_2>. Kontrol randevusu Kalite Kontrol biriminden alınacaktır.",
-"p1-b7": "<PERSON_3> ile telefonla teyit edildi."
+"p1-b7": "Hasta <PERSON_3> ile telefonla teyit edildi."
 }
 },
 "detect_allow": [
 [
-46,
+53,
 63,
 "TR_PERSON_CTX"
 ],
@@ -2565,14 +2553,14 @@
 "PERSON"
 ],
 [
-302,
+308,
 318,
 "TR_PERSON_CTX"
 ]
 ],
 "detect_noallow": [
 [
-46,
+53,
 63,
 "TR_PERSON_CTX"
 ],
@@ -2617,7 +2605,7 @@
 "PERSON"
 ],
 [
-302,
+308,
 318,
 "TR_PERSON_CTX"
 ]
@@ -2627,10 +2615,10 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "f29f27a1a2f46e4d",
 "<PERSON_3>": "5a1d838adaf352ba",
-"<PERSON_4>": "c0c80b2925804a05",
+"<PERSON_4>": "76ea31064b02e680",
 "<PERSON_5>": "2ef74d2207b739e6",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
@@ -2647,11 +2635,11 @@
 "units": {
 "p1-b1": "Anonymized Document",
 "p1-b2": "HASTA DEĞERLENDİRME FORMU",
-"p1-b3": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"p1-b3": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "p1-b4": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "p1-b5": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "p1-b6": "Değerlendiren hekim: <PERSON_3>. <PERSON_5> randevusu <PERSON_2> biriminden alınacaktır.",
-"p1-b7": "<PERSON_4> ile telefonla teyit edildi."
+"p1-b7": "Hasta <PERSON_4> ile telefonla teyit edildi."
 }
 }
 },
@@ -2661,9 +2649,9 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "5a1d838adaf352ba",
-"<PERSON_3>": "c0c80b2925804a05",
+"<PERSON_3>": "76ea31064b02e680",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
 "<SENSITIVE_2>": "2b0105b58f1d6ad2",
@@ -2679,16 +2667,16 @@
 "units": {
 "x1-h": "Content",
 "x1-t:r0c0": "HASTA DEĞERLENDİRME FORMU",
-"x1-t:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"x1-t:r2c0": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "x1-t:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "x1-t:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "x1-t:r5c0": "Değerlendiren hekim: <PERSON_2>. Kontrol randevusu Kalite Kontrol biriminden alınacaktır.",
-"x1-t:r6c0": "<PERSON_3> ile telefonla teyit edildi."
+"x1-t:r6c0": "Hasta <PERSON_3> ile telefonla teyit edildi."
 }
 },
 "detect_allow": [
 [
-34,
+41,
 51,
 "TR_PERSON_CTX"
 ],
@@ -2728,14 +2716,14 @@
 "PERSON"
 ],
 [
-290,
+296,
 306,
 "TR_PERSON_CTX"
 ]
 ],
 "detect_noallow": [
 [
-34,
+41,
 51,
 "TR_PERSON_CTX"
 ],
@@ -2780,7 +2768,7 @@
 "PERSON"
 ],
 [
-290,
+296,
 306,
 "TR_PERSON_CTX"
 ]
@@ -2790,10 +2778,10 @@
 "mapping": {
 "<LOCATION_1>": "c82f39daba3a89c6",
 "<LOCATION_2>": "2587fe69075de3b0",
-"<PERSON_1>": "9c10a030d8c6348b",
+"<PERSON_1>": "842382c79269cae1",
 "<PERSON_2>": "f29f27a1a2f46e4d",
 "<PERSON_3>": "5a1d838adaf352ba",
-"<PERSON_4>": "c0c80b2925804a05",
+"<PERSON_4>": "76ea31064b02e680",
 "<PERSON_5>": "2ef74d2207b739e6",
 "<PHONE_1>": "c1f6cb193cda0024",
 "<SENSITIVE_1>": "2884f0c1d7dcd4c9",
@@ -2810,11 +2798,11 @@
 "units": {
 "x1-h": "Content",
 "x1-t:r0c0": "HASTA DEĞERLENDİRME FORMU",
-"x1-t:r2c0": "<PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
+"x1-t:r2c0": "Hasta: <PERSON_1> (T.C. <TCKN_1>), 31 yaşında, gıda mühendisi.",
 "x1-t:r3c0": "Tanı: <SENSITIVE_2>. Ek durum: <SENSITIVE_1>.",
 "x1-t:r4c0": "İkamet: <LOCATION_2> / <LOCATION_1>. İletişim: <PHONE_1>.",
 "x1-t:r5c0": "Değerlendiren hekim: <PERSON_3>. <PERSON_5> randevusu <PERSON_2> biriminden alınacaktır.",
-"x1-t:r6c0": "<PERSON_4> ile telefonla teyit edildi."
+"x1-t:r6c0": "Hasta <PERSON_4> ile telefonla teyit edildi."
 }
 }
 },
@@ -5460,7 +5448,7 @@
 "<ORG_1>": "f4acbfb496a9ae7f",
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
-"<PERSON_3>": "c0057688048bc7e3",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5479,7 +5467,7 @@
 "p4": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
 "p5": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "p6": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"p7": "<LOCATION_2> yürüten <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
+"p7": "<LOCATION_2> yürüten memur: <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
 }
 },
 "detect_allow": [
@@ -5529,7 +5517,7 @@
 "LOCATION"
 ],
 [
-435,
+442,
 453,
 "TR_PERSON_CTX"
 ]
@@ -5581,7 +5569,7 @@
 "LOCATION"
 ],
 [
-435,
+442,
 453,
 "TR_PERSON_CTX"
 ],
@@ -5601,7 +5589,7 @@
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
 "<PERSON_3>": "9dc34a8e9d6ae5b0",
-"<PERSON_4>": "c0057688048bc7e3",
+"<PERSON_4>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5620,7 +5608,7 @@
 "p4": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
 "p5": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "p6": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"p7": "<LOCATION_2> yürüten <PERSON_4>. <PERSON_3> kararı beklenmektedir."
+"p7": "<LOCATION_2> yürüten memur: <PERSON_4>. <PERSON_3> kararı beklenmektedir."
 }
 }
 },
@@ -5634,7 +5622,7 @@
 "<ORG_1>": "f4acbfb496a9ae7f",
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
-"<PERSON_3>": "c0057688048bc7e3",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5654,7 +5642,7 @@
 "p1-b5": "Hakkımdaki durum: geçmişte traﬁk kazası kaynaklı tazminat davası açmış.",
 "p1-b6": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "p1-b7": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"p1-b8": "<LOCATION_2> yürüten <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
+"p1-b8": "<LOCATION_2> yürüten memur: <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
 }
 },
 "detect_allow": [
@@ -5704,7 +5692,7 @@
 "LOCATION"
 ],
 [
-454,
+461,
 472,
 "TR_PERSON_CTX"
 ]
@@ -5756,7 +5744,7 @@
 "LOCATION"
 ],
 [
-454,
+461,
 472,
 "TR_PERSON_CTX"
 ],
@@ -5776,7 +5764,7 @@
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
 "<PERSON_3>": "9dc34a8e9d6ae5b0",
-"<PERSON_4>": "c0057688048bc7e3",
+"<PERSON_4>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5796,7 +5784,7 @@
 "p1-b5": "Hakkımdaki durum: geçmişte traﬁk kazası kaynaklı tazminat davası açmış.",
 "p1-b6": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "p1-b7": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"p1-b8": "<LOCATION_2> yürüten <PERSON_4>. <PERSON_3> kararı beklenmektedir."
+"p1-b8": "<LOCATION_2> yürüten memur: <PERSON_4>. <PERSON_3> kararı beklenmektedir."
 }
 }
 },
@@ -5810,7 +5798,7 @@
 "<ORG_1>": "f4acbfb496a9ae7f",
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
-"<PERSON_3>": "c0057688048bc7e3",
+"<PERSON_3>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5830,7 +5818,7 @@
 "x1-t:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
 "x1-t:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "x1-t:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"x1-t:r7c0": "<LOCATION_2> yürüten <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
+"x1-t:r7c0": "<LOCATION_2> yürüten memur: <PERSON_3>. Yönetim Kurulu kararı beklenmektedir."
 }
 },
 "detect_allow": [
@@ -5880,7 +5868,7 @@
 "LOCATION"
 ],
 [
-443,
+450,
 461,
 "TR_PERSON_CTX"
 ]
@@ -5932,7 +5920,7 @@
 "LOCATION"
 ],
 [
-443,
+450,
 461,
 "TR_PERSON_CTX"
 ],
@@ -5952,7 +5940,7 @@
 "<PERSON_1>": "ff9da9bdb59fbd5a",
 "<PERSON_2>": "dbafa2e981157af4",
 "<PERSON_3>": "9dc34a8e9d6ae5b0",
-"<PERSON_4>": "c0057688048bc7e3",
+"<PERSON_4>": "4763c810430c42f6",
 "<PHONE_1>": "bb8feb08ade3b0f6",
 "<TCKN_1>": "532b9d0b3d77e635"
 },
@@ -5972,7 +5960,7 @@
 "x1-t:r4c0": "Hakkımdaki durum: geçmişte trafik kazası kaynaklı tazminat davası açmış.",
 "x1-t:r5c0": "Tebligat adresim yukarıdadır; telefon <PHONE_1>, e-posta <EMAIL_1>.",
 "x1-t:r6c0": "Gereğini arz ederim. <PERSON_1> — <PERSON_2>.",
-"x1-t:r7c0": "<LOCATION_2> yürüten <PERSON_4>. <PERSON_3> kararı beklenmektedir."
+"x1-t:r7c0": "<LOCATION_2> yürüten memur: <PERSON_4>. <PERSON_3> kararı beklenmektedir."
 }
 }
 }

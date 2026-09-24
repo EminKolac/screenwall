@@ -861,33 +861,31 @@
 "allow": {
 "entity_count": 3,
 "mapping": {
-"<PERSON_1>": "fe8b9c63a1cd815c",
-"<PERSON_2>": "3e9af6a39fc2e8ac"
+"<PERSON_1>": "3e9af6a39fc2e8ac"
 },
 "placeholders_used": {
-"PERSON": 2
+"PERSON": 1
 },
 "units": {
 "p1-b1": "GoldBench stres belgesi — sentetik içerik.",
-"p1-b2": "<PERSON_1>",
-"p1-b3": "<PERSON_2>",
-"p1-b4": "<PERSON_1>"
+"p1-b2": "Sayın: <PERSON_1>",
+"p1-b3": "<PERSON_1>",
+"p1-b4": "Sayın: <PERSON_1>"
 }
 },
 "noallow": {
 "entity_count": 3,
 "mapping": {
-"<PERSON_1>": "fe8b9c63a1cd815c",
-"<PERSON_2>": "3e9af6a39fc2e8ac"
+"<PERSON_1>": "3e9af6a39fc2e8ac"
 },
 "placeholders_used": {
-"PERSON": 2
+"PERSON": 1
 },
 "units": {
 "p1-b1": "GoldBench stres belgesi — sentetik içerik.",
-"p1-b2": "<PERSON_1>",
-"p1-b3": "<PERSON_2>",
-"p1-b4": "<PERSON_1>"
+"p1-b2": "Sayın: <PERSON_1>",
+"p1-b3": "<PERSON_1>",
+"p1-b4": "Sayın: <PERSON_1>"
 }
 }
 },
@@ -1111,34 +1109,36 @@
 },
 "xlsx-comment-12.xlsx": {
 "allow": {
-"entity_count": 2,
+"entity_count": 3,
 "mapping": {
-"<LOCATION_1>": "1398b376fdcce25c",
-"<PERSON_1>": "fe8b9c63a1cd815c"
+"<LOCATION_1>": "521f3f6e694a85a3",
+"<LOCATION_2>": "1398b376fdcce25c",
+"<PERSON_1>": "3e9af6a39fc2e8ac"
 },
 "placeholders_used": {
-"LOCATION": 1,
+"LOCATION": 2,
 "PERSON": 1
 },
 "units": {
-"cmt-0": "<LOCATION_1>: <PERSON_1>",
+"cmt-0": "<LOCATION_2>: <LOCATION_1>: <PERSON_1>",
 "x1-h": "Veri",
 "x1-t:r0c0": "GoldBench stres belgesi — sentetik içerik.",
 "x1-t:r2c0": "Not eklendi"
 }
 },
 "noallow": {
-"entity_count": 2,
+"entity_count": 3,
 "mapping": {
-"<LOCATION_1>": "1398b376fdcce25c",
-"<PERSON_1>": "fe8b9c63a1cd815c"
+"<LOCATION_1>": "521f3f6e694a85a3",
+"<LOCATION_2>": "1398b376fdcce25c",
+"<PERSON_1>": "3e9af6a39fc2e8ac"
 },
 "placeholders_used": {
-"LOCATION": 1,
+"LOCATION": 2,
 "PERSON": 1
 },
 "units": {
-"cmt-0": "<LOCATION_1>: <PERSON_1>",
+"cmt-0": "<LOCATION_2>: <LOCATION_1>: <PERSON_1>",
 "x1-h": "Veri",
 "x1-t:r0c0": "GoldBench stres belgesi — sentetik içerik.",
 "x1-t:r2c0": "Not eklendi"

@@ -338,16 +338,38 @@ def _health_recognizer() -> PatternRecognizer:
 # alan-genel Türkçe iş/idare kalıpları — GoldBench'e özgü değil (benchmark-kısayolu yasağı).
 #
 # İki ölçülmüş derse uyum: (1) IGNORECASE kapalı — büyük harf sinyali desenin özü ("Sözleşme
-# bedeli hakkında..." dersi); (2) ad kısmı en fazla 3 kelime ve her kelime büyük harfle başlar,
-# etiketin kendisi span dışında tutulur (yalnız yakalama grubu... Presidio grup desteklemez —
-# lookbehind sabit-uzunluk ister, bu yüzden etiket span'e girer ve PERSON ailesinde maskelenir;
-# etiket sözcüğünün maskelenmesi zararsızdır, adın açık kalmasından iyidir).
-_PERSON_CTX = (
+# bedeli hakkında..." dersi); (2) ad kısmı en fazla 3 kelime ve her kelime büyük harfle başlar.
+# Presidio deseni yakalama grubu desteklemediği için eşleşme etiketi de içerir; sonuç
+# `_PersonContextRecognizer` içinde ada kırpılır. Faz 2 deney 3a (EXPERIMENTS.md): etiket span'de
+# kalınca aynı kişi iki yer tutucu alıyordu ("Sayın Ahmet Yılmaz" / "Ahmet Yılmaz"); kırpma
+# holdout'ta karakter hassasiyetini 0,792 → 0,838 çıkardı, recall ve katı paneller değişmedi.
+_PERSON_CTX_LABEL = (
     r"(?:Sayın|Sn\.|Hasta|Hesap sahibi|Müşteri temsilcisi|Müşteri|Yetkili|Memur|Vekili|"
     r"temsilcisi|sahibi|yetkilisi|memur|adınız|Ad Soyad)"
     r"\s*[:\-–]?\s+"
-    r"[A-ZÇĞİÖŞÜ][a-zçğıöşü'’-]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü'’-]+){1,2}"
 )
+_PERSON_CTX_NAME = r"[A-ZÇĞİÖŞÜ][a-zçğıöşü'’-]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü'’-]+){1,2}"
+_PERSON_CTX = _PERSON_CTX_LABEL + _PERSON_CTX_NAME
+_PERSON_CTX_SPLIT = re.compile(_PERSON_CTX_LABEL + rf"(?P<name>{_PERSON_CTX_NAME})",
+                               re.DOTALL | re.MULTILINE)
+
+
+class _PersonContextRecognizer(PatternRecognizer):
+    """The label/honorific is evidence, not part of the name: results are trimmed to the name.
+
+    Presidio patterns cannot use a capture group, so the match includes "Sayın " or "adınız ".
+    Masking it made the same person two placeholders ("Sayın Ahmet Yılmaz" → <PERSON_1>, "Ahmet
+    Yılmaz" → <PERSON_2>) and hid the label word; each result is re-matched here and its start
+    moved to the name.
+    """
+
+    def analyze(self, text, entities, nlp_artifacts=None, regex_flags=None):
+        results = super().analyze(text, entities, nlp_artifacts, regex_flags)
+        for result in results or []:
+            m = _PERSON_CTX_SPLIT.match(text, result.start, result.end)
+            if m and m.end() == result.end:
+                result.start = m.start("name")
+        return results
 
 
 def _person_context_recognizer() -> PatternRecognizer:
@@ -355,7 +377,7 @@ def _person_context_recognizer() -> PatternRecognizer:
     # (tek-kelime elemesi, küçük-harfli-kelime elemesi) tip üzerinden ayırt edilir —
     # EntitySpan.source pattern/NER ayrımı taşımaz (PLAN §14.4'ün ölçülmüş sınırı). Yer tutucu
     # ailesi _TYPE_TO_PLACEHOLDER ile PERSON'a katlanır (TR_ADDRESS→LOCATION deseniyle aynı).
-    return PatternRecognizer(
+    return _PersonContextRecognizer(
         supported_entity="TR_PERSON_CTX", supported_language="tr",
         patterns=[Pattern("tr_person_ctx", _PERSON_CTX, 0.5)],
         global_regex_flags=re.DOTALL | re.MULTILINE,  # IGNORECASE'siz — bkz. üstteki gerekçe
