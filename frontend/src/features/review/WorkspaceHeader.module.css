@@ -1,0 +1,151 @@
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title actions"
+    "steps gate"
+    "reasons reasons";
+  align-items: center;
+  gap: 10px var(--s4);
+  padding: var(--s3) var(--s5) var(--s3);
+  border-bottom: var(--hairline);
+  background: var(--surface);
+}
+
+.titleRow {
+  grid-area: title;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  font: 400 21px / 1.35 var(--font-display);
+  letter-spacing: -0.005em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steps {
+  grid-area: steps;
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 6px;
+}
+
+.gate {
+  grid-area: gate;
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 560;
+}
+
+.gateBlocked {
+  color: var(--sug-fg);
+}
+
+.gateReady {
+  color: var(--ok-fg);
+}
+
+.reasons {
+  grid-area: reasons;
+  display: grid;
+  gap: 4px;
+  list-style: none;
+}
+
+.reasons li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--sug-bg);
+  color: var(--sug-fg);
+  font-size: var(--text-sm);
+}
+
+.reasons li svg {
+  margin-top: 1px;
+}
+
+/* Dialog content shared by the review dialogs */
+.field {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 84px;
+  margin-top: calc(var(--s2) * -1);
+  padding: 8px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  resize: vertical;
+}
+
+.textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 16px;
+  align-items: center;
+}
+
+.shortcuts dt {
+  display: flex;
+  gap: 4px;
+}
+
+.shortcuts dd {
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "steps"
+      "actions"
+      "gate"
+      "reasons";
+  }
+
+  .actions {
+    flex-wrap: wrap;
+    justify-self: start;
+  }
+
+  .gate {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    padding: var(--s3) var(--s4);
+  }
+
+  .title {
+    font-size: 19px;
+  }
+}

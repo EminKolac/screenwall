@@ -1,0 +1,118 @@
+.original {
+  margin: 0;
+  color: var(--ink);
+  font: 400 14.5px / var(--leading-read) var(--font-display);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.masked {
+  margin: 0;
+  color: var(--ink);
+  font: 400 13.5px / 1.8 var(--font-ui);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.heading.original {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.heading.masked {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.tableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.caption {
+  padding: 0 0 8px;
+  color: var(--muted);
+  font: 500 var(--text-sm) / 1.4 var(--font-ui);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: 7px 10px;
+  border: var(--hairline);
+  vertical-align: top;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.table th {
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.originalTable {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+}
+
+.maskedTable {
+  font-family: var(--font-ui);
+}
+
+.bothTable td {
+  background: var(--paper-page);
+}
+
+.part {
+  display: block;
+  line-height: 1.6;
+}
+
+.partOriginal {
+  font-family: var(--font-display);
+}
+
+.partMasked {
+  margin-top: 3px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+}
+
+.table th .partMasked {
+  font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .captionHint {
+    display: none;
+  }
+
+  /* Spreadsheets keep their natural width on phones and scroll sideways. */
+  .table {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .table th,
+  .table td {
+    max-width: 220px;
+  }
+
+  :global([data-show="original"]) .partMasked,
+  :global([data-show="masked"]) .partOriginal {
+    display: none;
+  }
+
+  .partMasked {
+    margin-top: 0;
+  }
+}

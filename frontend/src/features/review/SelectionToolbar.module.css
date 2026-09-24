@@ -1,0 +1,130 @@
+.toolbar {
+  position: fixed;
+  z-index: 80;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: min(560px, calc(100vw - 16px));
+  padding: 5px 5px 5px 12px;
+  border-radius: var(--r-lg);
+  background: var(--float-bg);
+  color: var(--float-fg);
+  box-shadow: var(--shadow-float);
+  font-size: var(--text-sm);
+  user-select: none;
+  animation: pop var(--dur) var(--ease);
+}
+
+.quote {
+  max-width: 180px;
+  overflow: hidden;
+  color: var(--float-muted);
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote::before {
+  content: "“";
+}
+
+.quote::after {
+  content: "”";
+}
+
+.mask {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--accent-on-float);
+  color: var(--float-bg);
+  font-weight: 700;
+}
+
+.mask:disabled {
+  opacity: 0.45;
+}
+
+.sep {
+  width: 1px;
+  height: 18px;
+  background: var(--float-rule);
+}
+
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.select {
+  height: 28px;
+  padding: 0 24px 0 8px;
+  border: 1px solid var(--float-rule);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--float-fg);
+  font-weight: 600;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select option {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  color: var(--float-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--float-muted);
+}
+
+.close:hover {
+  background: var(--float-rule);
+  color: var(--float-fg);
+}
+
+.toolbar :focus-visible {
+  outline-color: var(--accent-on-float);
+}
+
+.warn {
+  flex-basis: 100%;
+  padding: 2px 0 4px;
+  color: var(--danger-on-float);
+  font-size: var(--text-xs);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}

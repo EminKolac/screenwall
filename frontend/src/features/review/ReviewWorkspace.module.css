@@ -1,0 +1,132 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--side-w);
+  flex: 1;
+  min-height: 0;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scroll-padding-top: 56px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-left: var(--hairline);
+  background: var(--surface-2);
+}
+
+.sideBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 8px var(--s5);
+  border-top: var(--hairline);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.keysHelp {
+  margin-left: auto;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.keysHelp:hover {
+  color: var(--ink);
+}
+
+.problem {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  padding: var(--s8) var(--s4);
+}
+
+.skeletonHead {
+  display: grid;
+  gap: 12px;
+  padding: var(--s4) var(--s5);
+  border-bottom: var(--hairline);
+  background: var(--surface);
+}
+
+.skeletonBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s4);
+  padding: var(--s5);
+}
+
+.skeletonSheet {
+  display: grid;
+  gap: var(--s5);
+  padding: var(--s5);
+  border: var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.skeletonSide {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5) var(--s4);
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scroll {
+    overflow: visible;
+  }
+
+  .side {
+    border-left: 0;
+    border-top: var(--hairline);
+  }
+
+  .sideBody {
+    overflow: visible;
+  }
+
+  .skeletonBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

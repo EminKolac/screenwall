@@ -1,0 +1,5 @@
+# Playwright run output (regenerated on every run)
+test-results/
+playwright-report/
+# design screenshots written by e2e/screenshots.spec.ts (outputs, not baselines)
+e2e/__screenshots__/

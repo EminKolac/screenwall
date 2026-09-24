@@ -1,0 +1,21 @@
+.sk {
+  display: block;
+  border-radius: var(--r-xs);
+  background: linear-gradient(90deg, var(--surface-3) 20%, var(--surface-2) 40%, var(--surface-3) 60%);
+  background-size: 300% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.stack {
+  display: grid;
+  gap: 9px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}

@@ -1,0 +1,99 @@
+/* Each state pairs a color with a non-color cue: underline style, outline, glyph or font. */
+.mark {
+  padding: 0 1px;
+  margin: 0 -1px;
+  border-radius: 2px;
+  color: inherit;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition:
+    outline-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.mark[role="button"] {
+  cursor: pointer;
+}
+
+/* masked: green fill + solid underline */
+.masked {
+  background: var(--ok-bg);
+  color: var(--ok-fg);
+  box-shadow: inset 0 -1.5px 0 var(--ok-stroke);
+}
+
+/* suggestion / finding: amber fill + wavy underline + "!" affordance */
+.suggestion,
+.finding {
+  background: var(--sug-bg);
+  color: var(--sug-fg);
+  text-decoration: underline wavy var(--sug-stroke);
+  text-decoration-thickness: 1px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.suggestion::after,
+.finding::after {
+  content: "!";
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: var(--sug-fg);
+  color: var(--sug-bg);
+  font: 700 9.5px / 1 var(--font-ui);
+  vertical-align: 1px;
+}
+
+/* kept (user unmasked): no fill, dashed outline */
+.kept {
+  background: transparent;
+  color: var(--muted);
+  outline: 1px dashed var(--kept-stroke);
+  outline-offset: 1px;
+}
+
+.strike {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  text-decoration-thickness: 1px;
+}
+
+/* added (user masked): blue fill + "+" cue */
+.added {
+  background: var(--add-bg);
+  color: var(--add-fg);
+  box-shadow: inset 0 -1.5px 0 var(--add-stroke);
+}
+
+.added::before {
+  content: "+";
+  margin-right: 2px;
+  font: 700 10px / 1 var(--font-mono);
+  vertical-align: 1px;
+}
+
+/* Masked pane placeholders */
+.chip {
+  padding: 2px 5px;
+  margin: 0 1px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok-stroke) 55%, transparent);
+  font: 600 11.5px / 1 var(--font-mono);
+  letter-spacing: 0;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.chip.added {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--add-stroke) 60%, transparent);
+}
+
+.selected,
+.mark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

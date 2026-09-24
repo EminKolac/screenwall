@@ -1,0 +1,74 @@
+.wrap {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 0;
+  padding: var(--s8) var(--s4);
+  overflow-y: auto;
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  gap: var(--s3);
+  width: min(600px, 100%);
+  padding: var(--s8) var(--s6);
+  border: var(--hairline);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-align: center;
+}
+
+.title {
+  max-width: 100%;
+  overflow: hidden;
+  font: 400 var(--text-xl) / 1.4 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steps {
+  margin: var(--s1) 0 var(--s2);
+}
+
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+}
+
+.stageBad {
+  color: var(--danger);
+}
+
+.detail {
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.progress {
+  width: 100%;
+  height: 4px;
+  margin-top: var(--s2);
+}
+
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--s2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.note svg {
+  color: var(--accent);
+}
+
+.reasons {
+  display: grid;
+  gap: 4px;
+  color: var(--ink);
+  list-style: none;
+}

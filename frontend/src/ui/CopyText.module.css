@@ -1,0 +1,19 @@
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding-left: var(--s2);
+  border: var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.code {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: all;
+}

@@ -1,0 +1,77 @@
+.kind {
+  --kind-color: var(--muted);
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 26px;
+  height: 32px;
+  padding-bottom: 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px 8px 3px 3px;
+  background: var(--surface);
+  flex: none;
+}
+
+.lg {
+  width: 40px;
+  height: 50px;
+  padding-bottom: 7px;
+  border-radius: 4px 12px 4px 4px;
+}
+
+.fold {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-bottom-left-radius: 3px;
+  background: linear-gradient(225deg, var(--paper) 50%, var(--rule-strong) 50%);
+}
+
+.lg .fold {
+  width: 13px;
+  height: 13px;
+}
+
+.label {
+  color: var(--kind-color);
+  font: 700 7.5px/1 var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.lg .label {
+  font-size: 10px;
+}
+
+.pdf {
+  --kind-color: var(--kind-pdf);
+}
+
+.docx {
+  --kind-color: var(--kind-docx);
+}
+
+.xlsx {
+  --kind-color: var(--kind-xlsx);
+}
+
+.kind::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 9px;
+  height: 9px;
+  background: repeating-linear-gradient(to bottom, var(--rule-strong) 0 1px, transparent 1px 3px);
+  opacity: 0.9;
+}
+
+.lg::after {
+  left: 8px;
+  right: 8px;
+  top: 14px;
+  height: 15px;
+  background: repeating-linear-gradient(to bottom, var(--rule-strong) 0 1.5px, transparent 1.5px 5px);
+}

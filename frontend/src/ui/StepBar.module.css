@@ -1,0 +1,113 @@
+/* Labels collapse by the space the bar actually has, not by the viewport. */
+.wrap {
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.centered {
+  justify-content: center;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--s1);
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.step + .step::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  margin: 0 var(--s2);
+  background: var(--rule-strong);
+}
+
+.marker {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  flex: none;
+}
+
+.step[data-state="done"] {
+  color: var(--ink);
+}
+
+.step[data-state="done"] .marker {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.step[data-state="current"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.step[data-state="current"] .marker {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 8px var(--accent);
+  animation: breathe 1.8s ease-in-out infinite;
+}
+
+/* Waiting for a person is not "in progress": amber, steady, no animation. */
+.review .step[data-state="current"] {
+  color: var(--sug-fg);
+}
+
+.review .step[data-state="current"] .marker {
+  border-color: var(--sug-stroke);
+  box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 8px var(--sug-stroke);
+  animation: none;
+}
+
+.step[data-state="failed"],
+.step[data-state="rejected"] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.step[data-state="failed"] .marker,
+.step[data-state="rejected"] .marker {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@container (max-width: 540px) {
+  .step + .step::before {
+    width: 10px;
+    margin: 0 6px;
+  }
+
+  .step:not([data-state="current"], [data-state="failed"], [data-state="rejected"]) .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

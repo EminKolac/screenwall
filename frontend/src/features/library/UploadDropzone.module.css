@@ -1,0 +1,52 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: var(--s6);
+  background: color-mix(in srgb, var(--paper) 84%, transparent);
+  backdrop-filter: blur(3px);
+  animation: fade var(--dur) var(--ease);
+  pointer-events: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  width: min(560px, 100%);
+  padding: var(--s12) var(--s8);
+  border: 2px dashed var(--accent);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  text-align: center;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: var(--s2);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.title {
+  font: 400 26px / 1.2 var(--font-display);
+  text-wrap: balance;
+}
+
+.body {
+  color: var(--muted);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}

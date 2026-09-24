@@ -1,0 +1,210 @@
+/* Screenwall design tokens. Components read only these variables; no raw colors elsewhere. */
+
+:root {
+  color-scheme: light;
+
+  /* Ground and surfaces */
+  --paper: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f4f3ee;
+  --surface-3: #eceae3;
+  --paper-page: #fffefb;
+
+  /* Text and lines */
+  --ink: #17201c;
+  --muted: #5b6660;
+  --rule: #e3e1da;
+  --rule-strong: #cfccc2;
+
+  /* Brand */
+  --accent: #2f6b4f;
+  --accent-hover: #285c44;
+  --accent-soft: #e4efe8;
+  --on-accent: #ffffff;
+  --accent-on-float: #9fd9b8;
+
+  /* Marks: masked, suggestion, added, kept */
+  --ok-bg: #dcefe3;
+  --ok-fg: #1d5c3f;
+  --ok-stroke: #5fa982;
+  --sug-bg: #ffebb8;
+  --sug-fg: #6a4200;
+  --sug-stroke: #d99a00;
+  --add-bg: #dde8fa;
+  --add-fg: #1c4480;
+  --add-stroke: #5b86d6;
+  --kept-stroke: #8f9993;
+
+  /* Mock page renders: a picture of paper, identical in both themes */
+  --scan-bg: #ffffff;
+  --scan-ink: #1f2723;
+  --scan-faint: #8a938e;
+  --scan-rule: #d9ded9;
+  --scan-grey: #ecebe6;
+  --scan-noise: #9aa19c;
+  --scan-smudge: #c9c6bd;
+
+  /* Feedback */
+  --danger: #a23b2a;
+  --danger-hover: #8c3223;
+  --danger-bg: #f8e3de;
+  --on-danger: #ffffff;
+
+  /* Floating layers (toolbar, toasts) */
+  --float-bg: #17201c;
+  --float-fg: #f4f3ee;
+  --float-muted: #b9c2bc;
+  --float-rule: #34403a;
+  --danger-on-float: #f0a393;
+
+  /* File kinds (decorative) */
+  --kind-pdf: #b5543f;
+  --kind-docx: #3e6fb8;
+  --kind-xlsx: #3c8a5f;
+
+  /* Depth: only floating layers get shadows */
+  --shadow-rgb: 23 32 28;
+  --shadow-float: 0 1px 2px rgb(var(--shadow-rgb) / 0.08), 0 14px 36px -10px rgb(var(--shadow-rgb) / 0.3);
+  --shadow-drawer: 12px 0 40px -16px rgb(var(--shadow-rgb) / 0.35);
+  --backdrop: rgb(23 32 28 / 0.38);
+
+  /* Type */
+  --font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 28px;
+  --leading: 1.5;
+  --leading-tight: 1.25;
+  --leading-read: 1.7;
+
+  /* Space: 4px scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  --s12: 48px;
+  --s16: 64px;
+
+  /* Shape */
+  --r-xs: 3px;
+  --r-sm: 6px;
+  --r-lg: 10px;
+  --r-pill: 999px;
+  --hairline: 1px solid var(--rule);
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur: 160ms;
+  --dur-slow: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Layout */
+  --library-w: 260px;
+  --side-w: 320px;
+  --topbar-h: 52px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111613;
+    --surface: #171d19;
+    --surface-2: #1c231f;
+    --surface-3: #232b26;
+    --paper-page: #1a201c;
+    --ink: #e7ece8;
+    --muted: #a2ada6;
+    --rule: #2c352f;
+    --rule-strong: #3b463f;
+    --accent: #7cc39e;
+    --accent-hover: #93d1b0;
+    --accent-soft: #1e3328;
+    --on-accent: #0e1a13;
+    --accent-on-float: #2f6b4f;
+    --ok-bg: #1f3a2b;
+    --ok-fg: #bfe8cf;
+    --ok-stroke: #4e9a73;
+    --sug-bg: #3d3113;
+    --sug-fg: #ffd98a;
+    --sug-stroke: #e0a82a;
+    --add-bg: #1c2c45;
+    --add-fg: #c4d8ff;
+    --add-stroke: #6f9be8;
+    --kept-stroke: #7d8a82;
+    --danger: #f0a393;
+    --danger-hover: #f5b8ab;
+    --danger-bg: #3a1f1a;
+    --on-danger: #2a0f0a;
+    --float-bg: #e7ece8;
+    --float-fg: #17201c;
+    --float-muted: #4a5650;
+    --float-rule: #c6cec9;
+    --danger-on-float: #a23b2a;
+    --kind-pdf: #e08a74;
+    --kind-docx: #86a9e3;
+    --kind-xlsx: #7cc39e;
+    --shadow-rgb: 0 0 0;
+    --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -10px rgb(0 0 0 / 0.7);
+    --shadow-drawer: 12px 0 40px -12px rgb(0 0 0 / 0.7);
+    --backdrop: rgb(0 0 0 / 0.55);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111613;
+  --surface: #171d19;
+  --surface-2: #1c231f;
+  --surface-3: #232b26;
+  --paper-page: #1a201c;
+  --ink: #e7ece8;
+  --muted: #a2ada6;
+  --rule: #2c352f;
+  --rule-strong: #3b463f;
+  --accent: #7cc39e;
+  --accent-hover: #93d1b0;
+  --accent-soft: #1e3328;
+  --on-accent: #0e1a13;
+  --accent-on-float: #2f6b4f;
+  --ok-bg: #1f3a2b;
+  --ok-fg: #bfe8cf;
+  --ok-stroke: #4e9a73;
+  --sug-bg: #3d3113;
+  --sug-fg: #ffd98a;
+  --sug-stroke: #e0a82a;
+  --add-bg: #1c2c45;
+  --add-fg: #c4d8ff;
+  --add-stroke: #6f9be8;
+  --kept-stroke: #7d8a82;
+  --danger: #f0a393;
+  --danger-hover: #f5b8ab;
+  --danger-bg: #3a1f1a;
+  --on-danger: #2a0f0a;
+  --float-bg: #e7ece8;
+  --float-fg: #17201c;
+  --float-muted: #4a5650;
+  --float-rule: #c6cec9;
+  --danger-on-float: #a23b2a;
+  --kind-pdf: #e08a74;
+  --kind-docx: #86a9e3;
+  --kind-xlsx: #7cc39e;
+  --shadow-rgb: 0 0 0;
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -10px rgb(0 0 0 / 0.7);
+  --shadow-drawer: 12px 0 40px -12px rgb(0 0 0 / 0.7);
+  --backdrop: rgb(0 0 0 / 0.55);
+}
+
+@media (max-width: 1040px) {
+  :root {
+    --side-w: 300px;
+  }
+}

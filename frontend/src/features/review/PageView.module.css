@@ -1,0 +1,177 @@
+.pageView {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+  padding: var(--s4) var(--s5) var(--s10);
+}
+
+.pageOriginal,
+.pageMasked {
+  min-width: 0;
+}
+
+.canvasPane {
+  position: sticky;
+  top: 52px;
+  display: grid;
+  gap: var(--s2);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 38px;
+  padding: 0 4px;
+  border: var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.pageNum {
+  min-width: 52px;
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.zoomValue {
+  min-width: 44px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.canvasScroll {
+  max-height: calc(100dvh - 250px);
+  min-height: 240px;
+  padding: var(--s3);
+  overflow: auto;
+  border: var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+}
+
+.canvas {
+  position: relative;
+  min-width: 0;
+  margin: 0 auto;
+  background: var(--scan-bg);
+  box-shadow: 0 1px 3px rgb(var(--shadow-rgb) / 0.18);
+}
+
+.image,
+.overlay,
+.canvasSkeleton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  object-fit: contain;
+  user-select: none;
+}
+
+.overlay {
+  overflow: visible;
+}
+
+.rect {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.25;
+  cursor: pointer;
+  transition: stroke-width var(--dur-fast) var(--ease);
+}
+
+.rect:focus-visible {
+  outline: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.masked {
+  fill: color-mix(in srgb, var(--ok-stroke) 32%, transparent);
+  stroke: var(--ok-stroke);
+}
+
+.added {
+  fill: color-mix(in srgb, var(--add-stroke) 30%, transparent);
+  stroke: var(--add-stroke);
+}
+
+.suggestion,
+.finding {
+  fill: color-mix(in srgb, var(--sug-stroke) 30%, transparent);
+  stroke: var(--sug-stroke);
+  stroke-dasharray: 4 2;
+}
+
+.kept {
+  fill: transparent;
+  stroke: var(--kept-stroke);
+  stroke-dasharray: 2 2;
+}
+
+.rectSelected {
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.imageError {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.sheet {
+  overflow: hidden;
+  border: var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: var(--s3) 0;
+}
+
+.maskedRow {
+  padding: 5px var(--s5);
+}
+
+.noText {
+  padding: var(--s3) var(--s5);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 760px) {
+  .pageView {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--s3) var(--s3) var(--s6);
+  }
+
+  .pageView[data-show="original"] .pageMasked,
+  .pageView[data-show="masked"] .pageOriginal {
+    display: none;
+  }
+
+  .canvasPane {
+    position: static;
+  }
+
+  .canvasScroll {
+    max-height: none;
+  }
+}

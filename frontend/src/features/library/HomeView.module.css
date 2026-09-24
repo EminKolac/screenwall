@@ -1,0 +1,126 @@
+.center {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 0;
+  padding: var(--s8) var(--s4);
+  overflow-y: auto;
+}
+
+.welcome {
+  display: grid;
+  justify-items: center;
+  gap: var(--s6);
+  max-width: 720px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: var(--hairline);
+  border-radius: var(--r-lg);
+  background: var(--rule);
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  gap: var(--s3);
+  padding: var(--s4);
+  background: var(--surface);
+  text-align: left;
+}
+
+.featureIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+
+.featureTitle {
+  display: block;
+  font-weight: 600;
+}
+
+.featureBody {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  width: min(420px, 100%);
+  margin: var(--s5) auto 0;
+  overflow: hidden;
+  border: var(--hairline);
+  border-radius: var(--r-lg);
+  background: var(--rule);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 4px;
+  padding: var(--s4) var(--s2) var(--s3);
+  background: var(--surface);
+}
+
+.statValue {
+  margin: 0;
+  color: var(--ink);
+  font: 400 30px / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.dotReview,
+.dotOk,
+.dotRun {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotReview {
+  background: var(--sug-stroke);
+}
+
+.dotOk {
+  background: var(--accent);
+}
+
+.dotRun {
+  background: var(--muted);
+}
+
+.loading {
+  display: grid;
+  justify-items: center;
+  gap: var(--s4);
+  width: min(420px, 100%);
+}
+
+@media (max-width: 760px) {
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
