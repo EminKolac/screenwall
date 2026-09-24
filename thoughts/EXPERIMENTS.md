@@ -524,3 +524,35 @@ FP'lerinin hepsi tek kelimelik yaygın sözcükler (`'Toplam'`, `'Yıllık'`, `'
 sinyali bu belge sınıfında bilgi taşımıyor. Tek kelimelik LOCATION elenemez — gold LOCATION
 mention'larının tamamı tek kelimelik (bkz. `_is_implausible_person_ner` docstring). Bu sınıf
 ortografik kuralla değil, Türkçe-yerli bir PII kodlayıcısıyla kapanır.
+
+## Fable v2 — Faz 1 ve Faz 3 notları (2026-09-24)
+
+Plan: `~/.claude/plans/t-m-projenin-plan-dosya-n-splendid-peach.md`. Bu bölüm ölçümle
+kapanan kararları ve yolda bulunan hataları tutar; ayrıntı commit mesajlarında.
+
+**Faz 1 — motor bölündü, davranış aynı (9ea77f7).** `presidio_engine.py` (693 satır) `types`,
+`spans`, `resolve`, `gates`, `lists`, `propagate`, `tables`, `analyzer` ve `engine` modüllerine
+ayrıldı. Kapı snapshot parity idi: eski motorla 180 girdi (72 stres, 30 GoldBench, 72 probe,
+6 gerçek belge) üzerinde `detect()` span'leri ve `anonymize()` çıktısı karşılaştırıldı, 0 fark.
+Eşleme değerleri snapshot'ta hash'li tutulur (`tests/parity/`, `PARITY=1 uv run pytest
+tests/parity`).
+
+Yolda bulunan hata: `EditBuffer`, metnin sonundaki boş bir düzenlemede (tablo hücresi devam
+parçası, metni "") bitiş konumunu düzenlemenin ötesine eşliyordu. Konum mantığı karakter
+bazlı `_literal_origin` ile yeniden yazıldı; rastgele test 3000 vakayı kapsıyor.
+
+**Faz 3 — eski inceleme API'sinin üç hatası kapandı (f0137a9).**
+
+| Eski davranış | Yeni davranış |
+|---|---|
+| `approve` yeniden denetim kalıntı bulsa da onaylıyordu | Açık bulgu varken 409 `unresolved_items`; denetim bayatsa LLM yeniden çalışır, erişilemezse 503 |
+| `reject` belgeyi zaten içinde olduğu duruma koyuyordu (no-op) | Gerçek `REJECTED` durumu |
+| `unmask` kararı bir sonraki maskelemede kayboluyordu | Kararlar `decisions.json`'da kalıcı, her yeniden maskelemede uygulanır |
+
+Aynı fazda kapanan sızıntılar: maskeli içerikte ham çıkarım metadatası (PDF/DOCX yazar ve
+başlık, XLSX sayfa adları) artık boş; dosyalar 0644 yerine 0600, dizinler 0700; yükleme diske
+dökülmüyor; API oturum çerezi ve CSRF belirteci istiyor.
+
+**Ölçüm notu.** "Holdout kritik recall 1.0" sayısı holdout'un dosya sırasına göre ilk 20
+belgesinden geliyordu ve bunlar yalnız finance ve legal belgeleri. Skor kartı bu alt kümeyi
+`V5_SUBSET_IDS` adıyla ayrı gösteriyor; 60 belgenin tamamı ayrı satırda.

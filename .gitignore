@@ -15,6 +15,8 @@ __pycache__/
 # Runtime storage — NEVER commit documents or PII
 /data/**
 !/data/**/.gitkeep
+# dated copies of the document layers taken before a storage migration
+/backend/data-backup-*/
 
 
 # Models / large artifacts (root-level only — must not match backend/app/models/)
@@ -25,6 +27,8 @@ __pycache__/
 node_modules/
 frontend/dist/
 frontend/.vite/
+# the v1 UI's last build output, kept on disk when the v2 build replaced it
+/archive/frontend-v1/dist-prebuild/
 
 # OS / editor
 .DS_Store
