@@ -6,6 +6,10 @@ structural span through overlap.
 """
 from __future__ import annotations
 
+import re
+
+from app.anonymization.lists import term_key
+from app.anonymization.recognizers.turkish_fields import FORM_LABELS
 from app.anonymization.spans import EntitySpan
 from app.anonymization.types import ORTHO_GATED
 
@@ -51,3 +55,43 @@ def implausible_person_ner(span: EntitySpan, text: str) -> bool:
     if len(words) == 1:
         return True
     return any(w[0].isalpha() and w[0].islower() for w in words if len(w) >= 3)
+
+
+_DATE = re.compile(r"\d{1,2}[./-]\d{1,2}[./-]\d{2,4}")
+_PHONE_TYPES = frozenset({"PHONE_NUMBER", "TR_PHONE", "TR_GSM", "UK_PHONE"})
+
+
+def date_shaped_phone(span: EntitySpan, text: str) -> bool:
+    """A dd.mm.yyyy date is not a phone number. Presidio's phone parser accepts dates such as
+    "03.01.2026" and "02.02.2026" (seen on an e-Devlet document, 2026-09-25); a real number never
+    has this shape."""
+    if span.entity_type not in _PHONE_TYPES:
+        return False
+    return _DATE.fullmatch(text[span.start:span.end].strip()) is not None
+
+
+_LABEL_KEYS = frozenset(term_key(label) for label in FORM_LABELS)
+
+
+def form_label_ner(span: EntitySpan, text: str) -> bool:
+    """A statistical NER hit that is only a form caption ("Adı", "Adres Tipi") names no one."""
+    if span.source not in _NER_SOURCES or span.entity_type not in ORTHO_GATED:
+        return False
+    return term_key(text[span.start:span.end]) in _LABEL_KEYS
+
+
+def caps_line_ner(span: EntitySpan, text: str) -> bool:
+    """In a line written in capitals, capitalisation carries no name signal and statistical NER
+    turns into noise ("YERİ", "OLUP", "FIKRASI" on an e-Devlet page, 2026-09-25). Names in such
+    documents come from labelled fields and propagate to the capitals from there. Structural
+    recognizers (addresses, IDs) share the Presidio source, so only NER types are gated."""
+    if span.source not in _NER_SOURCES or span.entity_type not in ORTHO_GATED:
+        return False
+    start = text.rfind("\n", 0, span.start) + 1
+    end = text.find("\n", span.end)
+    line = text[start:end if end != -1 else len(text)]
+    # Words only: URLs, e-mails, dates and codes ("www.turkiye.gov.tr", "03.01.2026") say nothing
+    # about how the sentence is capitalised.
+    words = [w.strip(",;:()\"'’") for w in line.split()]
+    words = [w for w in words if w.isalpha()]
+    return len(words) >= 4 and sum(w.isupper() for w in words) >= 0.8 * len(words)

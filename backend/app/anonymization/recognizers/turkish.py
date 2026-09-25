@@ -9,6 +9,11 @@ import re
 
 from presidio_analyzer import Pattern, PatternRecognizer
 
+from app.anonymization.recognizers.turkish_fields import (
+    official_address_recognizer,
+    person_field_recognizer,
+)
+
 
 def valid_tckn(text: str) -> bool:
     """Validate a Turkish national ID (TCKN) by its checksum digits."""
@@ -95,6 +100,8 @@ def turkish_recognizers() -> list[PatternRecognizer]:
         _disability_recognizer(),
         _health_recognizer(),
         _person_context_recognizer(),
+        person_field_recognizer(),
+        official_address_recognizer(),
     ]
 
 

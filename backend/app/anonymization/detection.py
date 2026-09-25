@@ -11,7 +11,13 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass, field
 
-from app.anonymization.gates import implausible_person_ner, lowercase_initial_ner
+from app.anonymization.gates import (
+    caps_line_ner,
+    date_shaped_phone,
+    form_label_ner,
+    implausible_person_ner,
+    lowercase_initial_ner,
+)
 from app.anonymization.lists import deny_spans, is_allowed, keep_ranges
 from app.anonymization.resolve import resolve_spans
 from app.anonymization.spans import EntitySpan
@@ -47,7 +53,9 @@ class Detection:
             if ranges:
                 spans = [s for s in spans if not is_allowed(s, ranges, text)]
         spans = [s for s in spans
-                 if not lowercase_initial_ner(s, text) and not implausible_person_ner(s, text)]
+                 if not lowercase_initial_ner(s, text) and not implausible_person_ner(s, text)
+                 and not date_shaped_phone(s, text) and not form_label_ner(s, text)
+                 and not caps_line_ner(s, text)]
         kept = resolve_spans(spans)
         if cached:
             self.cache[text] = kept

@@ -646,3 +646,41 @@ Sonucu desenin ad grubuna kırpmak recall'a dokunmadan hassasiyeti ve tutarlıl�
 
 Parity: 78 kayıt değişti. 36 `detect` farkının hepsinde tek değişiklik, aynı yerde biten ve daha
 geç başlayan TR_PERSON_CTX span'i. 42 `anonymize` farkı bunun sonucu. Snapshot'lar yenilendi.
+
+## Hata: e-Devlet belgesinde ad ve adres maskelenmedi (2026-09-25) — düzeltildi, KEEP
+
+**Bulgu (kullanıcının kendi belgesi, yerelde incelendi, değerler kayda geçmedi).**
+"Yerleşim Yeri ve Diğer Adres Belgesi"nde ad ve soyad "Adı : …" / "Soyadı : …" satırlarında büyük
+harfle, adres ise resmî kısaltmalarla ("… MAH. … SK. NO: 123 / NO: 45 İLÇE / İL") yazılıydı.
+- Bağlamlı kişi deseni yalnız Title-Case adları tanıyor; "Adı" ve "Soyadı" etiketleri listesinde yok.
+- Adres deseni yalnız açık yazılışı ("Caddesi … No 12") tanıyor.
+
+Belge otomatik onaylanmadı (denetçi erişilemedi → inceleme), yani fail-closed kural işledi; ama maske
+eksikti. Aynı sayfada büyük harfli yasal metin NER gürültüsüyle doluydu ("YERİ", "OLUP", "FIKRASI")
+ve iki tarih telefon sanılmıştı.
+
+**Değişiklik** (`recognizers/turkish_fields.py`, `gates.py`):
+1. Etiketli ad alanı: satır başındaki ad etiketinin ("Adı", "Soyadı", "Adı Soyadı", "Baba Adı"…)
+   değeri, harf büyüklüğünden bağımsız PERSON; span değere kırpılır.
+2. Resmî adres yazımı: MAH./SK./CAD./BLV. işareti + kapı numarası (+ iç kapı, İLÇE / İL).
+3. Kapılar (yalnız istatistiksel NER türleri): bilinen form etiketinin kendisi ("Adres Tipi",
+   "Telefon") maskelenmez; tamamı büyük harf bir satırda NER isabeti düşer; dd.mm.yyyy biçimli
+   "telefon" düşer.
+
+| Ölçüm | Önce | Sonra |
+|---|---|---|
+| Katı kritik recall / canary | 472/489 · 0/32 | 472/489 · 0/32 |
+| PERSON / ADDRESS / LOCATION (katı) | 169/179 · 43/50 · 9/10 | aynı |
+| must_keep kaybı / nötr cümle | 80/90 · 11/40 | aynı |
+| Stres: herhangi bir durumda sızıntı (LLM kapalı) | 0/72 | 0/72 |
+| Karakter hassasiyeti (holdout, detect) | 0,838 | 0,840 |
+| Kullanıcının belgesi: açıkta kalan kimlik / adres kelimesi | 4/4 · 10/10 | 0/4 · 0/10 |
+
+Parity: 12 anonymize kaydı değişti, detect farkı yok. Hepsi beklenen yönde:
+- gold hr-000/hr-024 PDF'lerinde "Telefon" etiketi artık okunuyor;
+- THYAO/TTKOM'da "Adı Soyadı/Firma adı" etiketleri okunuyor;
+- resmî adresler kapı numarasıyla birlikte tek parça maskeleniyor.
+
+**Açık kalan (önceden de vardı).** Karışık harfli cümle içinde tamamı büyük harf yazılmış bir kişi
+adı (kamuya açık TTKOM tescil ilanında) iki sürümde de açık. NER büyük harfli adı görmüyor; isim
+sözlüğü (deney 4) bu sınıfı kapatır.

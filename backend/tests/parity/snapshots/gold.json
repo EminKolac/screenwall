@@ -3070,12 +3070,11 @@
 },
 "hr-000.pdf": {
 "allow": {
-"entity_count": 16,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "30b05698a28b5e11",
 "<IBAN_1>": "be619c184391df1b",
-"<LOCATION_1>": "fa6906d76ee94d4e",
-"<LOCATION_2>": "c467ea9ef7249eef",
+"<LOCATION_1>": "c467ea9ef7249eef",
 "<ORG_1>": "f4acbfb496a9ae7f",
 "<PERSON_1>": "e39bbd871a9945ad",
 "<PERSON_2>": "a1ad29d1c697f094",
@@ -3091,7 +3090,7 @@
 "placeholders_used": {
 "EMAIL": 1,
 "IBAN": 1,
-"LOCATION": 2,
+"LOCATION": 1,
 "ORG": 1,
 "PERSON": 5,
 "PHONE": 1,
@@ -3110,9 +3109,9 @@
 "p1-b4": "Alan | Değer",
 "p1-b5": "Ad Soyad | <PERSON_1>",
 "p1-b6": "T.C. Kimlik No | <TCKN_1>",
-"p1-b7": "<LOCATION_1> | <PHONE_1>",
+"p1-b7": "Telefon | <PHONE_1>",
 "p1-b8": "E-posta | <EMAIL_1>",
-"p1-b9": "Adres | <LOCATION_2>"
+"p1-b9": "Adres | <LOCATION_1>"
 }
 },
 "detect_allow": [
@@ -3270,12 +3269,11 @@
 ]
 ],
 "noallow": {
-"entity_count": 16,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "30b05698a28b5e11",
 "<IBAN_1>": "be619c184391df1b",
-"<LOCATION_1>": "fa6906d76ee94d4e",
-"<LOCATION_2>": "c467ea9ef7249eef",
+"<LOCATION_1>": "c467ea9ef7249eef",
 "<ORG_1>": "f4acbfb496a9ae7f",
 "<PERSON_1>": "e39bbd871a9945ad",
 "<PERSON_2>": "a1ad29d1c697f094",
@@ -3291,7 +3289,7 @@
 "placeholders_used": {
 "EMAIL": 1,
 "IBAN": 1,
-"LOCATION": 2,
+"LOCATION": 1,
 "ORG": 1,
 "PERSON": 5,
 "PHONE": 1,
@@ -3310,9 +3308,9 @@
 "p1-b4": "Alan | Değer",
 "p1-b5": "Ad Soyad | <PERSON_1>",
 "p1-b6": "T.C. Kimlik No | <TCKN_1>",
-"p1-b7": "<LOCATION_1> | <PHONE_1>",
+"p1-b7": "Telefon | <PHONE_1>",
 "p1-b8": "E-posta | <EMAIL_1>",
-"p1-b9": "Adres | <LOCATION_2>"
+"p1-b9": "Adres | <LOCATION_1>"
 }
 }
 },
@@ -3832,12 +3830,11 @@
 },
 "hr-024.pdf": {
 "allow": {
-"entity_count": 16,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "931c4f2f76d0475a",
 "<IBAN_1>": "47e10227dbe0e865",
-"<LOCATION_1>": "fa6906d76ee94d4e",
-"<LOCATION_2>": "491242576b2449a2",
+"<LOCATION_1>": "491242576b2449a2",
 "<ORG_1>": "ca4aac803aa8a38c",
 "<PERSON_1>": "b31ff9de7786ea94",
 "<PERSON_2>": "a1ad29d1c697f094",
@@ -3853,7 +3850,7 @@
 "placeholders_used": {
 "EMAIL": 1,
 "IBAN": 1,
-"LOCATION": 2,
+"LOCATION": 1,
 "ORG": 1,
 "PERSON": 5,
 "PHONE": 1,
@@ -3872,9 +3869,9 @@
 "p1-b4": "Alan | Değer",
 "p1-b5": "Ad Soyad | <PERSON_1>",
 "p1-b6": "T.C. Kimlik No | <TCKN_1>",
-"p1-b7": "<LOCATION_1> | <PHONE_1>",
+"p1-b7": "Telefon | <PHONE_1>",
 "p1-b8": "E-posta | <EMAIL_1>",
-"p1-b9": "Adres | <LOCATION_2>"
+"p1-b9": "Adres | <LOCATION_1>"
 }
 },
 "detect_allow": [
@@ -4022,12 +4019,11 @@
 ]
 ],
 "noallow": {
-"entity_count": 16,
+"entity_count": 15,
 "mapping": {
 "<EMAIL_1>": "931c4f2f76d0475a",
 "<IBAN_1>": "47e10227dbe0e865",
-"<LOCATION_1>": "fa6906d76ee94d4e",
-"<LOCATION_2>": "491242576b2449a2",
+"<LOCATION_1>": "491242576b2449a2",
 "<ORG_1>": "ca4aac803aa8a38c",
 "<PERSON_1>": "b31ff9de7786ea94",
 "<PERSON_2>": "a1ad29d1c697f094",
@@ -4043,7 +4039,7 @@
 "placeholders_used": {
 "EMAIL": 1,
 "IBAN": 1,
-"LOCATION": 2,
+"LOCATION": 1,
 "ORG": 1,
 "PERSON": 5,
 "PHONE": 1,
@@ -4062,9 +4058,9 @@
 "p1-b4": "Alan | Değer",
 "p1-b5": "Ad Soyad | <PERSON_1>",
 "p1-b6": "T.C. Kimlik No | <TCKN_1>",
-"p1-b7": "<LOCATION_1> | <PHONE_1>",
+"p1-b7": "Telefon | <PHONE_1>",
 "p1-b8": "E-posta | <EMAIL_1>",
-"p1-b9": "Adres | <LOCATION_2>"
+"p1-b9": "Adres | <LOCATION_1>"
 }
 }
 },
