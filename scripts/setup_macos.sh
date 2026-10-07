@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODEL="${AUDITOR_MODEL:-qwen3.5:4b}"
 CHAT_MODEL="${CHAT_OLLAMA_MODEL:-qwen3.5:4b}"  # same model: auditor + post-approval chat
 
-echo "==> 1/5 Ollama"
+echo "==> 1/4 Ollama"
 if ! command -v ollama >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then
     brew install ollama
@@ -21,11 +21,11 @@ fi
 if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
   echo "   Starting ollama serve (background)…"; (ollama serve >/tmp/ollama.log 2>&1 &) ; sleep 3
 fi
-echo "==> 2/5 Pull models: auditor ($MODEL) + chat ($CHAT_MODEL)"
+echo "==> 2/4 Pull models: auditor ($MODEL) + chat ($CHAT_MODEL)"
 ollama pull "$MODEL"
 ollama pull "$CHAT_MODEL"
 
-echo "==> 3/5 Tesseract OCR (image/scanned PDFs; Turkish + English)"
+echo "==> 3/4 Tesseract OCR (image/scanned PDFs; Turkish + English)"
 if ! command -v tesseract >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then
     brew install tesseract tesseract-lang
@@ -34,27 +34,14 @@ if ! command -v tesseract >/dev/null 2>&1; then
   fi
 fi
 
-echo "==> 4/5 Backend Python env (uv)"
+echo "==> 4/4 Backend Python env (uv)"
 cd "$ROOT/backend"
 uv sync
-echo "   Downloading spaCy English model…"
-uv run python -m spacy download en_core_web_sm
-
-if [ "${PRIVACY_FILTER:-0}" = "1" ]; then
-  echo "==> 5/5 (optional) OpenAI Privacy Filter (LOCAL contextual PII detector)"
-  uv sync --extra privacy
-  PF_MODEL="${PRIVACY_FILTER_MODEL:-OpenMed/privacy-filter-multilingual}"
-  echo "   Pre-downloading $PF_MODEL (runtime loading is local_files_only — zero network)…"
-  uv run huggingface-cli download "$PF_MODEL" >/dev/null
-  echo "   Enable with: export USE_PRIVACY_FILTER=true"
-fi
+# The spaCy models are pinned in pyproject.toml, so `uv sync` installs them; `spacy download`
+# would need pip, which a uv environment does not have.
+uv run python -c "import en_core_web_sm, xx_ent_wiki_sm" \
+  && echo "   spaCy models present (en_core_web_sm, xx_ent_wiki_sm)."
 
 echo "==> Done"
 echo "   Run: cd backend && uv run uvicorn app.main:app --reload"
 echo "   Health: curl localhost:8000/health"
-if [ "${PRIVACY_FILTER:-0}" != "1" ]; then
-  echo ""
-  echo "   Optional — OpenAI Privacy Filter (2nd, LOCAL contextual PII detector):"
-  echo "     PRIVACY_FILTER=1 bash scripts/setup_macos.sh   # installs [privacy] + pre-downloads model"
-  echo "     then: export USE_PRIVACY_FILTER=true           # runtime never touches the network"
-fi

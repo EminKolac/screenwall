@@ -25,7 +25,9 @@ export default defineConfig({
   ],
   // Every e2e run talks to the in-browser mock backend, never to a real server.
   webServer: {
-    command: `npm run dev -- --port ${PORT} --strictPort`,
+    // --host 127.0.0.1: BASE_URL's address. Without it Vite may bind only "localhost", which can
+    // resolve to ::1 (IPv6) on CI runners, and the 127.0.0.1 readiness check never succeeds.
+    command: `npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`,
     url: BASE_URL,
     env: { VITE_MOCK: "1" },
     reuseExistingServer: false,

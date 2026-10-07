@@ -8,5 +8,5 @@ rule change needs a new scorer version and renamed results, never an in-place ed
 uses this repo's engine through the normal package imports.
 
     uv run python -m evaluation.strict.run --system fable \
-        --corpus /Users/mehmetkolac/bist10-benchmark --out <new empty dir>
+        --corpus "${FABLE_BENCH_CORPUS:-$HOME/bist10-benchmark}" --out <new empty dir>
 """

@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -33,11 +34,15 @@ from app.extraction.dispatcher import extract
 from app.language.detector import detect_content_language
 from app.models.document import FileKind
 
-BENCH = Path("/Users/mehmetkolac/bist10-benchmark")
+# Local inputs outside the repository. FABLE_BENCH_CORPUS is shared with evaluation/scorecard.py;
+# FABLE_PARITY_EXTRA_REAL takes os.pathsep-separated paths ("" for none). Missing files are skipped.
+BENCH = Path(os.environ.get("FABLE_BENCH_CORPUS", str(Path.home() / "bist10-benchmark")))
 BACKEND = Path(__file__).resolve().parents[2]
 GOLD_DOCS = BACKEND / "data" / "goldbench" / "docs"
 REAL_DOCS = BACKEND / "data" / "corpus_bist10" / "raw"
-EXTRA_REAL = [Path("/Users/mehmetkolac/Downloads/PowerPoint Sunusu.pdf")]
+_EXTRA_REAL_DEFAULT = Path.home() / "Downloads" / "PowerPoint Sunusu.pdf"
+EXTRA_REAL = [Path(p) for p in os.environ.get("FABLE_PARITY_EXTRA_REAL",
+                                              str(_EXTRA_REAL_DEFAULT)).split(os.pathsep) if p]
 MAX_BYTES = 50 * 1024 * 1024
 
 

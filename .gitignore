@@ -53,3 +53,10 @@ frontend/.vite/
 # deney yedekleri (gecici)
 thoughts/.backup/
 thoughts/.exploop_backup/
+
+# local agent settings and build output
+.claude/
+dist/
+# evaluation runs: new run folders stay local and are added on purpose (git add -f);
+# folders that are already tracked stay tracked
+/backend/evaluation/results/*/
