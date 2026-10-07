@@ -1,8 +1,9 @@
 # Fable - common commands. Run from the repository root: make <target>
-.PHONY: test scorecard scorecard-full dev
+.PHONY: test scorecard scorecard-full dev release
 
 TAG ?= fast
 FULL_TAG ?= full
+VERSION ?=
 
 test: ## backend tests (pytest) + frontend unit tests (vitest)
 	cd backend && uv run pytest -q
@@ -16,3 +17,6 @@ scorecard-full: ## full scorecard: live Qwen auditor via Ollama + 30 real BIST-1
 
 dev: ## start Ollama + backend + frontend in the background (start.sh)
 	bash start.sh
+
+release: ## release zips + installers into dist/ (packaging/build_release.sh): make release VERSION=0.1.0
+	bash packaging/build_release.sh $(VERSION)

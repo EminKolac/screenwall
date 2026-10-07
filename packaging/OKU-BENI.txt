@@ -1,0 +1,148 @@
+SCREENWALL - OKU BENİ
+=====================
+
+Screenwall nedir?
+-----------------
+Screenwall, belgelerdeki kişisel verileri (ad soyad, T.C. kimlik numarası, IBAN, telefon,
+e-posta, adres gibi) bulur ve maskeler. Tespit, maskeleme ve denetim bu bilgisayarda çalışır;
+belgelerinizin orijinali başka bir yere gönderilmez. İsteğe bağlı Claude veya Codex sohbetini
+seçerseniz, yalnız onayladığınız belgenin maskeli metni, önce size gösterilip onayınız alınarak
+dışarı gider. Arayüz tarayıcıda açılır, ama yalnızca bu bilgisayardaki adrese bağlanır:
+
+    http://127.0.0.1:8765
+
+Desteklenen dosyalar: PDF, Word (.docx) ve Excel (.xlsx).
+
+Maskelenen her belgeyi önce yerel bir yapay zekâ denetçisi (Ollama ile çalışan qwen3.5:4b modeli)
+kontrol eder. Denetçinin temiz bulduğu belge onaylanır; şüpheli bir şey kalırsa belge sizin
+incelemenize düşer. Yalnızca onaylanmış belgeler indirilebilir.
+
+
+Gerekenler
+----------
+1. İlk açılışta internet bağlantısı. Python ve gerekli paketler bir kez indirilir
+   (yaklaşık 100 MB indirme; diskte birkaç yüz MB yer kaplar).
+
+2. Ollama ve qwen3.5:4b modeli. Belgeleri ONAYLAMAK için zorunludur.
+   - Ollama'yı https://ollama.com/download adresinden kurun.
+   - Model yaklaşık 3,4 GB'tır. Ollama kuruluysa Screenwall modeli ilk açılışta kendisi indirir.
+   - Ollama yoksa Screenwall yine açılır ve belgeleri maskeler, ama hiçbir belge onaylanamaz
+     ve indirilemez.
+   - Ollama macOS 14 (Sonoma) veya üstünü, Windows 10 22H2 veya üstünü ister.
+
+3. Tesseract (isteğe bağlı). Taranmış, yani resim olarak kaydedilmiş PDF sayfalarını okumak için
+   gerekir. Yoksa bu sayfalar otomatik okunmaz ve belge sizin incelemenize düşer.
+   - macOS (Homebrew ile): brew install tesseract tesseract-lang
+   - Windows: Tesseract'ı varsayılan klasörüne (C:\Program Files\Tesseract-OCR) Türkçe dil
+     paketiyle kurun; Screenwall onu orada bulur.
+
+
+macOS'ta başlatma
+-----------------
+1. Screenwall-macOS.zip dosyasına çift tıklayın. Çıkan Screenwall klasörünü istediğiniz yere
+   taşıyabilirsiniz.
+2. Klasördeki Screenwall.command dosyasına çift tıklayın. Bir Terminal penceresi açılır.
+3. Screenwall imzasız olduğu için macOS ilk seferde "açılamadı" ya da "geliştirici
+   doğrulanamadı" uyarısı verebilir:
+   - Dosyaya sağ tıklayın (veya Control tuşuna basılı tutarak tıklayın) > Aç > Aç.
+   - macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa: uyarıyı kapatın, sonra
+     Sistem Ayarları > Gizlilik ve Güvenlik bölümüne gidin, aşağıdaki Screenwall.command
+     satırında "Yine de Aç" düğmesine basın ve onaylayın.
+   Bu yalnızca ilk açılışta gerekir.
+4. Hazır olunca tarayıcıda http://127.0.0.1:8765 kendiliğinden açılır.
+
+Terminal'den kurmak isterseniz (Screenwall'ı ~/Screenwall klasörüne kurar ve başlatır):
+
+    curl -LsSf https://github.com/EminKolac/screenwall/releases/latest/download/install-macos.sh | sh
+
+
+Windows'ta başlatma (deneysel)
+------------------------------
+Windows sürümü henüz gerçek bir Windows bilgisayarda doğrulanmadı; deneysel olarak sunulur.
+
+1. Screenwall-Windows.zip dosyasına sağ tıklayın > Tümünü ayıkla.
+2. Çıkan Screenwall klasöründeki Screenwall.bat dosyasına çift tıklayın. Bir komut penceresi
+   açılır.
+3. Windows "Windows bilgisayarınızı korudu" (SmartScreen) uyarısı verirse:
+   "Ek bilgi" > "Yine de çalıştır".
+4. Hazır olunca tarayıcıda http://127.0.0.1:8765 kendiliğinden açılır.
+
+PowerShell'den kurmak isterseniz (Screenwall'ı %LOCALAPPDATA%\Programs\Screenwall klasörüne
+kurar ve başlatır):
+
+    powershell -ExecutionPolicy ByPass -c "[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; irm https://github.com/EminKolac/screenwall/releases/latest/download/install-windows.ps1 | iex"
+
+Yalnız x64 Windows desteklenir; ARM işlemcili Windows'ta kurulum başarısız olur.
+Claude ve Codex sohbet sağlayıcıları Windows'ta henüz desteklenmiyor; yerel (Ollama) sohbet
+kullanılabilir.
+
+
+İlk açılış ne kadar sürer?
+--------------------------
+- İlk açılış: Python ve paketler indirilip kurulur, ardından sunucu ilk kez başlar. İndirme
+  süresine ek olarak yarım dakika ile birkaç dakika arası sürebilir.
+- Model indirmesi (yaklaşık 3,4 GB) buna eklenir; bağlantınıza göre birkaç dakikadan uzun
+  sürebilir. İlerleme pencerede görünür.
+- Sonraki açılışlar: birkaç saniye. Ollama o sırada kapalıysa onun açılması 15 saniye kadar
+  ekleyebilir.
+- Belge işleme: denetçi modeli ilk belgede belleğe yüklendiği için ilk belge bir dakikaya kadar
+  sürebilir; sonraki belgeler daha hızlıdır.
+
+
+Durdurmak
+---------
+Screenwall'ın açıldığı Terminal veya komut penceresinde Ctrl+C'ye basın ya da pencereyi kapatın.
+Pencere açık kaldığı sürece Screenwall çalışır.
+
+Ollama ayrı bir programdır ve arka planda çalışmaya devam edebilir. İsterseniz onu da kendi
+menüsünden (Quit Ollama) kapatabilirsiniz.
+
+
+Verileriniz nerede?
+-------------------
+- macOS:   ~/Library/Application Support/Screenwall
+- Windows: %LOCALAPPDATA%\Screenwall
+
+Bu klasörde:
+- data  : yüklediğiniz belgeler, maskelenmiş kopyalar ve kararlarınız
+- venv  : Screenwall'ın Python ortamı
+- logs  : çalışma kayıtları (sorun olursa buraya bakın)
+- launch-token : bu açılışa özel anahtar (aşağıya bakın)
+
+Başka bir klasör kullanmak için SCREENWALL_HOME, başka bir port için SCREENWALL_PORT ortam
+değişkenini ayarlayın. Örnek (macOS Terminal):
+
+    SCREENWALL_PORT=8766 ~/Screenwall/Screenwall.command
+
+
+Başlatma anahtarı ve bu bilgisayardaki diğer hesaplar
+-----------------------------------------------------
+Tarayıcıda açılan adresin sonundaki "#k=..." kısmı, bu açılışa özel bir anahtardır. Sayfa onu
+okur ve adres çubuğundan kaldırır. Bu anahtar olmadan bu bilgisayardaki başka bir kullanıcı
+hesabı Screenwall'a bağlanamaz. Anahtar veri klasöründeki launch-token dosyasında durur; bu
+dosyayı ve anahtarlı adresi kimseyle paylaşmayın.
+
+Sizin hesabınızda çalışan programlar veri klasörünüzü zaten okuyabilir; bu anahtar onlara karşı
+koruma sağlamaz.
+
+Screenwall'ı her zaman Screenwall.command (Windows: Screenwall.bat) ile açın. Yer imine
+eklediğiniz http://127.0.0.1:8765 adresi, Screenwall yeniden başladıktan sonra "başlatıcısından
+yeniden açın" uyarısı verir; o zaman başlatıcıya yeniden çift tıklayın. Screenwall zaten
+çalışıyorsa başlatıcı yalnızca sayfayı açar.
+
+
+Kaldırmak
+---------
+Screenwall hiçbir dosyayı kendiliğinden silmez. Kaldırmak için şu klasörleri kendiniz çöp
+kutusuna (Windows'ta Geri Dönüşüm Kutusu'na) taşıyın:
+
+1. Screenwall program klasörü: zip'ten çıkardığınız klasör, ya da kurulum komutunu
+   kullandıysanız ~/Screenwall (Windows: %LOCALAPPDATA%\Programs\Screenwall).
+   Kurulum komutu eski sürümleri "Screenwall-eski-..." adıyla yanına taşır; onları da
+   taşıyabilirsiniz.
+2. Veri klasörü (yukarıda). Dikkat: belgeleriniz buradadır; gerekirse önce yedekleyin.
+
+İsterseniz şunları da kaldırabilirsiniz; başka programlar da kullanıyor olabilir:
+- uv: ~/.local/bin/uv, ~/.cache/uv ve ~/.local/share/uv
+  (Windows: %USERPROFILE%\.local\bin\uv.exe, %LOCALAPPDATA%\uv ve %APPDATA%\uv)
+- Ollama ve indirdiği modeller.

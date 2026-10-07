@@ -1,0 +1,472 @@
+# Release: build the launcher zips, smoke-test them on macOS and Windows, then open a DRAFT
+# GitHub release with the assets. A person publishes the draft (as a full release, not a
+# prerelease: only then do the .../releases/latest/download/<asset> links point at it).
+#
+#   build    (ubuntu)  UI build + packaging/build_release.sh -> 5 assets as one workflow artifact
+#   smoke    (macOS, Windows)  unzip the OS zip, start its launcher as a user would (no browser,
+#            no Ollama), wait for /health, run packaging/smoke_test.py against it
+#   release  (tags v* only, after every smoke job passed)  gh release create --draft
+#
+# Triggers: pushing a tag v* (git tag v0.1.0 && git push origin v0.1.0), "Run workflow" by
+# hand, or a pull request that touches the app or its packaging. A manual run on a branch and a
+# pull request build and smoke-test but never create a release; the optional version input names
+# the build (default 0.0.0-dev.<commit>). The pull request run is the rehearsal: the Windows
+# launcher runs nowhere else, and a tag whose Windows smoke job fails gets no draft at all, macOS
+# included. Merge only after it passed, then tag.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - "packaging/**"
+      - ".github/workflows/release.yml"
+      - "backend/**"
+      - "frontend/**"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version written into the zips (empty: the tag name, or 0.0.0-dev.<commit>)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Release builds use no dependency caches (cache poisoning); npm ci and uv start clean.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      # Only for "uv lock --check" in build_release.sh. No floating major tag; pinned to v10.2.0.
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install UI dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build the UI
+        working-directory: frontend
+        run: npm run build
+
+      - name: Build the release assets
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="$INPUT_VERSION"
+          if [ -z "$version" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            version="$GITHUB_REF_NAME"
+          fi
+          if [ -z "$version" ]; then
+            version="0.0.0-dev.${GITHUB_SHA:0:7}"
+          fi
+          # build_release.sh strips a leading "v" and refuses anything but [0-9A-Za-z.+_-].
+          bash packaging/build_release.sh "$version"
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### Release assets, version $(unzip -p dist/Screenwall-macOS.zip Screenwall/VERSION)"
+            echo ''
+            echo '| asset | bytes |'
+            echo '|---|---:|'
+            for asset in Screenwall-macOS.zip Screenwall-Windows.zip install-macos.sh \
+              install-windows.ps1 SHA256SUMS.txt; do
+              echo "| $asset | $(wc -c <"dist/$asset" | tr -d ' ') |"
+            done
+            echo ''
+            echo '```'
+            cat dist/SHA256SUMS.txt
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+
+      # Only the five assets: dist/.work and dist/.previous (staging, earlier builds) stay out.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenwall-release
+          path: |
+            dist/Screenwall-macOS.zip
+            dist/Screenwall-Windows.zip
+            dist/install-macos.sh
+            dist/install-windows.ps1
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  smoke:
+    name: smoke (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    env:
+      SCREENWALL_PORT: "8765"
+      SCREENWALL_NO_BROWSER: "1"
+      SCREENWALL_SKIP_OLLAMA: "1"
+      SW_URL: http://127.0.0.1:8765
+    steps:
+      # Only for packaging/smoke_test.py; the app under test comes from the built zip.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: screenwall-release
+          path: dist
+
+      # Paths with a space on purpose: the default macOS home is ".../Application Support/...",
+      # and Windows user folders can contain spaces too. No uv is set up here: the launcher finds
+      # or installs it, as on a user's machine.
+
+      # ---------------------------------------------------------------- macOS
+
+      - name: Unpack Screenwall-macOS.zip
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          app_dir="$RUNNER_TEMP/Screenwall app"
+          mkdir -p "$app_dir"
+          # ditto is what Finder's Archive Utility uses; it keeps the launcher's executable bit.
+          ditto -x -k dist/Screenwall-macOS.zip "$app_dir"
+          if [ ! -x "$app_dir/Screenwall/Screenwall.command" ]; then
+            echo "::error::Screenwall.command is missing or not executable after unzip"
+            exit 1
+          fi
+          {
+            echo "SW_APP=$app_dir/Screenwall"
+            echo "SCREENWALL_HOME=$RUNNER_TEMP/Screenwall home"
+          } >>"$GITHUB_ENV"
+
+      - name: Start the launcher and wait for /health
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          launcher_pid=""
+          start_launcher() { # start_launcher <attempt>
+            "$SW_APP/Screenwall.command" >"$RUNNER_TEMP/launcher-$1.log" 2>&1 </dev/null &
+            launcher_pid=$!
+            echo "SW_LAUNCHER_PID=$launcher_pid" >>"$GITHUB_ENV"
+          }
+          # 0: /health answered; 1: the launcher exited first; 2: no answer in 300 s.
+          wait_health() {
+            local deadline=$((SECONDS + 300))
+            while [ "$SECONDS" -lt "$deadline" ]; do
+              curl -sf -o /dev/null --max-time 3 "$SW_URL/health" && return 0
+              kill -0 "$launcher_pid" 2>/dev/null || return 1
+              sleep 2
+            done
+            return 2
+          }
+          show_logs() {
+            for log in "$RUNNER_TEMP"/launcher-*.log "$SCREENWALL_HOME/logs/server.log"; do
+              [ -f "$log" ] || continue
+              echo "----- $log (last 60 lines)"
+              tail -n 60 "$log"
+            done
+          }
+
+          started=$SECONDS
+          start_launcher 1
+          result=0
+          wait_health || result=$?
+          if [ "$result" = 1 ]; then
+            # The launcher gives the server 90 s and tells the user to start it once more if the
+            # first start is slower. Do the same once, and say so on the run.
+            echo "::warning::First start: the launcher exited before /health answered (after $((SECONDS - started)) s). Starting it a second time, as its message tells users to."
+            show_logs
+            sleep 3
+            start_launcher 2
+            result=0
+            wait_health || result=$?
+          fi
+          if [ "$result" != 0 ]; then
+            show_logs
+            if [ "$result" = 1 ]; then
+              echo "::error::The launcher exited before /health answered"
+            else
+              echo "::error::/health did not answer within 300 s"
+            fi
+            exit 1
+          fi
+          echo "/health answered $((SECONDS - started)) s after the first launcher start"
+          echo "macOS: /health answered $((SECONDS - started)) s after the first launcher start" \
+            >>"$GITHUB_STEP_SUMMARY"
+
+      - name: Smoke test
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          # The uv the launcher used (it looks in the same places), and the venv it built.
+          uv_bin="$(command -v uv || true)"
+          if [ -z "$uv_bin" ]; then
+            for candidate in "$HOME/.local/bin/uv" "$HOME/.cargo/bin/uv"; do
+              if [ -x "$candidate" ]; then
+                uv_bin="$candidate"
+                break
+              fi
+            done
+          fi
+          if [ -z "$uv_bin" ]; then
+            echo "::error::uv not found after the launcher ran"
+            exit 1
+          fi
+          status=0
+          UV_PROJECT_ENVIRONMENT="$SCREENWALL_HOME/venv" \
+            "$uv_bin" run --no-sync --project "$SW_APP/app/backend" \
+            python packaging/smoke_test.py --base-url "$SW_URL" --wait 60 \
+            --expect-auditor unavailable --launch-token-file "$SCREENWALL_HOME/launch-token" \
+            >"$RUNNER_TEMP/smoke-summary.json" || status=$?
+          cat "$RUNNER_TEMP/smoke-summary.json"
+          {
+            echo "### Smoke test, $RUNNER_OS (exit $status)"
+            echo '```json'
+            cat "$RUNNER_TEMP/smoke-summary.json"
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
+      - name: Stop the launcher
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          # TERM: the launcher's trap stops the server it started (uv passes it on to uvicorn).
+          if [ -n "${SW_LAUNCHER_PID:-}" ] && kill -0 "$SW_LAUNCHER_PID" 2>/dev/null; then
+            kill -TERM "$SW_LAUNCHER_PID" || true
+            for _ in $(seq 1 30); do
+              kill -0 "$SW_LAUNCHER_PID" 2>/dev/null || break
+              sleep 1
+            done
+          fi
+          exit 0
+
+      # ---------------------------------------------------------------- Windows
+
+      - name: Unpack Screenwall-Windows.zip
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $appDir = Join-Path $env:RUNNER_TEMP 'Screenwall app'
+          Expand-Archive -LiteralPath 'dist\Screenwall-Windows.zip' -DestinationPath $appDir
+          $root = Join-Path $appDir 'Screenwall'
+          foreach ($name in @('Screenwall.bat', 'launcher.ps1', 'app\backend\uv.lock')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $root $name) -PathType Leaf)) {
+              Write-Output "::error::$name is missing after unzip"
+              exit 1
+            }
+          }
+          # $HOME is a read-only automatic variable in PowerShell, hence $swHome.
+          $swHome = Join-Path $env:RUNNER_TEMP 'Screenwall home'
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "SW_APP=$root"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "SCREENWALL_HOME=$swHome"
+
+      # Start, smoke test and stop in ONE step, on purpose. Start-Process with -Redirect* creates
+      # cmd.exe with inherited handles, so cmd.exe, powershell.exe, uv and python all hold this
+      # step's output pipe; when a step's shell exits while that pipe is still open, the runner
+      # waits 5 s and kills the whole process tree. A launcher started in a step of its own would
+      # be gone before the next step's smoke test. Here it lives as long as the step and is
+      # stopped in the finally block.
+      - name: Start the launcher, run the smoke test, stop the launcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Screenwall.bat as Explorer runs it (cmd.exe), so the .bat -> launcher.ps1 path on
+          # Windows PowerShell 5.1 is the one tested. CI=true on runners: the .bat never pauses.
+          function Start-Launcher([int]$Attempt) {
+            $bat = Join-Path $env:SW_APP 'Screenwall.bat'
+            # cmd /c ""<path with spaces>"": cmd strips the outer pair and keeps the inner one.
+            $arguments = '/d /c ""' + $bat + '""'
+            $process = Start-Process -FilePath $env:ComSpec -ArgumentList $arguments `
+              -WorkingDirectory $env:SW_APP -PassThru `
+              -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP "launcher-$Attempt.log") `
+              -RedirectStandardError (Join-Path $env:RUNNER_TEMP "launcher-$Attempt.err.log")
+            try { $null = $process.Handle } catch { } # keeps ExitCode readable after it exits
+            return $process
+          }
+          function Get-ExitCode($Process) {
+            try { return $Process.ExitCode } catch { return '?' }
+          }
+          # 'up': /health answered; 'exited': the launcher exited first; 'timeout': 300 s passed.
+          function Wait-Health($Process) {
+            $deadline = (Get-Date).AddSeconds(300)
+            while ((Get-Date) -lt $deadline) {
+              try {
+                $response = Invoke-WebRequest -Uri "$env:SW_URL/health" -TimeoutSec 3
+                if ($response.StatusCode -eq 200) { return 'up' }
+              } catch {
+                # not answering yet
+              }
+              if ($Process.HasExited) { return 'exited' }
+              Start-Sleep -Seconds 2
+            }
+            return 'timeout'
+          }
+          function Show-Logs {
+            $logs = @(Get-ChildItem -LiteralPath $env:RUNNER_TEMP -Filter 'launcher-*.log' -File)
+            $serverLogs = Join-Path $env:SCREENWALL_HOME 'logs'
+            if (Test-Path -LiteralPath $serverLogs) {
+              $logs += @(Get-ChildItem -LiteralPath $serverLogs -Filter 'server-*.log' -File)
+            }
+            foreach ($log in $logs) {
+              Write-Output "----- $($log.FullName) (last 60 lines)"
+              try {
+                Get-Content -LiteralPath $log.FullName -Tail 60
+              } catch {
+                Write-Output "(not readable: $($_.Exception.Message))"
+              }
+            }
+          }
+
+          $status = 1
+          $launcher = $null
+          try {
+            $started = Get-Date
+            $launcher = Start-Launcher 1
+            $result = Wait-Health $launcher
+            if ($result -eq 'exited') {
+              # The launcher gives the server 90 s and tells the user to start it once more if the
+              # first start is slower. Do the same once, and say so on the run.
+              $seconds = [int]((Get-Date) - $started).TotalSeconds
+              Write-Output "::warning::First start: the launcher exited (code $(Get-ExitCode $launcher)) before /health answered (after $seconds s). Starting it a second time, as its message tells users to."
+              Show-Logs
+              Start-Sleep -Seconds 3
+              $launcher = Start-Launcher 2
+              $result = Wait-Health $launcher
+            }
+            if ($result -ne 'up') {
+              Show-Logs
+              if ($result -eq 'exited') {
+                Write-Output "::error::The launcher exited (code $(Get-ExitCode $launcher)) before /health answered"
+              } else {
+                Write-Output '::error::/health did not answer within 300 s'
+              }
+            } else {
+              $seconds = [int]((Get-Date) - $started).TotalSeconds
+              Write-Output "/health answered $seconds s after the first launcher start"
+              Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY `
+                -Value "Windows: /health answered $seconds s after the first launcher start"
+
+              # The uv the launcher used (it looks in the same places), and the venv it built.
+              $uv = Get-Command uv.exe -CommandType Application -ErrorAction SilentlyContinue |
+                Select-Object -First 1 -ExpandProperty Source
+              foreach ($candidate in @("$env:USERPROFILE\.local\bin\uv.exe", "$env:USERPROFILE\.cargo\bin\uv.exe")) {
+                if (-not $uv -and (Test-Path -LiteralPath $candidate -PathType Leaf)) { $uv = $candidate }
+              }
+              if (-not $uv) {
+                Write-Output '::error::uv not found after the launcher ran'
+              } else {
+                $env:UV_PROJECT_ENVIRONMENT = Join-Path $env:SCREENWALL_HOME 'venv'
+                # The test's own console output only; the server runs with the user's defaults.
+                $env:PYTHONUTF8 = '1'
+                $summary = Join-Path $env:RUNNER_TEMP 'smoke-summary.json'
+                & $uv run --no-sync --project (Join-Path $env:SW_APP 'app\backend') `
+                  python packaging/smoke_test.py --base-url $env:SW_URL --wait 60 `
+                  --expect-auditor unavailable `
+                  --launch-token-file (Join-Path $env:SCREENWALL_HOME 'launch-token') > $summary
+                $status = $LASTEXITCODE
+                $lines = @(Get-Content -LiteralPath $summary)
+                $lines
+                $report = @("### Smoke test, $env:RUNNER_OS (exit $status)", '```json') + $lines + @('```')
+                Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value $report
+              }
+            }
+          } finally {
+            # The whole tree: cmd.exe -> powershell.exe -> uv -> python (uvicorn).
+            if ($launcher -and -not $launcher.HasExited) {
+              & taskkill.exe /PID $launcher.Id /T /F
+            }
+          }
+          exit $status
+
+      # ---------------------------------------------------------------- both
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-logs-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/launcher-*.log
+            ${{ runner.temp }}/smoke-summary.json
+            ${{ env.SCREENWALL_HOME }}/logs/
+          if-no-files-found: warn
+          retention-days: 14
+
+  release:
+    name: draft release
+    needs: smoke
+    # Tags only: a manual run on a branch stops after the smoke tests.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: screenwall-release
+          path: dist
+
+      - name: Check the assets
+        shell: bash
+        working-directory: dist
+        run: |
+          ls -l
+          for asset in Screenwall-macOS.zip Screenwall-Windows.zip install-macos.sh \
+            install-windows.ps1 SHA256SUMS.txt; do
+            [ -f "$asset" ] || { echo "::error::missing asset $asset"; exit 1; }
+          done
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Create the draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          repo_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::A release for $TAG already exists; nothing was changed."
+            exit 1
+          fi
+          cat >"$RUNNER_TEMP/notes.md" <<EOF
+          Screenwall $TAG: belgelerdeki kişisel verileri kendi bilgisayarınızda maskeleyen uygulama.
+
+          İndirme ve kurulum adımları README'nin "İndir" bölümünde: $repo_url#readme
+
+          - macOS: Screenwall-macOS.zip
+          - Windows (deneysel): Screenwall-Windows.zip
+          - Terminalden kurulum: install-macos.sh, install-windows.ps1
+          - SHA256SUMS.txt: dosyaların SHA-256 özetleri
+
+          Windows desteği deneyseldir. Otomatik duman testi macOS ve Windows'ta geçti, ama Windows sürümü gerçek bir bilgisayarda elle denenmedi.
+
+          Belgeleri onaylamak için Ollama ve qwen3.5:4b modeli (yaklaşık 3,4 GB) gerekir. İlk açılışta gerekli paketler indirilir; internet bağlantısı gerekir.
+
+          Bu taslağı oluşturan CI çalışması: $repo_url/actions/runs/$GITHUB_RUN_ID
+          EOF
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
+            --title "Screenwall $TAG" --notes-file "$RUNNER_TEMP/notes.md"
