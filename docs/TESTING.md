@@ -19,9 +19,11 @@
 > Two tests are skipped by default: the parity test (needs `PARITY=1`; it also reads the local
 > benchmark corpus `FABLE_BENCH_CORPUS` and real documents that are not in the repository) and
 > RedactionBench (needs its downloaded data). Tests that depend on POSIX file modes or the fake
-> CLI are marked in `backend/tests/posix_only.py` and skip on Windows. CI (`.github/workflows/ci.yml`) runs the
-> backend suite on Ubuntu, macOS and Windows (Windows may fail while it is experimental) and the
-> frontend typecheck, vitest and build. Ruff is not clean yet and is not part of CI.
+> CLI are marked in `backend/tests/posix_only.py` and skip on Windows (kept, although Screenwall
+> is released for macOS only). CI (`.github/workflows/ci.yml`) runs the backend suite on Ubuntu
+> and macOS and the frontend typecheck, vitest and build. Ruff is not clean yet and is not part
+> of CI. The release zip is smoke-tested separately on Apple Silicon and Intel macOS runners
+> (`.github/workflows/release.yml`, `packaging/smoke_test.py`).
 
 ## Run
 

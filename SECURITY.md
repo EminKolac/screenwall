@@ -22,7 +22,7 @@
 >   key**. Every cloud question shows the exact outgoing text first and is sent only with the
 >   user's consent (`preview_hash`); each send is logged without content in
 >   `STORAGE_ROOT/chat_dispatches.jsonl` (`backend/app/chat/service.py`, `chat/dispatches.py`).
->   The CLI providers are disabled on Windows.
+>   Screenwall is released for macOS only; the CLI providers are also disabled in code on Windows.
 > - The optional OpenAI Privacy Filter stage is retired (`archive/privacy_filter/`).
 > - The v1 review endpoints (`/api/review/*`) are gone; see `docs/API.md`.
 >

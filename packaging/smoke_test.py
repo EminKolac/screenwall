@@ -5,8 +5,7 @@ Run it with the backend's environment, which has httpx and python-docx:
     cd Screenwall/app/backend && UV_PROJECT_ENVIRONMENT="$SCREENWALL_HOME/venv" \
         uv run --frozen --no-dev python /path/to/packaging/smoke_test.py --base-url http://127.0.0.1:8765
 
-or simply "$SCREENWALL_HOME/venv/bin/python packaging/smoke_test.py" (Windows:
-"%SCREENWALL_HOME%\\venv\\Scripts\\python.exe packaging\\smoke_test.py").
+or simply "$SCREENWALL_HOME/venv/bin/python packaging/smoke_test.py".
 
 What it checks, through the same HTTP API the UI uses (backend/app/api/*.py, security/web.py):
   1. GET /health answers {"status": "ok"} (waits up to --wait seconds).

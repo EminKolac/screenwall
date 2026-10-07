@@ -4,18 +4,21 @@
 #   bash packaging/build_release.sh [VERSION]        e.g. 0.1.0   (make release VERSION=0.1.0)
 #
 # Assets (no version in the names, so .../releases/latest/download/<asset> links stay stable):
-#   Screenwall-macOS.zip     Screenwall/Screenwall.command
-#   Screenwall-Windows.zip   Screenwall/Screenwall.bat + Screenwall/launcher.ps1
-#                            both: Screenwall/OKU-BENI.txt, Screenwall/VERSION,
-#                                  Screenwall/app/backend/{app/, pyproject.toml, uv.lock},
-#                                  Screenwall/app/frontend/dist/ (prebuilt UI)
-#   install-macos.sh, install-windows.ps1, SHA256SUMS.txt
+#   Screenwall-macOS.zip     Screenwall/Screenwall.command, Screenwall/OKU-BENI.txt,
+#                            Screenwall/VERSION,
+#                            Screenwall/app/backend/{app/, pyproject.toml, uv.lock},
+#                            Screenwall/app/frontend/dist/ (prebuilt UI)
+#   install-macos.sh, SHA256SUMS.txt
+#
+# macOS only (Apple Silicon and Intel). The Windows launcher and installer were retired to
+# archive/packaging-windows-2026-10-07/ and are not built.
 #
 # The backend files are the ones git knows (tracked, or new and not ignored), so caches and stray
 # local files never ship. The backend reads nothing at run time outside backend/app (the PDF fonts
-# are in app/export/fonts). The UI comes from frontend/dist when that is newer than every frontend
-# source; otherwise it is built with "npm run build" into this run's staging folder, so
-# frontend/dist itself is never rewritten. SCREENWALL_BUILD_UI=1 always builds.
+# and their licence, LICENSE-DejaVu.txt, are in app/export/fonts). The UI comes from
+# frontend/dist when that is newer than every frontend source; otherwise it is built with
+# "npm run build" into this run's staging folder, so frontend/dist itself is never rewritten.
+# SCREENWALL_BUILD_UI=1 always builds.
 #
 # Nothing is deleted: assets from an earlier run are moved to dist/.previous/<time>/, and each run
 # stages in its own dist/.work/<time>/ folder. dist/ is gitignored; dot folders stay out of a
@@ -28,7 +31,10 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PACKAGING="$REPO/packaging"
 DIST="$REPO/dist"
-ASSETS="Screenwall-macOS.zip Screenwall-Windows.zip install-macos.sh install-windows.ps1 SHA256SUMS.txt"
+ASSETS="Screenwall-macOS.zip install-macos.sh SHA256SUMS.txt"
+# No longer built; an old copy left in dist/ is moved aside with the others, so a "dist/*"
+# upload never picks it up.
+RETIRED_ASSETS="Screenwall-Windows.zip install-windows.ps1"
 
 say() { printf '%s\n' "$*"; }
 fail() {
@@ -66,7 +72,7 @@ say "Screenwall $VERSION -> $DIST"
 say "staging: $WORK"
 
 # Earlier assets move out of the way; nothing is overwritten.
-for asset in $ASSETS; do
+for asset in $ASSETS $RETIRED_ASSETS; do
   if [ -e "$DIST/$asset" ]; then
     mkdir -p "$DIST/.previous/$STAMP"
     mv "$DIST/$asset" "$DIST/.previous/$STAMP/$asset"
@@ -142,17 +148,14 @@ copy_file "$REPO/backend/uv.lock" "$COMMON/app/backend/uv.lock"
 printf '%s\n' "$VERSION" >"$COMMON/VERSION"
 
 for required in app/backend/app/main.py app/backend/app/export/fonts/DejaVuSans.ttf \
-  app/backend/pyproject.toml app/backend/uv.lock app/frontend/dist/index.html VERSION; do
+  app/backend/app/export/fonts/LICENSE-DejaVu.txt app/backend/pyproject.toml \
+  app/backend/uv.lock app/frontend/dist/index.html VERSION; do
   [ -f "$COMMON/$required" ] || fail "staged tree is missing $required"
 done
 
 # Predictable modes in the zips, whatever the umask: folders 755, files 644.
 find "$COMMON" -type d -exec chmod 755 {} +
 find "$COMMON" -type f -exec chmod 644 {} +
-
-# Text helpers. to_crlf: Windows line endings. add_bom: UTF-8 byte order mark (once).
-to_crlf() { perl -pe 's/\r?\n/\r\n/' "$1" >"$2"; }
-add_bom() { perl -i -pe 'if ($. == 1) { s/^\xEF\xBB\xBF//; $_ = "\xEF\xBB\xBF" . $_ }' "$1"; }
 
 # ---------------------------------------------------------------- macOS tree
 
@@ -164,36 +167,16 @@ perl -pe 's/\r\n/\n/' "$PACKAGING/macos/Screenwall.command" >"$MAC/Screenwall.co
 chmod 644 "$MAC/OKU-BENI.txt"
 chmod 755 "$MAC/Screenwall.command"
 
-# ---------------------------------------------------------------- Windows tree
-
-WIN="$WORK/windows/Screenwall"
-mkdir -p "$WORK/windows"
-cp -R "$COMMON" "$WIN"
-to_crlf "$PACKAGING/windows/Screenwall.bat" "$WIN/Screenwall.bat"
-to_crlf "$PACKAGING/windows/launcher.ps1" "$WIN/launcher.ps1"
-add_bom "$WIN/launcher.ps1" # Windows PowerShell 5.1 reads a BOM-less script as the ANSI code page
-to_crlf "$PACKAGING/OKU-BENI.txt" "$WIN/OKU-BENI.txt"
-add_bom "$WIN/OKU-BENI.txt" # older Notepad versions guess the encoding without it
-chmod 644 "$WIN/Screenwall.bat" "$WIN/launcher.ps1" "$WIN/OKU-BENI.txt"
-
-# ---------------------------------------------------------------- zips and installers
+# ---------------------------------------------------------------- zip and installer
 
 # -X: no extra file attributes (uid/gid, macOS metadata); Unix modes are kept, so the launcher
 # stays executable after unzip / Archive Utility.
 (cd "$WORK/macos" && zip -q -r -X "$DIST/Screenwall-macOS.zip" Screenwall)
-(cd "$WORK/windows" && zip -q -r -X "$DIST/Screenwall-Windows.zip" Screenwall)
 
 cp "$PACKAGING/install-macos.sh" "$DIST/install-macos.sh"
 chmod 755 "$DIST/install-macos.sh"
-# Piped into "iex" by Windows PowerShell 5.1, which may decode it as ISO-8859-1: ASCII only.
-if LC_ALL=C grep -q '[^ -~[:space:]]' "$PACKAGING/install-windows.ps1"; then
-  fail "packaging/install-windows.ps1 must be ASCII-only (write Turkish letters as \\uXXXX)"
-fi
-to_crlf "$PACKAGING/install-windows.ps1" "$DIST/install-windows.ps1"
-chmod 644 "$DIST/install-windows.ps1"
 
-(cd "$DIST" && sha256 Screenwall-macOS.zip Screenwall-Windows.zip install-macos.sh \
-  install-windows.ps1 >SHA256SUMS.txt)
+(cd "$DIST" && sha256 Screenwall-macOS.zip install-macos.sh >SHA256SUMS.txt)
 
 # ---------------------------------------------------------------- checks and summary
 
@@ -205,19 +188,21 @@ check_zip() { # check_zip <zip> <entry>...
     printf '%s\n' "$listing" | grep -qx "$entry" || fail "$zip has no $entry"
   done
 }
-COMMON_ENTRIES="Screenwall/VERSION Screenwall/OKU-BENI.txt Screenwall/app/backend/app/main.py
+MAC_ENTRIES="Screenwall/VERSION Screenwall/OKU-BENI.txt Screenwall/Screenwall.command
+Screenwall/app/backend/app/main.py Screenwall/app/backend/app/export/fonts/DejaVuSans.ttf
+Screenwall/app/backend/app/export/fonts/LICENSE-DejaVu.txt
 Screenwall/app/backend/pyproject.toml Screenwall/app/backend/uv.lock
 Screenwall/app/frontend/dist/index.html"
 # shellcheck disable=SC2086 # word splitting of the entry list is intended
-check_zip "$DIST/Screenwall-macOS.zip" $COMMON_ENTRIES Screenwall/Screenwall.command
-# shellcheck disable=SC2086
-check_zip "$DIST/Screenwall-Windows.zip" $COMMON_ENTRIES Screenwall/Screenwall.bat \
-  Screenwall/launcher.ps1
-for zip_file in "$DIST/Screenwall-macOS.zip" "$DIST/Screenwall-Windows.zip"; do
-  if unzip -Z1 "$zip_file" | grep -E '__pycache__|\.pyc$|\.DS_Store|(^|/)\.env' >/dev/null; then
-    fail "$zip_file contains caches or local files"
-  fi
-done
+check_zip "$DIST/Screenwall-macOS.zip" $MAC_ENTRIES
+MAC_LISTING="$(unzip -Z1 "$DIST/Screenwall-macOS.zip")"
+if printf '%s\n' "$MAC_LISTING" |
+  grep -E '__pycache__|\.pyc$|\.DS_Store|(^|/)\.env' >/dev/null; then
+  fail "Screenwall-macOS.zip contains caches or local files"
+fi
+if printf '%s\n' "$MAC_LISTING" | grep -iE '\.(bat|ps1|cmd|exe)$' >/dev/null; then
+  fail "Screenwall-macOS.zip contains Windows files"
+fi
 
 say ""
 say "assets in $DIST:"

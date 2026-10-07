@@ -18,5 +18,5 @@ scorecard-full: ## full scorecard: live Qwen auditor via Ollama + 30 real BIST-1
 dev: ## start Ollama + backend + frontend in the background (start.sh)
 	bash start.sh
 
-release: ## release zips + installers into dist/ (packaging/build_release.sh): make release VERSION=0.1.0
+release: ## macOS release zip + installer + SHA256SUMS into dist/ (packaging/build_release.sh): make release VERSION=0.1.0
 	bash packaging/build_release.sh $(VERSION)

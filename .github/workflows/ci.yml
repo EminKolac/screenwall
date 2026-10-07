@@ -1,10 +1,10 @@
 # Tests on every push to main and every pull request.
 #
-#   backend   pytest on Linux, macOS and Windows (uv, Python 3.12, the locked dependencies)
+#   backend   pytest on Linux and macOS (uv, Python 3.12, the locked dependencies)
 #   frontend  type check, unit tests (vitest) and the production build (Node 22)
 #
-# Windows is experimental: its backend job may fail without failing the workflow until it is
-# green. Ruff and the Playwright e2e suite are not run yet (ruff is not clean on this tree).
+# Screenwall ships for macOS only, so there is no Windows job. Ruff and the Playwright e2e suite
+# are not run yet (ruff is not clean on this tree).
 name: CI
 
 on:
@@ -26,19 +26,10 @@ jobs:
     name: backend (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
-    # Windows is experimental until this job is green there: a failure shows on the run but does
-    # not fail the workflow. Set experimental to false once windows-latest passes reliably.
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            experimental: false
-          - os: macos-latest
-            experimental: false
-          - os: windows-latest
-            experimental: true
+        os: [ubuntu-latest, macos-latest]
     defaults:
       run:
         shell: bash

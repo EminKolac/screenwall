@@ -5,7 +5,7 @@
 [![tests](https://img.shields.io/badge/tests-879%20backend%20%2B%2079%20frontend-2F6B4F)](docs/TESTING.md)
 [![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#testler-neyi-test-ediyor)
 [![python](https://img.shields.io/badge/python-3.12-6B675C)](backend/pyproject.toml)
-[![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%28deneysel%29-6B675C)](#indir)
+[![platform](https://img.shields.io/badge/platform-macOS-6B675C)](#indir)
 
 <img src="docs/media/demo.gif" alt="Tarama, kişisel verileri etikete dönüştürür" width="820">
 
@@ -21,22 +21,18 @@
 
 | Sistem | İndir | Durum |
 |---|---|---|
-| macOS 14 (Sonoma) veya üstü, Apple Silicon ve Intel | [Screenwall-macOS.zip](https://github.com/EminKolac/screenwall/releases/latest/download/Screenwall-macOS.zip) | Bir Apple Silicon Mac'te (macOS 26) zip açılıp başlatıcı terminalden çalıştırılarak denendi. Finder'dan çift tıklama, internetten indirilmiş zip, macOS 14–15 ve Intel Mac henüz denenmedi. |
-| Windows 10 22H2 veya üstü, yalnız x64 (ARM işlemcili Windows desteklenmiyor) | [Screenwall-Windows.zip](https://github.com/EminKolac/screenwall/releases/latest/download/Screenwall-Windows.zip) | **Deneysel.** Gerçek bir Windows bilgisayarda denenmedi. Tek denetim, GitHub'ın Windows sunucusunda koşan otomatik açılış testi (CI smoke testi); bir sürüm bu test geçmeden yayımlanmaz. |
-| Tüm sürümler ve SHA256 değerleri | [github.com/EminKolac/screenwall/releases/latest](https://github.com/EminKolac/screenwall/releases/latest) | |
+| macOS 14 (Sonoma) veya üstü, Apple Silicon ve Intel | [Screenwall-macOS.zip](https://github.com/EminKolac/screenwall/releases/latest/download/Screenwall-macOS.zip) | Bir Apple Silicon Mac'te (macOS 26) zip açılıp başlatıcı terminalden çalıştırılarak uçtan uca denendi. Ayrıca her sürüm, GitHub'ın Apple Silicon ve Intel macOS sunucularında otomatik açılış testinden (CI smoke testi: zip açılır, başlatıcı çalışır, örnek bir belge yüklenip maskelenir; Ollama olmadan) geçer; bu test iki sunucuda da geçmezse sürüm oluşmaz. Finder'dan çift tıklama, internetten indirilmiş zip, macOS 14–15 ve gerçek bir Intel Mac henüz elle denenmedi; Intel'de Ollama ile denetim ve onay hiç denenmedi (bkz. Gerekenler). |
+| Tüm sürümler ve SHA256 değerleri | [github.com/EminKolac/screenwall/releases](https://github.com/EminKolac/screenwall/releases) | |
 
-İlk sürüm (v0.1.0) yayımlanana kadar bu bağlantılar 404 hatası verir.
+İlk sürüm (v0.1.0) yayımlanana kadar zip bağlantısı ve aşağıdaki kurulum komutu 404 hatası verir.
 
-Terminalden kurmak isterseniz (zip'i indirir, SHA256SUMS.txt ile doğrular, kurar ve başlatır):
+Screenwall yalnız macOS için yayımlanıyor; Windows desteklenmiyor.
+
+Terminalden kurmak isterseniz (zip'i indirir, SHA256SUMS.txt ile doğrular, `~/Screenwall`
+klasörüne kurar ve başlatır):
 
 ```sh
-# macOS: ~/Screenwall klasörüne kurar
 curl -LsSf https://github.com/EminKolac/screenwall/releases/latest/download/install-macos.sh | sh
-```
-
-```powershell
-# Windows (deneysel): %LOCALAPPDATA%\Programs\Screenwall klasörüne kurar
-powershell -ExecutionPolicy ByPass -c "[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; irm https://github.com/EminKolac/screenwall/releases/latest/download/install-windows.ps1 | iex"
 ```
 
 ### Gerekenler
@@ -46,20 +42,22 @@ powershell -ExecutionPolicy ByPass -c "[Net.ServicePointManager]::SecurityProtoc
   indirilemez ve üzerinde sohbet edilemez. Ollama'yı [ollama.com/download](https://ollama.com/download)
   adresinden kurun. Model yaklaşık 3,4 GB; Ollama kuruluysa başlatıcı onu ilk açılışta kendisi
   indirir ve ilerlemeyi pencerede gösterir.
-- Ollama'nın kendi sistem gereksinimi: macOS 14 (Sonoma) veya üstü, Windows 10 22H2 veya üstü.
-  Intel Mac'lerde Ollama yalnızca işlemciyle (CPU) çalışır, denetim daha yavaş olur.
+- Ollama'nın kendi sistem gereksinimi: macOS 14 (Sonoma) veya üstü. Intel Mac'lerde Ollama
+  yalnızca işlemciyle (CPU) çalışır, denetim daha yavaş olur. Denetçi bir belgeye en fazla
+  120 saniye ayırır; süre aşılırsa belge incelemede kalır. Elle onay da denetimi yeniden
+  çalıştırdığı için süreyi hep aşan bir belge onaylanamaz. Intel'de bu sürenin yetip yetmediği
+  ölçülmedi: Intel için tek test, Ollama'sız otomatik açılış testi; Intel'de Ollama ile onay
+  hiç denenmedi.
 - **İlk açılışta internet.** Başlatıcı gerekirse `uv`'yi, Python 3.12'yi ve paketleri bir kez
   indirir: yaklaşık 100 MB indirme, diskte birkaç yüz MB (Python ortamı yaklaşık 250 MB).
 - **Tesseract: isteğe bağlı.** Yalnızca taranmış (resim olarak kaydedilmiş) PDF sayfaları için
-  gerekir. macOS: `brew install tesseract tesseract-lang`. Windows: varsayılan klasörüne
-  (`C:\Program Files\Tesseract-OCR`) Türkçe dil paketiyle kurun. Yoksa taranmış sayfalar
-  okunmaz ve belge sizin incelemenize düşer.
+  gerekir: `brew install tesseract tesseract-lang`. Yoksa taranmış sayfalar okunmaz ve belge
+  sizin incelemenize düşer.
 
 ### İlk açılış
 
-1. macOS: zip'i açın, `Screenwall` klasöründeki `Screenwall.command` dosyasına çift tıklayın.
-   Windows: zip'e sağ tıklayın > Tümünü ayıkla, sonra `Screenwall.bat` dosyasına çift tıklayın.
-2. Bir Terminal (Windows'ta komut) penceresi açılır ve uygulama çalıştığı sürece açık kalır.
+1. Zip'i açın, `Screenwall` klasöründeki `Screenwall.command` dosyasına çift tıklayın.
+2. Bir Terminal penceresi açılır ve uygulama çalıştığı sürece açık kalır.
 3. Hazır olunca tarayıcıda `http://127.0.0.1:8765` kendiliğinden açılır.
 
 Süreler (Apple Silicon bir Mac'te ölçüldü; paketler önbellekteydi, indirme süresi dahil değil):
@@ -67,22 +65,19 @@ ilk açılış 29–33 saniye, sonraki açılışlar yaklaşık 4 saniye. Temiz 
 süresi ve model indirmesi (3,4 GB) buna eklenir. Başlatıcı sunucuyu en fazla 90 saniye bekler;
 ilk açılışta bu yetmezse uygulamayı bir kez daha başlatın.
 
-Uygulama imzasız olduğu için ilk açılışta işletim sistemi uyarı verebilir:
+Uygulama imzasız olduğu için macOS ilk açılışta uyarı verebilir. Dosyaya sağ tıklayın (ya da
+Control tuşuyla tıklayın) > Aç > Aç. macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı
+kapatın, Sistem Ayarları > Gizlilik ve Güvenlik bölümünde Screenwall.command satırındaki
+"Yine de Aç" düğmesine basın. Bu yalnızca ilk açılışta gerekir.
 
-- **macOS:** Dosyaya sağ tıklayın (ya da Control tuşuyla tıklayın) > Aç > Aç. macOS 15
-  (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı kapatın, Sistem Ayarları > Gizlilik ve
-  Güvenlik bölümünde Screenwall.command satırındaki "Yine de Aç" düğmesine basın.
-- **Windows:** "Windows bilgisayarınızı korudu" (SmartScreen) penceresinde "Ek bilgi" >
-  "Yine de çalıştır".
-
-Bu adımlar gerçek makinelerde tek tek tıklanarak henüz doğrulanmadı.
+Bu adımlar gerçek bir Mac'te tek tek tıklanarak henüz doğrulanmadı.
 
 ### Verileriniz nerede, nasıl durdurulur?
 
-- Veri klasörü: macOS'ta `~/Library/Application Support/Screenwall`, Windows'ta
-  `%LOCALAPPDATA%\Screenwall`. İçinde `data` (yüklenen belgeler, maskeli kopyalar, kararlarınız),
-  `venv` (Python ortamı) ve `logs` (çalışma kayıtları) var. Başka bir klasör için
-  `SCREENWALL_HOME`, başka bir port için `SCREENWALL_PORT` ortam değişkenini ayarlayın.
+- Veri klasörü: `~/Library/Application Support/Screenwall`. İçinde `data` (yüklenen belgeler,
+  maskeli kopyalar, kararlarınız), `venv` (Python ortamı) ve `logs` (çalışma kayıtları) var.
+  Başka bir klasör için `SCREENWALL_HOME`, başka bir port için `SCREENWALL_PORT` ortam
+  değişkenini ayarlayın.
 - Durdurmak için pencerede Ctrl+C'ye basın ya da pencereyi kapatın. Ollama ayrı bir programdır
   ve arka planda çalışmaya devam eder; isterseniz kendi menüsünden kapatın.
 - Tarayıcıdaki adresin sonundaki `#k=…`, bu açılışa özel bir anahtar; sayfa onu okuyup adres
@@ -125,10 +120,10 @@ GSM/IBAN/plaka kalıpları, sağlık ve engellilik ifadeleri, İ/ı büyük-kü�
 6. **Onaydan sonra.** Maskeli metinden yeni bir PDF üretilip indiriliyor; orijinal dosyanın
    görseli, üst verisi ya da yorumu bu PDF'e taşınmıyor. Belge üzerinde soru da sorabiliyorsunuz.
    Sohbet yalnızca maskeli metni okuyor. Varsayılan sağlayıcı yerel Ollama. İsterseniz kendi
-   Claude Code ya da Codex CLI oturumunuzla bulut sohbeti de seçebilirsiniz (Windows'ta henüz
-   yok). Screenwall API anahtarı saklamıyor. Bulut sağlayıcıya giden her soruda, gidecek metnin
-   tamamı önce size gösteriliyor ve onayınız olmadan hiçbir şey gönderilmiyor. Her gönderim,
-   içeriği olmadan (zaman, sağlayıcı, belge kimliği, boyut) yerel bir kayda yazılıyor.
+   Claude Code ya da Codex CLI oturumunuzla bulut sohbeti de seçebilirsiniz. Screenwall API
+   anahtarı saklamıyor. Bulut sağlayıcıya giden her soruda, gidecek metnin tamamı önce size
+   gösteriliyor ve onayınız olmadan hiçbir şey gönderilmiyor. Her gönderim, içeriği olmadan
+   (zaman, sağlayıcı, belge kimliği, boyut) yerel bir kayda yazılıyor.
 
 ```
 Yükle ─▶ Doğrula ─▶ Çıkar ─▶ Tespit + maskele ─▶ Denetim (kurallar + yerel Qwen)
@@ -150,7 +145,7 @@ Bunlar ölçülmüş ya da sentetik örneklerle gösterilmiş sorunlar. Belgeyi 
 | Yarı-tanımlayıcılar | Meslek, eğitim, sendika üyeliği, hukuki durum ve maaş bilgisi otomatik onaydan sonra da metinde kalabiliyor; denetçi bu türlere bakmıyor. Katı ölçümde maskelenen: meslek 0/40, eğitim 0/20, sendika 0/10, hukuki durum 0/10, maaş 16/20. |
 | İş terimlerinin gereksiz maskelenmesi | "Vergi Usul Kanunu", "Dönem Karı" gibi terimler kişi ya da yer sanılıp maskeleniyor. Listesiz ölçümde korunması gereken 90 terimin yalnızca 10'u korunuyor; kişisel veri içermeyen 40 sıradan cümlenin 11'i değiştiriliyor. |
 | Henüz mühürlü test seti yok | %100 sonuçlar, kural ayarında da kullanılmış 60 belgelik geliştirme setinden geliyor. Sistemin hiç görmediği belgelerdeki başarı henüz ölçülmedi. |
-| Windows deneysel | Windows sürümü gerçek bir Windows bilgisayarda denenmedi; yalnızca GitHub'ın Windows sunucusunda otomatik açılış testi koşuluyor. Claude ve Codex sohbeti Windows'ta kapalı. |
+| Windows desteklenmiyor (yalnız macOS) | Hazır paket yalnız macOS için (Apple Silicon ve Intel). Windows için paket yok ve Windows'ta test koşulmuyor. |
 
 Elle düzeltmek için: inceleme ekranında metni seçip maskeleyebilir, sürekli maskelenmesi
 gereken adları Ayarlar'daki "Her zaman maskele" listesine yazabilirsiniz.
@@ -297,8 +292,10 @@ uv run python scripts/measure_canary.py
 
 ## Yol haritası
 
-- İlk sürümü (v0.1.0) yayımlamak; Windows sürümü gerçek bir Windows bilgisayarda uçtan uca
-  denendikten sonra "deneysel" etiketini kaldırmak
+- İlk sürümü (v0.1.0) yayımlamak
+- macOS'ta henüz elle denenmeyenleri denemek: Finder'dan çift tıklama ve ilk açılış uyarısı,
+  internetten indirilmiş zip, macOS 14–15 ve gerçek bir Intel Mac (Ollama ile onay süresi
+  dahil). Windows sürümü şimdilik planda yok.
 - Büyük harfle yazılmış adlar, kısaltmasız resmî adresler ve yarı-tanımlayıcılar (yukarıdaki
   "Bilinen sınırlar")
 - Gereksiz karartmayı dürüst ölçümle indirmek: nötr cümlede 11/40'tan en fazla 2/40'a,

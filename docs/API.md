@@ -113,5 +113,6 @@ computer. Other errors: `403 chat_not_allowed` (not approved), `404 document_not
 for an unavailable provider (`provider_unavailable`, `ollama_unreachable`, `model_missing`,
 `cli_not_found`, `cli_login_required`, `cli_upgrade_required`), `502` for a failed call
 (`cli_timeout`, `cli_failed`, `cli_output_limit`, `cli_unsafe_output`, `invalid_citations`).
-On Windows the CLI providers report the status problem `unsupported_os` and refuse requests with
+Screenwall is released for macOS only; should the backend run on Windows (from source), the CLI
+providers report the status problem `unsupported_os` and refuse requests with
 `503 provider_unavailable`.

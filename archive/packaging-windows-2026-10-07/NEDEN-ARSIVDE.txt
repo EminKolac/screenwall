@@ -1,0 +1,15 @@
+Windows başlatıcısı (arşiv, 7 Ekim 2026)
+========================================
+
+v0.1.0 yalnız macOS için yayımlanıyor; Windows sürümünden vazgeçildi. Bu klasördeki dosyalar
+packaging/ altından buraya taşındı, silinmedi:
+
+- windows/Screenwall.bat ve windows/launcher.ps1: Screenwall-Windows.zip içindeki başlatıcı
+- install-windows.ps1: PowerShell ile tek satırlık kurulum betiği
+
+Backend'deki Windows korumaları (Claude/Codex sohbetinin Windows'ta kapalı olması, POSIX'e özgü
+testlerin Windows'ta atlanması) ve testleri yerinde bırakıldı.
+
+Windows yeniden ele alınırsa: dosyaları packaging/ altına geri taşıyın, build_release.sh'e
+Windows zip'ini ve release.yml'e windows-latest duman testini geri ekleyin. Son çalışan hâlleri
+git geçmişinde (fable-v2 dalı, f194e2a ve sonrası) duruyor.

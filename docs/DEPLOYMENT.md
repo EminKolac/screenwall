@@ -11,6 +11,10 @@ to `0.0.0.0`, put it behind a reverse proxy or expose it on a network: anyone wh
 can read the review screen, which shows the original text in mapping mode. There is no supported
 multi-user or server deployment.
 
+The packaged app is released for **macOS only** (Apple Silicon and Intel, macOS 14 or later).
+Windows is not supported: there is no Windows package and no Windows CI job (the old Windows
+launcher is kept in `archive/packaging-windows-2026-10-07/`).
+
 There are two ways to run it:
 
 | | Packaged app (release zip) | Development (`start.sh`) |
@@ -29,8 +33,14 @@ The two modes use different data folders; nothing is copied between them.
   `review/approval.py`). Without Ollama every document stops in review with the reason
   `auditor_unavailable`, `POST /api/documents/{id}/approve` returns `503 ollama_unreachable`,
   and download and chat, which need an approved document, stay closed. Ollama itself needs
-  macOS 14 (Sonoma) or later, or Windows 10 22H2 or later. The model is about 3.4 GB and the
-  same weights serve the auditor and local chat.
+  macOS 14 (Sonoma) or later; on Intel Macs it runs on the CPU only, so audits are slower. The
+  model is about 3.4 GB and the same weights serve the auditor and local chat.
+  The auditor sends the whole masked document in one `/api/chat` call with a fixed 120 s
+  timeout (`audit/ollama_provider.py`; `audit/factory.py` does not override it and there is no
+  setting). A timeout fails closed like any other provider error: the document stays in review
+  with `auditor_unavailable`, and manual approval, which re-audits, returns
+  `503 ollama_unreachable`. A document whose audit always takes longer than 120 s therefore
+  cannot be approved; this is a failure, not just slowness.
 - **uv** and Python 3.11–3.12 (`backend/pyproject.toml`; the launcher installs 3.12 through uv).
   The spaCy models are pinned as URL dependencies, so `uv sync` installs them; there is no
   separate `spacy download` step.
@@ -41,23 +51,23 @@ The two modes use different data folders; nothing is copied between them.
 
 ### What the launcher does
 
-`Screenwall.command` (macOS) and `Screenwall.bat` + `launcher.ps1` (Windows) in `packaging/`:
+`packaging/macos/Screenwall.command`:
 
-1. `SCREENWALL_HOME` is the base folder: macOS `~/Library/Application Support/Screenwall`,
-   Windows `%LOCALAPPDATA%\Screenwall`. It holds `data/` (`STORAGE_ROOT`), `venv/`
-   (`UV_PROJECT_ENVIRONMENT`) and `logs/`, created with owner-only permissions on macOS.
-2. Finds `uv` on `PATH` or in `~/.local/bin` (Windows `%USERPROFILE%\.local\bin`), otherwise
-   installs it with the official installer and `UV_NO_MODIFY_PATH=1`.
+1. `SCREENWALL_HOME` is the base folder, by default `~/Library/Application Support/Screenwall`.
+   It holds `data/` (`STORAGE_ROOT`), `venv/` (`UV_PROJECT_ENVIRONMENT`) and `logs/`, created
+   with owner-only permissions.
+2. Finds `uv` on `PATH` or in `~/.local/bin`, otherwise installs it with the official installer
+   and `UV_NO_MODIFY_PATH=1`.
 3. Runs `uv sync --frozen --no-dev --python 3.12` in `app/backend`.
 4. Unless `SCREENWALL_SKIP_OLLAMA=1`: starts Ollama if it is installed but not running; if it is
    missing, prints Turkish guidance, opens https://ollama.com/download and continues (the app
    runs, but nothing can be approved); pulls `AUDITOR_MODEL` (default `qwen3.5:4b`) with visible
    progress when it is missing.
-5. Makes Tesseract findable: macOS adds `/opt/homebrew/bin` and `/usr/local/bin` to `PATH`,
-   Windows adds `C:\Program Files\Tesseract-OCR` when it exists.
+5. Makes Tesseract findable: adds `/opt/homebrew/bin` (Apple Silicon Homebrew) and
+   `/usr/local/bin` (Intel Homebrew) to `PATH`.
 6. If `http://127.0.0.1:PORT/health` already answers, only opens the browser.
 7. Otherwise writes a new random launch token (32 bytes, hex) to `SCREENWALL_HOME/launch-token`
-   (owner-only: `umask 077` on macOS, the user's own profile on Windows) and starts, in
+   (owner-only: `umask 077`) and starts, in
    `app/backend`:
    `uv run --frozen --no-dev uvicorn app.main:app --host 127.0.0.1 --port PORT`
    with `STORAGE_ROOT`, `UI_DIST=<absolute app/frontend/dist>`,
@@ -88,18 +98,27 @@ Launcher variables:
 | `SCREENWALL_SKIP_OLLAMA` | unset | `1` = skip the Ollama checks (CI) |
 | `AUDITOR_MODEL` | `qwen3.5:4b` | model the launcher pulls; the backend reads it too |
 
-Logs: macOS appends to `SCREENWALL_HOME/logs/server.log`; Windows writes
-`server-<time>.log` and `server-<time>.out.log` per start. Logs are never rotated or removed.
+Logs: the launcher appends to `SCREENWALL_HOME/logs/server.log`. Logs are never rotated or
+removed.
 
 Measured on an Apple Silicon Mac with a warm uv cache (no downloads): first start 29–33 s to
 `/health`, later starts about 4 s. A clean machine also downloads uv, CPython 3.12 and about
 70 MB of wheels (the spaCy models come from GitHub).
 
-**Windows is experimental** until the Windows zip has been run end to end on a real Windows
-computer. So far its only check is the `windows-latest` smoke job in
-`.github/workflows/release.yml`; a release is drafted only after that job passed, so a passing
-job alone does not lift the label. The Claude and Codex chat providers are disabled on Windows
-(`unsupported_os`).
+What has been checked: the zip was unpacked and the launcher run from a terminal, end to end,
+on an Apple Silicon Mac (macOS 26); every release is also smoke-tested on GitHub's Apple
+Silicon (`macos-latest`) and Intel (`macos-15-intel`) runners (below). Not yet checked by hand:
+a Finder double-click with the Gatekeeper prompt, a zip downloaded from the internet
+(quarantine attribute), macOS 14–15 and a real Intel Mac. On Intel the only test is that smoke
+test, which runs without Ollama (`SCREENWALL_SKIP_OLLAMA=1`, `--expect-auditor unavailable`):
+approval, PDF download and chat with Ollama have never run on an Intel Mac, and CI runs the
+backend tests only on Ubuntu and Apple Silicon. Whether a CPU-only Intel Mac finishes an audit
+within the 120 s timeout (see Requirements) is not measured; measure one approval on a real
+Intel Mac before claiming that approval works there.
+
+**Windows is not supported.** The backend still keeps its Windows guards (the Claude and Codex
+chat providers report `unsupported_os` there, and POSIX-only tests skip), but nothing is built
+or tested for Windows.
 
 ### Building a release
 
@@ -107,30 +126,36 @@ job alone does not lift the label. The Claude and Codex chat providers are disab
 make release VERSION=0.1.0      # = bash packaging/build_release.sh 0.1.0
 ```
 
-Output in `dist/` (git-ignored): `Screenwall-macOS.zip`, `Screenwall-Windows.zip`,
-`install-macos.sh`, `install-windows.ps1`, `SHA256SUMS.txt`. Each zip has a top folder
-`Screenwall/` with the launcher, `OKU-BENI.txt`, `VERSION`, `app/backend/{app/, pyproject.toml,
-uv.lock}` and the prebuilt `app/frontend/dist/`. The script refuses a `uv.lock` that does not
-match `pyproject.toml`, builds the UI in its own staging folder when `frontend/dist` is older
-than the sources, and moves earlier assets to `dist/.previous/` instead of deleting them.
+Output in `dist/` (git-ignored): `Screenwall-macOS.zip`, `install-macos.sh` and
+`SHA256SUMS.txt`. The zip has a top folder `Screenwall/` with `Screenwall.command`,
+`OKU-BENI.txt`, `VERSION`, `app/backend/{app/, pyproject.toml, uv.lock}` (the PDF fonts and
+their licence, `app/export/fonts/LICENSE-DejaVu.txt`, included) and the prebuilt
+`app/frontend/dist/`. The script refuses a `uv.lock` that does not match `pyproject.toml`,
+builds the UI in its own staging folder when `frontend/dist` is older than the sources, checks
+the zip's entries (no caches, no Windows files) and moves earlier assets, including Windows
+assets from older builds, to `dist/.previous/` instead of deleting them.
 
 ### CI and publishing
 
-- `.github/workflows/ci.yml`: backend tests on Ubuntu, macOS and Windows (Windows allowed to
-  fail while experimental) and frontend typecheck, vitest and build.
-- `.github/workflows/release.yml` (tag `v*`): build → smoke test on `macos-latest` and
-  `windows-latest` → draft release. The smoke job unpacks the zip, starts the launcher with
-  `SCREENWALL_NO_BROWSER=1 SCREENWALL_SKIP_OLLAMA=1` and runs `packaging/smoke_test.py`
-  (health, UI, launch token, session + CSRF, upload of a synthetic DOCX, at least one
-  placeholder). On Windows, start, smoke test and stop are one step: the runner kills the
-  launcher's process tree when the step that started it ends.
+- `.github/workflows/ci.yml`: backend tests on Ubuntu and macOS, and frontend typecheck,
+  vitest and build.
+- `.github/workflows/release.yml` (tag `v*`): build → smoke test on `macos-latest` (Apple
+  Silicon) and `macos-15-intel` (Intel) → draft release. The smoke job unpacks the zip with
+  `ditto`, starts the launcher with `SCREENWALL_NO_BROWSER=1 SCREENWALL_SKIP_OLLAMA=1` and runs
+  `packaging/smoke_test.py` (health, UI, launch token, session + CSRF, upload of a synthetic
+  DOCX, at least one placeholder). `macos-15-intel` is GitHub's last Intel macOS image,
+  announced as supported until August 2027; remove it from the matrix when it is retired.
 - The same workflow runs on every pull request that touches `packaging/`, `backend/`,
   `frontend/` or the workflow itself, and by hand ("Run workflow", once the file is on the
-  default branch). Those runs build and smoke-test but create no release. This is the only
-  rehearsal of the Windows launcher: a tag whose Windows smoke job fails gets no draft at all,
-  macOS included. Order: pull request with a green Release run, merge, then tag.
+  default branch). Those runs build and smoke-test but create no release. A tag whose smoke job
+  fails on either runner gets no draft at all. Order: pull request with a green Release run,
+  merge, then tag. The Release run must include a green `smoke (macos-15-intel)` job: that job
+  is newer than the last Release run on the v0.1.0 pull request and has not run on GitHub yet.
 - The draft must be published as a full release (not a prerelease). Until then the
-  `releases/latest/download/<asset>` links in the README do not resolve.
+  `releases/latest/download/<asset>` links in the README do not resolve. The README says so in
+  one sentence under its download table and lists the first release on its roadmap; remove
+  both in a separate commit right after the release is published (the README is not in the
+  zip, so the release assets do not change).
 
 The smoke test can also be run by hand against a running app:
 
@@ -206,7 +231,7 @@ and `USE_PRIVACY_FILTER` (the Privacy Filter stage is in `archive/privacy_filter
   `codex login`). Screenwall stores no API key. Every question first goes through
   `POST /api/chat/preview`, which returns the exact text that would leave the computer;
   `POST /api/chat` sends only with the matching `preview_hash`. Each send is recorded without
-  content in `STORAGE_ROOT/chat_dispatches.jsonl`. Not available on Windows yet.
+  content in `STORAGE_ROOT/chat_dispatches.jsonl`.
 
 Chat only ever reads the approved, masked chat context (storage layer 5). See
 [SECURITY.md](../SECURITY.md) and `backend/app/chat/service.py`.
