@@ -1,5 +1,17 @@
 # Project Plan — Bilingual (TR/EN) Document Anonymization Platform
 
+> **Historical record (note added 2026-10-07).** This plan describes the v1 build (54 tests,
+> `~/anonymizer-platform` paths) and is no longer the current plan. In particular: the loop is now
+> one pass plus at most one repair round, not "max 3"; Ollama and the local Qwen auditor are
+> **required** for approval (the heuristic alone never approves); the chat providers are local
+> Ollama and the user's own Claude Code / Codex CLI login, with no OpenAI/Anthropic/Azure SDKs and
+> no API keys, and every cloud question needs a preview and consent; the API, the state machine
+> and the frontend were rewritten (see `docs/API.md`). The spaCy models install with `uv sync`;
+> the `spacy download` commands below are no longer needed.
+>
+> Current documentation: `README.md`, `docs/DEPLOYMENT.md`, `docs/API.md`, `docs/TESTING.md`,
+> `docs/SCORECARD.md`, `SECURITY.md`. The v2 work plan lives outside the repository.
+
 ## Context
 
 This platform anonymizes Turkish/English legal & financial documents (PDF/DOCX/XLSX) locally,

@@ -1,5 +1,28 @@
 # Testing
 
+> **Note (2026-10-07):** the coverage table below describes an earlier version (93 tests, v1
+> API). Two of the files it names (`integration/test_review_api.py`, `integration/test_chat_api.py`)
+> no longer exist. Current state: 879 backend tests pass, 2 skipped (`uv run pytest -q`), and 79
+> frontend tests pass in 11 files (`npx vitest run`), measured on 2026-10-07. For what the
+> numbers in the README mean, see [SCORECARD.md](SCORECARD.md); for the code under test, read
+> `backend/tests/` and `frontend/src/**/*.test.ts(x)` directly.
+>
+> Current commands, from the repository root:
+>
+> ```bash
+> make test                                  # backend pytest + frontend vitest
+> cd frontend && npm run typecheck           # tsc
+> cd frontend && npm run e2e                 # Playwright + axe against a mock backend
+> PARITY=1 uv run pytest tests/parity        # in backend/: detection parity (slow, see below)
+> ```
+>
+> Two tests are skipped by default: the parity test (needs `PARITY=1`; it also reads the local
+> benchmark corpus `FABLE_BENCH_CORPUS` and real documents that are not in the repository) and
+> RedactionBench (needs its downloaded data). Tests that depend on POSIX file modes or the fake
+> CLI are marked in `backend/tests/posix_only.py` and skip on Windows. CI (`.github/workflows/ci.yml`) runs the
+> backend suite on Ubuntu, macOS and Windows (Windows may fail while it is experimental) and the
+> frontend typecheck, vitest and build. Ruff is not clean yet and is not part of CI.
+
 ## Run
 
 ```bash

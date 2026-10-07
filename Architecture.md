@@ -1,5 +1,27 @@
 # Architecture — Bilingual (TR/EN) Document Anonymization Platform
 
+> **Historical record (note added 2026-10-07).** This is the Phase 1 design of the v1 platform,
+> kept for reference. Several parts no longer match the code; where they disagree, the code wins:
+>
+> - The loop is one detection pass plus at most one repair round (`MAX_ITERATIONS` 1..2,
+>   default 2), not "max 3".
+> - The OpenAI Privacy Filter stage is retired (`archive/privacy_filter/`); there is no
+>   transformers/torch Turkish NER. Detection is Presidio + spaCy (`en_core_web_sm`,
+>   `xx_ent_wiki_sm`) + 17 custom Turkish and 4 English recognizers.
+> - Approval requires a successful local LLM audit (Ollama + `qwen3.5:4b`); without it documents
+>   wait in review. `mlx`/`llama.cpp` auditors were never implemented.
+> - Chat providers are local Ollama and the user's own Claude Code / Codex CLI login. There are no
+>   OpenAI/Anthropic/Azure providers and no API keys; every cloud question needs a preview and
+>   the user's consent.
+> - Processing runs in a background worker with the states `queued → extracting → masking →
+>   auditing → approved | needs_review | rejected | failed`. Every `/api` route except session and
+>   health needs a session cookie, and every change a CSRF token (`backend/app/security/web.py`).
+>   In the packaged app a new session also needs the launcher's per-start launch token
+>   (`X-Launch-Token`, `backend/app/api/system.py`), which keeps other accounts on the computer out.
+>
+> Current documentation: `README.md`, `docs/DEPLOYMENT.md`, `docs/API.md`, `docs/SCORECARD.md`,
+> `SECURITY.md`.
+
 > Status: **Phase 1 (Scaffold + Architecture)**. This document is the design of record and
 > the subject of the first Codex *Architecture Review*. Subsequent phases implement it.
 
