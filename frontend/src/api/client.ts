@@ -38,6 +38,22 @@ const defaultTransport: Transport = (input, init) => globalThis.fetch(input, ini
 let transport: Transport = defaultTransport;
 let pageImageResolver: ((docId: string, page: number) => string) | null = null;
 let csrfPromise: Promise<string> | null = null;
+// The packaged app's per-start secret (backend config.py `launch_token`). The launcher opens the
+// UI at "/#k=<token>": a fragment never reaches the server, a log or a Referer.
+let launchToken: string | null = null;
+
+/** Read the launch token from the address ("#k=<token>") and take it out of the address bar, so
+ *  it is not bookmarked or shared. It is sent with GET /api/session only. Called at startup and
+ *  on every hashchange: the launcher may open its address in a tab that already shows the app,
+ *  which changes only the fragment and does not reload the page. Returns whether one was found. */
+export function captureLaunchToken(): boolean {
+  const match = /^#k=([A-Za-z0-9_-]{16,256})$/.exec(window.location.hash);
+  if (!match) return false;
+  launchToken = match[1];
+  resetSession();
+  window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+  return true;
+}
 
 /** Swap the network layer (the in-browser mock uses this). Passing null restores fetch. */
 export function setTransport(next: Transport | null): void {
@@ -77,7 +93,9 @@ async function send(path: string, init: RequestInit): Promise<Response> {
 function csrfToken(): Promise<string> {
   if (!csrfPromise) {
     const pending = (async () => {
-      const res = await send("/api/session", { method: "GET", headers: { Accept: "application/json" } });
+      const headers: Record<string, string> = { Accept: "application/json" };
+      if (launchToken) headers["X-Launch-Token"] = launchToken;
+      const res = await send("/api/session", { method: "GET", headers });
       if (!res.ok) throw await readError(res);
       return ((await res.json()) as SessionResponse).csrf_token;
     })();

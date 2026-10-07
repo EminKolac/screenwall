@@ -14,7 +14,12 @@ from pathlib import Path
 import pytest
 
 from app.chat import cli
+from tests import posix_only
 from tests.fixtures.fake_cli import PROVIDER_BINARY, install_fake_cli, process_gone
+
+# The module under test refuses to run on Windows (cli_process.supported); the providers'
+# Windows behaviour is covered by tests/unit/test_chat_windows_guard.py on every OS.
+pytestmark = posix_only.FAKE_CLI
 
 PROVIDERS = sorted(PROVIDER_BINARY)
 SYSTEM = "SYNTHETIC-INSTRUCTIONS answer from [S1] only. <PERSON_1> signed."

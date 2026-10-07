@@ -273,6 +273,7 @@ export type ErrorCode =
   | "original_not_stored"
   | "page_not_found"
   | "session_required"
+  | "launch_token_required"
   | "csrf_failed"
   | "chat_not_allowed"
   | "preview_required"
@@ -292,7 +293,8 @@ export type ErrorCode =
 
 // ---------------------------------------------------------------- routes (for reference)
 //
-// GET    /api/session                         -> SessionResponse (sets HttpOnly session cookie)
+// GET    /api/session                         -> SessionResponse (sets HttpOnly session cookie;
+//                                                  the packaged app also wants X-Launch-Token)
 // GET    /api/health                          -> HealthResponse
 // GET    /api/documents                       -> DocumentList
 // POST   /api/documents   multipart file, mode? -> 202 DocumentSummary (status "queued")

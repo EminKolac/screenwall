@@ -4,8 +4,10 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import { App } from "./app/App";
 import { isMockEnabled } from "./api/mock/switch";
+import { captureLaunchToken } from "./api/client";
 
 async function boot() {
+  captureLaunchToken();
   // The mock backend is a separate chunk; it only loads with VITE_MOCK=1 or ?mock=1.
   if (isMockEnabled()) {
     const { installMock } = await import("./api/mock");

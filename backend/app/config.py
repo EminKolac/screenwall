@@ -4,24 +4,46 @@ Secrets (API keys) are loaded here but consumed ONLY by the chat module, and ONL
 document is approved. Nothing in this module triggers an external call.
 
 Codex Phase-1 review: provider fields are constrained (Literal) and `max_iterations` is bounded
-to the PRD's 1..3 so config cannot silently drift (MEDIUM).
+to 1..2 so config cannot silently drift (MEDIUM).
+
+Paths never depend on the working directory: `.env` is backend/.env, and a relative
+STORAGE_ROOT or UI_DIST is resolved against the backend directory. A launcher started from
+Finder (cwd "/") or from another folder therefore reads and writes the same places as
+`start.sh`, which runs uvicorn from backend/.
 """
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# backend/ — the anchor for .env and for relative STORAGE_ROOT / UI_DIST values.
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+_LAUNCH_TOKEN = re.compile(r"[A-Za-z0-9_-]{16,256}")
+
+
+def _anchored(path: Path) -> Path:
+    """`~` expanded; a relative path is taken relative to backend/, never to the cwd."""
+    path = path.expanduser()
+    return path if path.is_absolute() else BACKEND_DIR / path
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", env_file_encoding="utf-8",
+                                      extra="ignore")
 
     # Core
     app_env: Literal["development", "production", "test"] = "development"
-    storage_root: Path = Path("./data")
+    storage_root: Path = Path("./data")  # relative = backend/data (see `_anchored`)
+    # The built UI (frontend/dist) for the packaged single-server app: when this directory holds
+    # an index.html, the API also serves the UI on its own origin (main.py `install_ui`), so
+    # CORS_ALLOW_ORIGINS must name that origin (e.g. http://127.0.0.1:8765). Unset (default) =
+    # development: Vite serves the UI on 5174 and proxies /api here.
+    ui_dist: Path | None = None
     max_upload_mb: int = 50
     max_iterations: int = 2
     # Two anonymization modes, overridable per upload (see api/documents.py `mode` form field):
@@ -92,13 +114,27 @@ class Settings(BaseSettings):
     # The UI's own origins, and nothing else (comma-separated). Every origin listed gets
     # credentialed API access and can read the CSRF token through CORS, so no host or port is
     # added implicitly: another local dev server (a different Vite project on 5173) is foreign.
-    # The UI runs on 5174 with strictPort (frontend/vite.config.ts, start.sh).
+    # The UI runs on 5174 with strictPort (frontend/vite.config.ts, start.sh). The packaged app
+    # serves the UI itself (UI_DIST) and its launcher sets this to that origin, e.g.
+    # "http://127.0.0.1:8765,http://localhost:8765".
     cors_allow_origins: str = "http://localhost:5174,http://127.0.0.1:5174"
 
-    # Local web security (security/web.py). The app binds to 127.0.0.1; these stop other sites and
-    # other local processes from driving it (DNS rebinding, CSRF).
+    # Local web security (security/web.py). The app binds to 127.0.0.1; these stop other web
+    # pages from driving it through the browser (DNS rebinding, CSRF). They do not stop a local
+    # program, which sends no Origin and can ask GET /api/session for a session like the UI does.
     allowed_hosts: str = "localhost,127.0.0.1"  # comma-separated Host header values (port stripped)
     session_required: bool = True  # tests switch it off; production never should
+    # Per-start secret of the packaged app. The launcher generates it, writes it to
+    # SCREENWALL_HOME/launch-token (readable by this user only), passes that path as
+    # LAUNCH_TOKEN_FILE and opens the UI with the token in the URL fragment. GET /api/session
+    # issues a new session only to a request carrying it (X-Launch-Token). 127.0.0.1 is shared by
+    # every account on the computer: this keeps the other accounts out. Programs running as the
+    # same user can read the file, so it does not separate those. The file, not the environment,
+    # carries it to the server so that no process listing can show it. A file that is set but
+    # unreadable, empty or malformed stops the app at startup (fail closed).
+    # Both empty (default, development with start.sh) = no such check.
+    launch_token: str = ""
+    launch_token_file: Path | None = None
     # Tests process uploads inside the request; the app uses the background worker.
     process_inline: bool = False
 
@@ -108,6 +144,49 @@ class Settings(BaseSettings):
     def origin_allowlist(self) -> set[str]:
         """Exactly the configured UI origins (see `cors_allow_origins`)."""
         return {o.strip() for o in self.cors_allow_origins.split(",") if o.strip()}
+
+    def ui_index(self) -> Path | None:
+        """index.html of the built UI when `ui_dist` is set and holds one, else None."""
+        if self.ui_dist is None:
+            return None
+        index = self.ui_dist / "index.html"
+        return index if index.is_file() else None
+
+    @field_validator("storage_root")
+    @classmethod
+    def _anchor_storage_root(cls, v: Path) -> Path:
+        return _anchored(v)
+
+    @field_validator("ui_dist", mode="before")
+    @classmethod
+    def _blank_ui_dist_is_unset(cls, v: object) -> object:
+        # UI_DIST="" must mean "no UI", not Path("") (= the backend directory itself).
+        return None if isinstance(v, str) and not v.strip() else v
+
+    @field_validator("ui_dist")
+    @classmethod
+    def _anchor_ui_dist(cls, v: Path | None) -> Path | None:
+        return None if v is None else _anchored(v)
+
+    @field_validator("launch_token_file", mode="before")
+    @classmethod
+    def _blank_launch_token_file_is_unset(cls, v: object) -> object:
+        return None if isinstance(v, str) and not v.strip() else v
+
+    @model_validator(mode="after")
+    def _read_launch_token(self) -> Settings:
+        if self.launch_token_file is not None:
+            try:
+                self.launch_token = _anchored(self.launch_token_file).read_text(
+                    encoding="ascii").strip()
+            except (OSError, UnicodeError) as e:
+                raise ValueError("LAUNCH_TOKEN_FILE cannot be read") from e
+            if not self.launch_token:
+                raise ValueError("LAUNCH_TOKEN_FILE is empty")
+        # The UI reads it from "#k=<token>" with the same pattern (frontend/src/api/client.ts).
+        if self.launch_token and not _LAUNCH_TOKEN.fullmatch(self.launch_token):
+            raise ValueError("launch token: 16-256 characters of A-Z a-z 0-9 _ -")
+        return self
 
     @field_validator("max_iterations")
     @classmethod

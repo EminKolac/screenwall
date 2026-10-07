@@ -24,6 +24,7 @@ from app.pipeline.queue import Worker
 from app.services.deps import get_repository
 from app.storage import local
 from app.storage.base import StorageLayer
+from tests import posix_only
 
 client = TestClient(app)
 
@@ -54,6 +55,7 @@ def test_a_failed_write_removes_only_its_own_temp_file(tmp_path, monkeypatch) ->
     assert foreign.read_bytes() == b"another writer"
 
 
+@posix_only.FILE_MODES
 def test_written_files_are_private(tmp_path) -> None:
     target = tmp_path / "doc.json"
     local.write_private(target, b"x")

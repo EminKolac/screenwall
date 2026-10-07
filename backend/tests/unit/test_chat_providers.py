@@ -10,6 +10,7 @@ from app.chat.factory import PROVIDER_IDS, build_provider
 from app.chat.providers import ClaudeCliProvider, CodexCliProvider, OllamaChatProvider
 from app.chat.schemas import ProviderStatus
 from app.config import Settings, get_settings
+from tests import posix_only
 from tests.fixtures.fake_cli import PROVIDER_BINARY, install_fake_cli
 
 STATUS_KEYS = set(ProviderStatus.model_fields)
@@ -127,6 +128,7 @@ def fakes(tmp_path, monkeypatch):
         (CodexCliProvider, "Codex", "codex login"),
     ],
 )
+@posix_only.FAKE_CLI
 def test_cli_status_available(cls, label, login, fakes):
     status = cls("some-model", 60).status()
     assert set(status) == STATUS_KEYS
@@ -144,6 +146,7 @@ def test_cli_status_available(cls, label, login, fakes):
      ("old_help", "cli_upgrade_required", "compatible")],
 )
 @pytest.mark.parametrize("provider_id", sorted(PROVIDER_BINARY))
+@posix_only.FAKE_CLI
 def test_cli_status_problems(provider_id, mode, problem, field, fakes):
     fakes[provider_id].set(mode)
     status = build_provider(provider_id, get_settings()).status()
@@ -152,6 +155,7 @@ def test_cli_status_problems(provider_id, mode, problem, field, fakes):
     assert status["model"] is None  # "" = the CLI's own default
 
 
+@posix_only.FAKE_CLI  # Windows: unsupported_os before any lookup
 def test_cli_status_not_installed(monkeypatch):
     monkeypatch.setattr(cli, "executable", lambda _: None)
     status = ClaudeCliProvider().status()
@@ -160,6 +164,7 @@ def test_cli_status_not_installed(monkeypatch):
     assert status["login_command"] == "claude auth login"
 
 
+@posix_only.FAKE_CLI
 def test_cli_status_survives_a_hanging_cli(monkeypatch):
     def hang(_):
         raise cli.CliError("cli_timeout")
@@ -169,11 +174,13 @@ def test_cli_status_survives_a_hanging_cli(monkeypatch):
     assert status["available"] is False and status["problem"] == "cli_timeout"
 
 
+@posix_only.FAKE_CLI  # Windows: render refuses (provider_unavailable)
 def test_cli_provider_render_is_the_stdin_envelope():
     messages = [{"role": "user", "content": "Kira ne kadar?"}]
     assert ClaudeCliProvider().render("SYS", messages) == cli.envelope("SYS", messages)
 
 
+@posix_only.FAKE_CLI
 def test_cli_provider_unexpected_failure_is_cli_failed(monkeypatch):
     def broken(*_a, **_k):
         raise OSError("disk full: /private/var/secret-path")

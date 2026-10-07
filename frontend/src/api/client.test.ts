@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api, ApiError, setTransport } from "./client";
+import { api, ApiError, captureLaunchToken, setTransport } from "./client";
 
 const ok = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const detail = (code: string, status: number) => ok({ detail: code }, status);
@@ -65,6 +65,35 @@ describe("api client", () => {
     expect(pinned?.body).toBe(JSON.stringify({ expected_revision: 4 }));
     expect(header(plain, "Content-Type")).toBe("application/json");
     expect(plain?.body).toBe("{}");
+  });
+
+  it("sends the launch token from the address with GET /api/session only, and hides it", async () => {
+    const token = "synthetic-launch-token-0123456789";
+    window.history.replaceState(null, "", "/#k=short");
+    expect(captureLaunchToken()).toBe(false); // too short for a launcher token: left alone
+    expect(window.location.hash).toBe("#k=short");
+    window.history.replaceState(null, "", `/belgeler?x=1#k=${token}`);
+    expect(captureLaunchToken()).toBe(true);
+    expect(window.location.hash).toBe("");
+    expect(window.location.pathname + window.location.search).toBe("/belgeler?x=1");
+    const fetch = mockFetch(ok({ csrf_token: "abc" }), ok({ documents: [] }), ok({}));
+    await api.documents();
+    await api.decide("d1", { op: "keep", target: { item_id: "i1" }, scope: "occurrence" });
+    const [session, get, post] = fetch.mock.calls.map(([, init]) => init);
+    expect(header(session, "X-Launch-Token")).toBe(token);
+    expect(header(get, "X-Launch-Token")).toBeNull();
+    expect(header(post, "X-Launch-Token")).toBeNull();
+
+  });
+
+  it("sends no launch token when the address had none, and reports launch_token_required", async () => {
+    vi.resetModules(); // a fresh page: no token captured yet
+    const fresh = await import("./client");
+    window.history.replaceState(null, "", "/");
+    expect(fresh.captureLaunchToken()).toBe(false);
+    const fetch = mockFetch(detail("launch_token_required", 401));
+    await expect(fresh.api.documents()).rejects.toMatchObject({ code: "launch_token_required", status: 401 });
+    expect(header(fetch.mock.calls[0][1], "X-Launch-Token")).toBeNull();
   });
 
   it("turns failures into ApiError codes", async () => {

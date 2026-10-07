@@ -7,6 +7,11 @@
   - the child runs in its own process group, which is killed afterwards in every case, so no
     descendant outlives the call;
   - only CliError codes (the contract's cli_* ErrorCodes) leave, never CLI stderr.
+
+POSIX only (`supported`): the process-group kill (os.killpg, SIGKILL, start_new_session),
+non-blocking pipes under `selectors` and the fixed PATH have no Windows equivalent here. On
+Windows the CLI providers report "unsupported_os" (chat/providers.py) and `run` refuses before
+anything is spawned.
 """
 
 from __future__ import annotations
@@ -40,6 +45,11 @@ class CliError(Exception):
         # Anything outside the contract collapses to the generic failure code.
         self.code = code if code in ERROR_CODES else "cli_failed"
         super().__init__(self.code)
+
+
+def supported() -> bool:
+    """False on Windows: `run` needs POSIX process groups and selectable pipes."""
+    return os.name != "nt"
 
 
 def environment() -> dict[str, str]:
@@ -154,6 +164,8 @@ def run(
     argv: list[str], *, cwd: str, stdin: str = "", timeout: float = 60, limit: int = 512_000
 ) -> tuple[int, str, str]:
     """Bound all streams and kill the process group on timeout, including descendants."""
+    if not supported():  # last line of defence; the providers stop earlier (unsupported_os)
+        raise CliError("cli_failed")
     proc = _spawn(argv, cwd)
     selector = selectors.DefaultSelector()
     deadline = time.monotonic() + timeout

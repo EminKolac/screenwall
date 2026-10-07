@@ -7,6 +7,10 @@ site via DNS rebinding, or a cross-site form post. Before v2 the API had no auth
 - the Host header must be an allowed local name and a present Origin must be allowed;
 - every /api route except the session and health endpoints needs a session cookie issued by
   GET /api/session (HttpOnly, SameSite=Strict);
+- the packaged app also sets LAUNCH_TOKEN: GET /api/session then issues a new session only to a
+  request carrying that per-start secret (X-Launch-Token, api/system.py), which the launcher keeps
+  in the user's own folder and hands to the browser in the URL fragment. 127.0.0.1 is shared by
+  every account on the computer; without the token another account could open a session too;
 - every mutating request also needs the X-CSRF-Token header matching that session;
 - request bodies are bounded BEFORE multipart parsing, and uploads stay in memory (never spooled
   to an unencrypted temporary file).
@@ -107,7 +111,7 @@ def _host(request: Request) -> str:
     return host.rsplit(":", 1)[0] if ":" in host else host
 
 
-def _csrf_matches(sent: str, expected: str) -> bool:
+def token_matches(sent: str, expected: str) -> bool:
     """Constant-time comparison of bytes: `compare_digest` raises TypeError on a str with
     non-ASCII characters, and a header decoded as latin-1 can carry any byte."""
     try:
@@ -145,7 +149,7 @@ def install(app, sessions: SessionStore) -> None:
             csrf = sessions.csrf_for(request.cookies.get(SESSION_COOKIE))
             if csrf is None:
                 return JSONResponse({"detail": "session_required"}, status_code=401)
-            if request.method not in ("GET", "HEAD") and not _csrf_matches(
+            if request.method not in ("GET", "HEAD") and not token_matches(
                     request.headers.get("x-csrf-token", ""), csrf):
                 return JSONResponse({"detail": "csrf_failed"}, status_code=403)
         response = await call_next(request)

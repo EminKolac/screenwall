@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "../api/contract";
 import contractSource from "../api/contract.ts?raw";
-import { clientErrorText, errorMessage, errorText } from "./tr";
+import { clientErrorText, errorMessage, errorText, providerProblemText } from "./tr";
 
 // Compile time: the map must have exactly the contract's codes.
 type Missing = Exclude<ErrorCode, keyof typeof errorText>;
@@ -22,7 +22,8 @@ describe("error dictionary", () => {
   });
 
   it("uses calm Turkish sentences", () => {
-    for (const sentence of [...Object.values(errorText), ...Object.values(clientErrorText)]) {
+    const all = [...Object.values(errorText), ...Object.values(clientErrorText), ...Object.values(providerProblemText)];
+    for (const sentence of all) {
       expect(sentence).toMatch(/^[A-ZÇĞİÖŞÜ]/);
       expect(sentence).toMatch(/\.$/);
       expect(sentence).not.toMatch(/!/);
@@ -34,5 +35,13 @@ describe("error dictionary", () => {
     expect(errorMessage("unresolved_items")).toBe(errorText.unresolved_items);
     expect(errorMessage("network_error")).toBe(clientErrorText.network_error);
     expect(errorMessage("something_new")).toBe(clientErrorText.unknown_error);
+  });
+
+  it("explains the Windows provider status in its own sentence", () => {
+    // ProviderStatus.problem on Windows for claude_cli / codex_cli (backend chat/providers.py).
+    expect(errorMessage("unsupported_os")).toBe(providerProblemText.unsupported_os);
+    expect(errorMessage("unsupported_os")).toContain("Windows");
+    // A status reason, not a request error: the contract's ErrorCode list stays as it is.
+    expect(Object.keys(errorText)).not.toContain("unsupported_os");
   });
 });

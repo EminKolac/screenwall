@@ -107,7 +107,8 @@ def main(argv: list[str] | None = None) -> int:
         manifest.append({"source": rel, "size_kb": size // 1024, "status": status,
                          "output": outname, "seconds": round(dt, 1)})
 
-    (out / "_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+    (out / "_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2),
+                                       encoding="utf-8")
     print(f"\nDONE  ok={ok}  review={review}  skipped={skipped}  failed={failed}")
     print(f"Anonymized PDFs + _manifest.json → {out}")
     print("NOTE: _manifest.json lists ORIGINAL filenames — keep it local.")

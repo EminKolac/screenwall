@@ -21,6 +21,8 @@ export const errorText = {
   original_not_stored: "Bu belgenin orijinali saklanmadı; maske kaldırılamaz.",
   page_not_found: "Sayfa bulunamadı.",
   session_required: "Oturum sona erdi. Sayfayı yenileyin.",
+  launch_token_required:
+    "Bu sayfa Screenwall'ın başlatıcısından açılmadı ya da uygulama yeniden başladı. Screenwall'ı başlatıcısından yeniden açın.",
   csrf_failed: "Güvenlik doğrulaması başarısız oldu. Sayfayı yenileyip tekrar deneyin.",
   chat_not_allowed: "Sohbet yalnız onaylanmış belgelerle kullanılabilir.",
   preview_required: "Göndermeden önce gönderilecek metni onaylamanız gerekiyor.",
@@ -47,12 +49,25 @@ export const clientErrorText: Record<ClientErrorCode, string> = {
   unknown_error: "Beklenmeyen bir yanıt alındı. Sayfayı yenileyip tekrar deneyin.",
 };
 
+/** Chat provider status reasons (ProviderStatus.problem) that never come back as a request
+ *  error. unsupported_os: Claude and Codex cannot run on Windows (backend chat/providers.py). */
+export type ProviderProblemCode = "unsupported_os";
+
+export const providerProblemText: Record<ProviderProblemCode, string> = {
+  unsupported_os: "Bu sağlayıcı Windows'ta henüz desteklenmiyor. Yerel (Ollama) sohbeti kullanabilirsiniz.",
+};
+
 export function isErrorCode(code: string): code is ErrorCode {
   return Object.prototype.hasOwnProperty.call(errorText, code);
 }
 
+function isProviderProblem(code: string): code is ProviderProblemCode {
+  return Object.prototype.hasOwnProperty.call(providerProblemText, code);
+}
+
 export function errorMessage(code: string): string {
   if (isErrorCode(code)) return errorText[code];
+  if (isProviderProblem(code)) return providerProblemText[code];
   if (code === "network_error") return clientErrorText.network_error;
   return clientErrorText.unknown_error;
 }

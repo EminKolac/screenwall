@@ -9,6 +9,9 @@ Every provider keeps the original interface `chat(system_prompt, messages, model
   - `render(...)`: the exact text `chat` sends for the same inputs (the consent preview);
   - `status()`: contract ProviderStatus; never raises, never returns account identifiers.
 Failures surface only as fixed contract codes (ChatError / cli.CliError).
+
+On Windows the Claude and Codex providers are unavailable (status problem "unsupported_os"):
+chat/cli_process.py relies on POSIX process groups and selectable pipes. Ollama is unaffected.
 """
 from __future__ import annotations
 
@@ -16,9 +19,13 @@ import json
 
 import httpx
 
-from app.chat import cli
+from app.chat import cli, cli_process
 from app.chat.base import ChatError
 from app.security import ollama
+
+# ProviderStatus.problem of a CLI provider on Windows, where chat/cli_process.py cannot run a
+# CLI safely. A status reason only: requests to such a provider fail as provider_unavailable.
+UNSUPPORTED_OS = "unsupported_os"
 
 
 def _status(provider, **fields) -> dict:
@@ -141,9 +148,13 @@ class _CliChatProvider:
         return self.id
 
     def render(self, system_prompt: str, messages: list[dict], model: str = "") -> str:
+        if not cli_process.supported():  # no consent preview for a send that cannot happen
+            raise ChatError("provider_unavailable")
         return cli.envelope(system_prompt, messages)
 
     def chat(self, system_prompt: str, messages: list[dict], model: str) -> str:
+        if not cli_process.supported():
+            raise ChatError("provider_unavailable")
         config = {"provider": self.id, "model": self.model or model, "timeout": self.timeout}
         try:
             return cli.complete(config, system_prompt, messages)
@@ -153,6 +164,8 @@ class _CliChatProvider:
             raise cli.CliError("cli_failed") from None
 
     def status(self) -> dict:
+        if not cli_process.supported():  # Windows: no CLI is looked up or started at all
+            return _status(self, problem=UNSUPPORTED_OS)
         try:
             found = cli.status(self.id)
         except cli.CliError as e:

@@ -20,6 +20,7 @@ from app.chat.schemas import ProviderStatus
 from app.config import get_settings
 from app.models.document import Document, DocumentStatus, FileKind
 from app.services.deps import get_repository
+from tests import posix_only
 from tests.fixtures.fake_cli import PROVIDER_BINARY, install_fake_cli
 
 MASKED = (
@@ -76,6 +77,7 @@ def _body(provider: str, doc_ids=("d1",), **extra) -> dict:
 # ------------------------------------------------------------------ providers
 
 
+@posix_only.FAKE_CLI
 def test_providers_shape_and_default(client, fakes, ollama, monkeypatch):
     fakes["codex_cli"].set("logged_out")
     r = client.get("/api/chat/providers")
@@ -97,6 +99,7 @@ def test_providers_shape_and_default(client, fakes, ollama, monkeypatch):
     assert client.get("/api/chat/providers").json()["default"] == "claude_cli"
 
 
+@posix_only.FAKE_CLI  # Windows: the CLI providers say unsupported_os
 def test_providers_when_nothing_is_available(client, ollama, monkeypatch):
     ollama["down"] = True
     monkeypatch.setattr(cli, "executable", lambda _: None)
@@ -134,6 +137,7 @@ def test_unknown_or_unsafe_document_id_is_404(client, ollama, doc_id):
     assert r.status_code == 404 and r.json() == {"detail": "document_not_found"}
 
 
+@posix_only.FAKE_CLI
 def test_cloud_without_preview_hash_is_409(client, fakes):
     _seed("d1")
     r = client.post("/api/chat", json=_body("claude_cli", preview_hash=None))
@@ -142,6 +146,7 @@ def test_cloud_without_preview_hash_is_409(client, fakes):
 
 
 @pytest.mark.parametrize("provider", ["claude_cli", "codex_cli"])
+@posix_only.FAKE_CLI
 def test_tampered_or_stale_hash_is_409(client, fakes, provider):
     _seed("d1")
     good = client.post("/api/chat/preview", json=_body(provider)).json()["preview_hash"]
@@ -178,6 +183,7 @@ def test_preview_shape(client, ollama):
     "provider,destination",
     [("claude_cli", "Anthropic (Claude)"), ("codex_cli", "OpenAI (Codex)")],
 )
+@posix_only.FAKE_CLI
 def test_cloud_sends_exactly_the_previewed_text(client, fakes, provider, destination):
     _seed("d1")
     preview = client.post("/api/chat/preview", json=_body(provider)).json()
@@ -230,6 +236,7 @@ def test_invalid_citations_is_502(client, ollama, answer):
     [("exit_error", 502, "cli_failed"), ("tool_use", 502, "cli_unsafe_output"),
      ("logged_out", 503, "cli_login_required"), ("old_help", 503, "cli_upgrade_required")],
 )
+@posix_only.FAKE_CLI
 def test_cli_failures_are_fixed_codes_without_stderr(client, fakes, mode, status, code):
     _seed("d1")
     fakes["claude_cli"].set(mode)
@@ -271,6 +278,7 @@ HISTORY = [
 
 
 @pytest.mark.parametrize("provider", ["claude_cli", "codex_cli"])
+@posix_only.FAKE_CLI
 def test_cloud_history_is_previewed_and_sent_byte_for_byte(client, fakes, provider):
     _seed("d1")
     preview = client.post("/api/chat/preview", json=_body(provider, history=HISTORY)).json()
@@ -282,6 +290,7 @@ def test_cloud_history_is_previewed_and_sent_byte_for_byte(client, fakes, provid
     assert fakes[provider].stdin_bytes(call) == preview["sent_text"].encode("utf-8")
 
 
+@posix_only.FAKE_CLI
 def test_history_not_in_the_preview_voids_the_consent(client, fakes):
     _seed("d1")
     bare = client.post("/api/chat/preview", json=_body("claude_cli")).json()["preview_hash"]
@@ -290,6 +299,7 @@ def test_history_not_in_the_preview_voids_the_consent(client, fakes):
     assert fakes["claude_cli"].chat_calls() == []
 
 
+@posix_only.FAKE_CLI
 def test_cloud_send_is_recorded_without_content(client, fakes):
     _seed("d1")
     preview = client.post("/api/chat/preview", json=_body("codex_cli", history=HISTORY)).json()

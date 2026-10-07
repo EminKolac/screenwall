@@ -114,3 +114,81 @@ def test_other_local_ports_are_foreign_origins(secure, origin) -> None:
 def test_the_ui_origins_are_allowed(secure, origin) -> None:
     r = secure.get("/api/session", headers={"Origin": origin})
     assert r.status_code == 200 and r.headers["access-control-allow-origin"] == origin
+
+
+# ------------------------------------------------------------------ launch token (packaged app)
+
+LAUNCH = "synthetic-launch-token-for-tests"
+
+
+@pytest.fixture
+def launched(monkeypatch):
+    """The packaged app: the launcher sets LAUNCH_TOKEN and opens the UI with it."""
+    monkeypatch.setenv("SESSION_REQUIRED", "true")
+    monkeypatch.setenv("LAUNCH_TOKEN", LAUNCH)
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    yield TestClient(app)
+    get_settings.cache_clear()
+
+
+@pytest.mark.parametrize("sent", [None, "", "wrong", LAUNCH + "x", "jeton-ş".encode()])
+def test_without_the_launch_token_no_session_is_issued(launched, sent) -> None:
+    """Another account on the computer reaches 127.0.0.1 too, but cannot read the token."""
+    headers = {} if sent is None else {"X-Launch-Token": sent}
+    r = launched.get("/api/session", headers=headers)
+    assert r.status_code == 401 and r.json()["detail"] == "launch_token_required"
+    assert not launched.cookies.get("fable_session")
+    assert launched.get("/api/documents").status_code == 401
+
+
+def test_the_launch_token_opens_a_session_that_then_needs_no_token(launched) -> None:
+    r = launched.get("/api/session", headers={"X-Launch-Token": LAUNCH})
+    assert r.status_code == 200 and launched.cookies.get("fable_session")
+    token = r.json()["csrf_token"]
+    again = launched.get("/api/session")  # a reload: the live cookie is enough
+    assert again.status_code == 200 and again.json()["csrf_token"] == token
+    assert launched.get("/api/documents").status_code == 200
+
+
+def test_a_stale_cookie_needs_the_launch_token_again(launched) -> None:
+    launched.cookies.set("fable_session", "unknown-session", path="/api")
+    r = launched.get("/api/session")
+    assert r.status_code == 401 and r.json()["detail"] == "launch_token_required"
+
+
+def test_without_launch_token_setting_the_session_is_open(secure, monkeypatch) -> None:
+    """Development (start.sh, Vite) sets no LAUNCH_TOKEN: nothing changes there."""
+    from app.config import get_settings
+
+    monkeypatch.delenv("LAUNCH_TOKEN", raising=False)
+    get_settings.cache_clear()
+    assert get_settings().launch_token == ""
+    assert secure.get("/api/session").status_code == 200
+
+
+def test_the_launcher_hands_the_token_over_in_a_file(monkeypatch, tmp_path) -> None:
+    """LAUNCH_TOKEN_FILE, not the environment: a process listing never shows the token."""
+    from app.config import Settings
+
+    monkeypatch.delenv("LAUNCH_TOKEN", raising=False)
+    token_file = tmp_path / "launch-token"
+    token_file.write_text(LAUNCH + "\n", encoding="ascii")
+    assert Settings(launch_token_file=token_file).launch_token == LAUNCH
+    assert Settings(launch_token_file="").launch_token == ""
+
+
+@pytest.mark.parametrize("content", [None, "", "  \n", "kısa", "has space in it 0123456789"])
+def test_an_unusable_token_file_stops_the_app(monkeypatch, tmp_path, content) -> None:
+    """Fail closed: a launcher that meant to set a token never gets an open server instead."""
+    from pydantic import ValidationError
+
+    from app.config import Settings
+
+    monkeypatch.delenv("LAUNCH_TOKEN", raising=False)
+    token_file = tmp_path / "launch-token"
+    if content is not None:
+        token_file.write_text(content, encoding="utf-8")
+    with pytest.raises(ValidationError):
+        Settings(launch_token_file=token_file)

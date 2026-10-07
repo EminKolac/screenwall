@@ -15,6 +15,9 @@ from fastapi.testclient import TestClient
 
 from app.main import _LAYERS, app
 from app.security.permissions import lock_down_store
+from tests import posix_only
+
+pytestmark = posix_only.FILE_MODES
 
 
 def _mode(path) -> int:

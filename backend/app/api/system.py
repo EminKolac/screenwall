@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from app.config import get_settings
-from app.security.web import SESSION_COOKIE, SESSION_TTL_S
+from app.security.web import SESSION_COOKIE, SESSION_TTL_S, token_matches
 from app.services.user_settings import (
     UserSettings,
     UserSettingsUnreadable,
@@ -22,9 +22,17 @@ router = APIRouter(prefix="/api", tags=["system"])
 @router.get("/session")
 def session(request: Request, response: Response) -> dict:
     """Issue (or reuse) the local session. The cookie is HttpOnly and SameSite=Strict; the CSRF
-    token in the body must accompany every mutating request."""
+    token in the body must accompany every mutating request.
+
+    With LAUNCH_TOKEN set (the packaged app), a NEW session needs the X-Launch-Token header with
+    that value; a request holding a live session cookie keeps it without the header."""
     sessions = request.app.state.sessions
-    sid, csrf, is_new = sessions.issue(request.cookies.get(SESSION_COOKIE))
+    existing = request.cookies.get(SESSION_COOKIE)
+    launch_token = get_settings().launch_token
+    if launch_token and sessions.csrf_for(existing) is None and not token_matches(
+            request.headers.get("x-launch-token", ""), launch_token):
+        raise HTTPException(status_code=401, detail="launch_token_required")
+    sid, csrf, is_new = sessions.issue(existing)
     if is_new:
         response.set_cookie(SESSION_COOKIE, sid, httponly=True, samesite="strict",
                             max_age=SESSION_TTL_S, path="/api")

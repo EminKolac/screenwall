@@ -17,6 +17,7 @@ from app.config import get_settings
 from app.models.document import Document, DocumentStatus, FileKind
 from app.storage.base import StorageLayer
 from app.storage.local import LocalStorageBackend
+from tests import posix_only
 from tests.fixtures.fake_cli import PROVIDER_BINARY, install_fake_cli
 
 MASKED = "\n".join(
@@ -280,6 +281,7 @@ def test_a_value_cut_by_the_length_cap_is_still_redacted(service, storage, monke
 
 
 @pytest.mark.parametrize("provider_id", sorted(PROVIDER_BINARY))
+@posix_only.FAKE_CLI
 def test_canary_stdin_holds_only_masked_context(provider_id, service, storage, tmp_path,
                                                 monkeypatch):
     fake = install_fake_cli(tmp_path / "bin", PROVIDER_BINARY[provider_id])

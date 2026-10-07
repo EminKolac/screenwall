@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from evaluation.strict import run, scorer
+from tests import posix_only
 
 STRICT_DIR = Path(__file__).resolve().parents[2] / "evaluation" / "strict"
 PINNED_SCORER_SHA256 = "bd4a6816969109a9cc5c96695c70e8adb8ac1b3cbefeb1e7274fa3d1d9c9253b"
@@ -93,7 +94,8 @@ def test_run_strict_with_stub_engine_limits_panels_and_restores_socket(corpus, t
     assert summary["scorer_sha256"] == PINNED_SCORER_SHA256
     assert summary["allow_list"].startswith("none")
     artifact = out / "SYNTHETIC-MEASUREMENT-ONLY.json"
-    assert artifact.stat().st_mode & 0o777 == 0o600
+    if not posix_only.WINDOWS:  # permission bits are POSIX-only
+        assert artifact.stat().st_mode & 0o777 == 0o600
     for name in ("metrics.json", "gold-safe.json", "probe-safe.json", "over-safe.json"):
         assert SURFACE not in (out / name).read_text(encoding="utf-8")
 
