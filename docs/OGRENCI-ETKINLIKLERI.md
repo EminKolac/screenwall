@@ -1,4 +1,4 @@
-# Fable — Öğrencilere Yönelik Etkinlik Önerileri
+# Screenwall — Öğrencilere Yönelik Etkinlik Önerileri
 
 Kurumsal sunumun alternatifi olarak, üniversite/lise kitlesi için tasarlanmış etkinlikler.
 Her etkinlik: süre · seviye · malzeme · kazanım. Ortak güvenlik kuralı en altta.
@@ -10,7 +10,7 @@ Her etkinlik: süre · seviye · malzeme · kazanım. Ortak güvenlik kuralı en
 **Süre:** 45-60 dk · **Seviye:** lise + üniversite giriş · **Malzeme:** 5-6 sentetik belge çıktısı (GoldBench üreticisinden), kalem
 
 Öğrenciler basılı sentetik sözleşme/rapor üzerinde kişisel verileri elle bulup karartır.
-Sonra aynı belgeler canlı olarak Fable'dan geçirilir; insan-vs-makine skoru tahtaya yazılır.
+Sonra aynı belgeler canlı olarak Screenwall'dan geçirilir; insan-vs-makine skoru tahtaya yazılır.
 
 - Beklenen ders: insanlar bariz olanı (TCKN, telefon) bulur ama **quasi-tanımlayıcıları**
   (meslek+ilçe+yaş kombinasyonu) kaçırır; makine tersini de yapabilir.
@@ -20,9 +20,9 @@ Sonra aynı belgeler canlı olarak Fable'dan geçirilir; insan-vs-makine skoru t
 ## 2. "Maskeyi Kandır" — kırmızı takım CTF'i (orta-ileri)
 
 **Süre:** 2-3 saat (etkinlik) ya da 1 hafta (online) · **Seviye:** üniversite, güvenlik/yazılım
-**Malzeme:** Fable kurulu bir makine ya da API ucu, puan tablosu
+**Malzeme:** Screenwall kurulu bir makine ya da API ucu, puan tablosu
 
-Öğrenciler **sentetik** PII içeren belgeler üretip Fable'dan sızırmaya çalışır. Puanlama
+Öğrenciler **sentetik** PII içeren belgeler üretip Screenwall'dan sızdırmaya çalışır. Puanlama
 stres korpusumuzun gerçek taksonomisiyle: satıra bölünmüş değer, format varyantı, gizli
 sayfa, üstbilgi/altbilgi, görsel içine gömülü metin...
 
@@ -42,7 +42,7 @@ yazışması) ve içindeki PII'ları `must_mask` / `must_keep` olarak etiketler.
 
 - **Projeye geri dönüşü (en değerlisi):** bizim ölçüm altyapımızın bilinen açığı "kendi
   şablonumuzla kendimizi notlamak". Öğrenci yazımı belgeler, şablon üreticimizden gerçekten
-  bağımsız bir Türkçe test seti üretir — v5 planındaki `evaluation/independent/` boşluğunu
+  bağımsız bir Türkçe test seti üretir — README'deki "henüz mühürlü test seti yok" boşluğunu
   doldurur.
 - Çift-etiketleme (iki öğrenci aynı belgeyi bağımsız etiketler) → etiketleyiciler-arası uyum
   tartışması: "PII nedir?" sorusunun sanıldığı kadar net olmadığını bizzat yaşarlar.
@@ -52,7 +52,7 @@ yazışması) ve içindeki PII'ları `must_mask` / `must_keep` olarak etiketler.
 
 **Süre:** 1 gün · **Seviye:** üniversite CS · **Malzeme:** repo + GoldBench koşucusu, liderlik tablosu
 
-Takımlar Fable'a yeni bir tanıyıcı ekler (örnek hedefler: öğrenci numarası, IP, pasaport
+Takımlar Screenwall'a yeni bir tanıyıcı ekler (örnek hedefler: öğrenci numarası, IP, pasaport
 harici kimlikler, UYAP dosya no) ve **aynı komutla** ölçülür:
 
 - Liderlik tablosu tek metrik DEĞİL üç metrik: recall ↑ · aşırı-maskeleme probu ↓ · holdout
@@ -70,7 +70,7 @@ harici kimlikler, UYAP dosya no) ve **aynı komutla** ölçülür:
 eder (değerleri DEĞİL, türlerini: "ad", "konum", "okul no"...). Sınıfta tür bazında histogram
 çıkarılır; "hangisi gerekliydi?" tartışılır.
 
-- Fable bağlantısı: derste tek canlı demo — PII'lı bir sentetik dilekçenin maskelenmesi.
+- Screenwall bağlantısı: derste tek canlı demo — PII'lı bir sentetik dilekçenin maskelenmesi.
 - **Kazanım:** veri minimizasyonu sezgisi; teknik olmayan kitleye gizlilik kavramı.
 
 ## 6. Bitirme projesi / staj konuları (ilan edilebilir liste)
@@ -79,9 +79,9 @@ Her biri repo'daki gerçek, ölçülmüş bir boşluğa bağlı:
 
 | Konu | Bağlı olduğu ölçülmüş boşluk |
 |---|---|
-| Türkçe NER ince-ayarı (BERTurk) ve GoldBench'te A/B | fast yolda PERSON, prob 11/40 FP |
+| Türkçe NER ince-ayarı (BERTurk) ve GoldBench'te A/B | nötr cümle denemesinde 11/40 gereksiz karartma (bağlamsız spaCy isabetleri) |
 | UDF (UYAP) format desteği | format kapsamı — hukuk kitlesi için kritik |
-| Privacy Filter hızlandırma (ONNX/quantization) | ölçülen 38× yavaşlama |
+| Arşivdeki Privacy Filter'ı hızlandırma (ONNX/quantization) | yaklaşık 38 kat yavaş olduğu için arşive taşındı (`archive/privacy_filter/`) |
 | TRIR saldırı koşusu + rapor otomasyonu | tek "ölçülmedi" kalan gate |
 | Etiketleyiciler-arası uyum çalışması (madde 3 verisiyle) | benchmark geçerliliği |
 
@@ -90,7 +90,7 @@ Her biri repo'daki gerçek, ölçülmüş bir boşluğa bağlı:
 **Süre:** 60 dk · **Önerme örnekleri:**
 - "Takma-adlaştırma (mapping) yeterlidir; gerçek anonimleştirme (destructive) fazla kayıptır."
 - "Kamu yararına araştırma için sağlık verisi, kişi izni olmadan anonimleştirilerek kullanılabilir."
-- Fable'ın iki modu (mapping/destructive) münazaranın somut zemini olarak gösterilir.
+- Screenwall'ın iki modu (mapping/destructive) münazaranın somut zemini olarak gösterilir.
 
 ---
 
@@ -98,8 +98,8 @@ Her biri repo'daki gerçek, ölçülmüş bir boşluğa bağlı:
 
 1. **Gerçek kişisel veri ASLA kullanılmaz** — tüm belgeler sentetik; TCKN'ler checksum-geçerli
    ama sahte üretilir (üreteci biz veririz).
-2. Öğrenci bilgisayarlarından hiçbir belge dış servise gönderilmez — Fable'ın %100 yerel
-   çalışması etkinliğin kendisi için de geçerli kuraldır (bu, ürün mesajının yaşayan kanıtıdır).
+2. Öğrenci bilgisayarlarından hiçbir belge dış servise gönderilmez — Screenwall'ın bulut sohbeti kullanılmaz;
+   tespit, denetim ve yerel sohbet bilgisayarda çalışır. Ürünün kuralı etkinliğin de kuralıdır.
 3. CTF/korpus katkılarında lisans ve isim-atfı baştan yazılı netleştirilir.
 4. Yarışma skorlarında "işlenemedi" ayrı sayılır; sızıntı sayıları ham değerle değil hash'le
    raporlanır (bizim rapor disiplinimizin aynısı — öğrencilere de bu disiplin öğretilir).

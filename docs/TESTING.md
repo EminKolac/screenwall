@@ -3,7 +3,8 @@
 > **Note (2026-10-07):** the coverage table below describes an earlier version (93 tests, v1
 > API). Two of the files it names (`integration/test_review_api.py`, `integration/test_chat_api.py`)
 > no longer exist. Current state: 879 backend tests pass, 2 skipped (`uv run pytest -q`), and 79
-> frontend tests pass in 11 files (`npx vitest run`), measured on 2026-10-07. For what the
+> frontend tests pass in 11 files (`npx vitest run`), measured on 2026-10-07 and again on
+> 2026-10-10 with the same result. For what the
 > numbers in the README mean, see [SCORECARD.md](SCORECARD.md); for the code under test, read
 > `backend/tests/` and `frontend/src/**/*.test.ts(x)` directly.
 >

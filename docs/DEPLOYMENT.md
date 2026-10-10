@@ -17,7 +17,7 @@ launcher is kept in `archive/packaging-windows-2026-10-07/`).
 
 There are two ways to run it:
 
-| | Packaged app (release zip) | Development (`start.sh`) |
+| | Packaged app (release DMG or zip) | Development (`start.sh`) |
 |---|---|---|
 | For | users | working on the code |
 | Processes | one server serves the API and the built UI | backend + Vite dev server |
@@ -48,6 +48,17 @@ The two modes use different data folders; nothing is copied between them.
 - **Tesseract, optional**, for scanned PDF pages. `GET /api/health` reports `ocr.available`.
 
 ## 1. Packaged app
+
+### DMG and app bundle
+
+`Screenwall-macOS.dmg` holds `Screenwall.app`, an `Applications` symlink for drag-to-install and
+`OKU-BENI.txt`. The app is not signed or notarized by Apple: the first launch needs right-click
+(Control-click) > Open, and on macOS 15 or later, if that is refused, System Settings > Privacy &
+Security > "Open Anyway". Launching the app opens a Terminal window that runs the same launcher
+as the zip (`Screenwall.command`, below) and shows its progress; closing that window or Ctrl+C
+stops Screenwall. The bundle stays read-only: everything the launcher writes (Python
+environment, documents, settings, logs) goes under `SCREENWALL_HOME`. The zip and
+`install-macos.sh` remain as alternatives and run the same launcher.
 
 ### What the launcher does
 
@@ -108,7 +119,7 @@ Measured on an Apple Silicon Mac with a warm uv cache (no downloads): first star
 What has been checked: the zip was unpacked and the launcher run from a terminal, end to end,
 on an Apple Silicon Mac (macOS 26); every release is also smoke-tested on GitHub's Apple
 Silicon (`macos-latest`) and Intel (`macos-15-intel`) runners (below). Not yet checked by hand:
-a Finder double-click with the Gatekeeper prompt, a zip downloaded from the internet
+a Finder launch with the Gatekeeper prompt, a DMG or zip downloaded from the internet
 (quarantine attribute), macOS 14–15 and a real Intel Mac. On Intel the only test is that smoke
 test, which runs without Ollama (`SCREENWALL_SKIP_OLLAMA=1`, `--expect-auditor unavailable`):
 approval, PDF download and chat with Ollama have never run on an Intel Mac, and CI runs the
@@ -126,8 +137,11 @@ or tested for Windows.
 make release VERSION=0.1.0      # = bash packaging/build_release.sh 0.1.0
 ```
 
-Output in `dist/` (git-ignored): `Screenwall-macOS.zip`, `install-macos.sh` and
-`SHA256SUMS.txt`. The zip has a top folder `Screenwall/` with `Screenwall.command`,
+Output in `dist/` (git-ignored): `Screenwall-macOS.dmg`, `Screenwall-macOS.zip`,
+`install-macos.sh` and `SHA256SUMS.txt`, which covers the other three. The asset names carry no
+version, so the `releases/latest/download/<asset>` links stay stable. The DMG holds the app
+bundle described above and is built only on macOS (`hdiutil`); elsewhere the script builds the
+other assets and `SHA256SUMS.txt` covers the zip and the installer only. The zip has a top folder `Screenwall/` with `Screenwall.command`,
 `OKU-BENI.txt`, `VERSION`, `app/backend/{app/, pyproject.toml, uv.lock}` (the PDF fonts and
 their licence, `app/export/fonts/LICENSE-DejaVu.txt`, included) and the prebuilt
 `app/frontend/dist/`. The script refuses a `uv.lock` that does not match `pyproject.toml`,
@@ -137,25 +151,29 @@ assets from older builds, to `dist/.previous/` instead of deleting them.
 
 ### CI and publishing
 
-- `.github/workflows/ci.yml`: backend tests on Ubuntu and macOS, and frontend typecheck,
-  vitest and build.
-- `.github/workflows/release.yml` (tag `v*`): build → smoke test on `macos-latest` (Apple
-  Silicon) and `macos-15-intel` (Intel) → draft release. The smoke job unpacks the zip with
-  `ditto`, starts the launcher with `SCREENWALL_NO_BROWSER=1 SCREENWALL_SKIP_OLLAMA=1` and runs
-  `packaging/smoke_test.py` (health, UI, launch token, session + CSRF, upload of a synthetic
-  DOCX, at least one placeholder). `macos-15-intel` is GitHub's last Intel macOS image,
+- `.github/workflows/ci.yml`: backend tests on Ubuntu and macOS, frontend typecheck, vitest and
+  build, and a cheap `packaging` job (`bash -n` / `sh -n` on the scripts, the Info.plist
+  template and the icns header, `py_compile`).
+- `.github/workflows/release.yml` (tag `v*`): build on `macos-latest` (the DMG needs `hdiutil`)
+  → smoke test on `macos-latest` (Apple Silicon) and `macos-15-intel` (Intel) → draft release
+  with Screenwall-macOS.dmg, Screenwall-macOS.zip, install-macos.sh and SHA256SUMS.txt. The
+  smoke job runs `packaging/smoke_release.sh zip` (unpacks the zip with `ditto`, starts the
+  launcher with `SCREENWALL_NO_BROWSER=1 SCREENWALL_SKIP_OLLAMA=1`, runs `packaging/smoke_test.py`:
+  health, UI, launch token, session + CSRF, upload of a synthetic DOCX, at least one
+  placeholder) and `packaging/smoke_release.sh dmg` (mounts the image read-only, checks the
+  "move it to Applications first" guard, copies the app, runs its Terminal starter without
+  Terminal, the same smoke test, and checks that nothing inside the app changed). `make
+  smoke-release` runs both on a Mac. `macos-15-intel` is GitHub's last Intel macOS image,
   announced as supported until August 2027; remove it from the matrix when it is retired.
 - The same workflow runs on every pull request that touches `packaging/`, `backend/`,
   `frontend/` or the workflow itself, and by hand ("Run workflow", once the file is on the
   default branch). Those runs build and smoke-test but create no release. A tag whose smoke job
-  fails on either runner gets no draft at all. Order: pull request with a green Release run,
-  merge, then tag. The Release run must include a green `smoke (macos-15-intel)` job: that job
-  is newer than the last Release run on the v0.1.0 pull request and has not run on GitHub yet.
-- The draft must be published as a full release (not a prerelease). Until then the
-  `releases/latest/download/<asset>` links in the README do not resolve. The README says so in
-  one sentence under its download table and lists the first release on its roadmap; remove
-  both in a separate commit right after the release is published (the README is not in the
-  zip, so the release assets do not change).
+  fails on either runner gets no draft at all. Order: pull request with a green Release run
+  (both smoke jobs), merge, then tag.
+- The draft must be published as a full release (not a prerelease): GitHub resolves
+  `releases/latest/download/<asset>`, which the README and the installer use, only to the
+  latest full release. Check that the release carries all four assets (DMG, zip,
+  `install-macos.sh`, `SHA256SUMS.txt`).
 
 The smoke test can also be run by hand against a running app:
 
@@ -227,8 +245,9 @@ and `USE_PRIVACY_FILTER` (the Privacy Filter stage is in `archive/privacy_filter
 ## 4. Chat providers
 
 - `ollama` (default): local, no consent step.
-- `claude_cli` and `codex_cli`: cloud, through the user's own CLI login (`claude auth login`,
-  `codex login`). Screenwall stores no API key. Every question first goes through
+- `claude_cli` and `codex_cli`: cloud, through the user's own CLI login (`claude auth login`
+  for Claude Code; `codex login` with a ChatGPT account for Codex, which is what
+  `chat/cli.py` checks). Screenwall stores no API key. Every question first goes through
   `POST /api/chat/preview`, which returns the exact text that would leave the computer;
   `POST /api/chat` sends only with the matching `preview_hash`. Each send is recorded without
   content in `STORAGE_ROOT/chat_dispatches.jsonl`.
@@ -243,5 +262,6 @@ Chat only ever reads the approved, masked chat context (storage layer 5). See
   of a document; on SSDs overwriting is not a guaranteed erase (see SECURITY.md).
 - Logs pass through a PII-redacting filter and name documents by id.
 - FastAPI's `/docs` and `/openapi.json` are still served on the same origin.
-- Updating the packaged app: unpack the new zip (or rerun the install command, which moves the
-  old folder aside). Data in `SCREENWALL_HOME` is kept.
+- Updating the packaged app: drag the new `Screenwall.app` from the DMG over the old one, or
+  unpack the new zip (or rerun the install command, which moves the old folder aside). Data in
+  `SCREENWALL_HOME` is kept.
