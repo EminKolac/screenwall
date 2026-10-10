@@ -5,7 +5,7 @@ Screenwall nedir?
 -----------------
 Screenwall, belgelerdeki kişisel verileri (ad soyad, T.C. kimlik numarası, IBAN, telefon,
 e-posta, adres gibi) bulur ve maskeler. Tespit, maskeleme ve denetim bu bilgisayarda çalışır;
-belgelerinizin orijinali başka bir yere gönderilmez. İsteğe bağlı Claude veya Codex sohbetini
+belgelerinizin orijinali başka bir yere gönderilmez. İsteğe bağlı Claude ya da ChatGPT (Codex CLI) sohbetini
 seçerseniz, yalnız onayladığınız belgenin maskeli metni, önce size gösterilip onayınız alınarak
 dışarı gider. Arayüz tarayıcıda açılır, ama yalnızca bu bilgisayardaki adrese bağlanır:
 
@@ -16,9 +16,9 @@ Desteklenen dosyalar: PDF, Word (.docx) ve Excel (.xlsx).
 Screenwall yalnız macOS içindir: Apple Silicon ve Intel Mac'ler, macOS 14 (Sonoma) veya üstü.
 Windows desteklenmiyor.
 
-Maskelenen her belgeyi önce yerel bir yapay zekâ denetçisi (Ollama ile çalışan qwen3.5:4b modeli)
-kontrol eder. Denetçinin temiz bulduğu belge onaylanır; şüpheli bir şey kalırsa belge sizin
-incelemenize düşer. Yalnızca onaylanmış belgeler indirilebilir.
+Maskelenen her belgeyi önce yerel denetçi kontrol eder: bu bilgisayarda Ollama ile çalışan bir
+lokal LLM (qwen3.5:4b modeli). Denetçinin temiz bulduğu belge onaylanır; şüpheli bir şey kalırsa
+belge sizin incelemenize düşer. Yalnızca onaylanmış belgeler indirilebilir.
 
 
 Gerekenler
@@ -44,21 +44,35 @@ Gerekenler
    - Homebrew ile kurun: brew install tesseract tesseract-lang
 
 
-Başlatma
---------
-1. Screenwall-macOS.zip dosyasına çift tıklayın. Çıkan Screenwall klasörünü istediğiniz yere
-   taşıyabilirsiniz.
-2. Klasördeki Screenwall.command dosyasına çift tıklayın. Bir Terminal penceresi açılır.
-3. Screenwall imzasız olduğu için macOS ilk seferde "açılamadı" ya da "geliştirici
-   doğrulanamadı" uyarısı verebilir:
-   - Dosyaya sağ tıklayın (veya Control tuşuna basılı tutarak tıklayın) > Aç > Aç.
-   - macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa: uyarıyı kapatın, sonra
-     Sistem Ayarları > Gizlilik ve Güvenlik bölümüne gidin, aşağıdaki Screenwall.command
-     satırında "Yine de Aç" düğmesine basın ve onaylayın.
-   Bu yalnızca ilk açılışta gerekir.
-4. Hazır olunca tarayıcıda http://127.0.0.1:8765 kendiliğinden açılır.
+Kurulum ve başlatma
+-------------------
+Önerilen yol, disk görüntüsü (Screenwall-macOS.dmg):
 
-Terminal'den kurmak isterseniz (Screenwall'ı ~/Screenwall klasörüne kurar ve başlatır):
+1. Screenwall-macOS.dmg dosyasına çift tıklayın. Açılan pencerede Screenwall'ı yanındaki
+   Applications (Uygulamalar) klasörüne sürükleyin.
+2. Uygulamalar klasöründen Screenwall'ı açın. DMG penceresinden doğrudan açarsanız Screenwall
+   yalnızca önce Uygulamalar klasörüne taşınmasını ister.
+3. Screenwall imzasız olduğu için (Apple tarafından imzalanmadı) macOS ilk seferde "açılamadı"
+   ya da "geliştirici doğrulanamadı" uyarısı verebilir:
+   - Screenwall'a sağ tıklayın (veya Control tuşuna basılı tutarak tıklayın) > Aç > Aç.
+   - macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa: uyarıyı kapatın, sonra
+     Sistem Ayarları > Gizlilik ve Güvenlik bölümüne gidin, aşağıdaki Screenwall satırında
+     "Yine de Aç" düğmesine basın ve onaylayın.
+   Bu yalnızca ilk açılışta gerekir.
+4. Bir Terminal penceresi açılır ve ne yapıldığını gösterir. İlk açılışta Python ortamı
+   hazırlanır (yaklaşık 100 MB indirme); Ollama kuruluysa qwen3.5:4b modeli de (yaklaşık
+   3,4 GB) indirilir.
+5. Hazır olunca tarayıcıda http://127.0.0.1:8765 kendiliğinden açılır. DMG'yi artık
+   çıkarabilirsiniz (Finder'da Screenwall diskinin yanındaki çıkar simgesi).
+
+Zip ile (Screenwall-macOS.zip):
+
+1. Zip dosyasına çift tıklayın. Çıkan Screenwall klasörünü istediğiniz yere taşıyabilirsiniz.
+2. Klasördeki Screenwall.command dosyasına çift tıklayın. Bir Terminal penceresi açılır.
+   İlk açılış uyarısında yukarıdaki 3. adımı Screenwall.command dosyası için uygulayın.
+
+Terminal'den kurmak isterseniz (zip'i indirip doğrular, ~/Screenwall klasörüne kurar ve
+başlatır):
 
     curl -LsSf https://github.com/EminKolac/screenwall/releases/latest/download/install-macos.sh | sh
 
@@ -78,7 +92,9 @@ Terminal'den kurmak isterseniz (Screenwall'ı ~/Screenwall klasörüne kurar ve 
 Durdurmak
 ---------
 Screenwall'ın açıldığı Terminal penceresinde Ctrl+C'ye basın ya da pencereyi kapatın.
-Pencere açık kaldığı sürece Screenwall çalışır.
+Pencere açık kaldığı sürece Screenwall çalışır. Screenwall çalışırken uygulamayı yeniden
+açarsanız kısa süreliğine ikinci bir Terminal penceresi açılır ve yalnızca tarayıcıdaki sayfayı
+açar; o ikinci pencereyi kapatabilirsiniz, Screenwall ilk pencerede çalışmaya devam eder.
 
 Ollama ayrı bir programdır ve arka planda çalışmaya devam edebilir. İsterseniz onu da kendi
 menüsünden (Quit Ollama) kapatabilirsiniz.
@@ -93,10 +109,16 @@ Bu klasörde:
 - venv  : Screenwall'ın Python ortamı
 - logs  : çalışma kayıtları (sorun olursa buraya bakın)
 - launch-token : bu açılışa özel anahtar (aşağıya bakın)
+- launcher : Screenwall uygulamasının Terminal'de açtığı küçük başlatma dosyası (her açılışta
+  yeniden yazılır)
+- pycache : Python'un derlenmiş dosyaları (yalnız uygulama sürümünde)
+
+Screenwall uygulamasının kendisine (Uygulamalar klasöründeki Screenwall) hiçbir şey yazılmaz.
 
 Başka bir klasör kullanmak için SCREENWALL_HOME, başka bir port için SCREENWALL_PORT ortam
-değişkenini ayarlayın. Örnek (macOS Terminal):
+değişkenini ayarlayıp başlatıcıyı Terminal'den çalıştırın. Örnekler (macOS Terminal):
 
+    SCREENWALL_PORT=8766 /Applications/Screenwall.app/Contents/Resources/Screenwall/Screenwall.command
     SCREENWALL_PORT=8766 ~/Screenwall/Screenwall.command
 
 
@@ -110,10 +132,11 @@ dosyayı ve anahtarlı adresi kimseyle paylaşmayın.
 Sizin hesabınızda çalışan programlar veri klasörünüzü zaten okuyabilir; bu anahtar onlara karşı
 koruma sağlamaz.
 
-Screenwall'ı her zaman Screenwall.command ile açın. Yer imine
+Screenwall'ı her zaman Screenwall uygulamasıyla (zip'te Screenwall.command ile) açın. Yer imine
 eklediğiniz http://127.0.0.1:8765 adresi, Screenwall yeniden başladıktan sonra "başlatıcısından
-yeniden açın" uyarısı verir; o zaman başlatıcıya yeniden çift tıklayın. Screenwall zaten
-çalışıyorsa başlatıcı yalnızca sayfayı açar.
+yeniden açın" uyarısı verir; o zaman Screenwall'ı yeniden açın. Screenwall zaten çalışıyorsa
+yalnızca sayfa açılır (uygulamadan açtıysanız kısa süreliğine ikinci bir Terminal penceresi de
+belirir; onu kapatabilirsiniz).
 
 
 Kaldırmak
@@ -121,8 +144,8 @@ Kaldırmak
 Screenwall hiçbir dosyayı kendiliğinden silmez. Kaldırmak için şu klasörleri kendiniz çöp
 kutusuna taşıyın:
 
-1. Screenwall program klasörü: zip'ten çıkardığınız klasör, ya da kurulum komutunu
-   kullandıysanız ~/Screenwall.
+1. Screenwall programı: Uygulamalar klasöründeki Screenwall, zip'ten çıkardığınız klasör, ya
+   da kurulum komutunu kullandıysanız ~/Screenwall.
    Kurulum komutu eski sürümleri "Screenwall-eski-..." adıyla yanına taşır; onları da
    taşıyabilirsiniz.
 2. Veri klasörü (yukarıda). Dikkat: belgeleriniz buradadır; gerekirse önce yedekleyin.

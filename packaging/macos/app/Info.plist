@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Screenwall.app/Contents/Info.plist. packaging/build_release.sh replaces @VERSION@ with the
+  release version.
+
+  LSArchitecturePriority (arm64 first, then x86_64): the executable is a bash script, which has no
+  architecture of its own. Without this key LaunchServices starts such an app under Rosetta on
+  Apple Silicon (checked on macOS 26: uname -m said x86_64, sysctl.proc_translated said 1) and a
+  Mac without Rosetta asks to install it. With it the script runs natively on Apple Silicon;
+  Intel Macs take x86_64.
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>tr</string>
+	<key>CFBundleDisplayName</key>
+	<string>Screenwall</string>
+	<key>CFBundleExecutable</key>
+	<string>Screenwall</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>site.screenwall.Screenwall</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Screenwall</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@VERSION@</string>
+	<key>CFBundleVersion</key>
+	<string>@VERSION@</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSArchitecturePriority</key>
+	<array>
+		<string>arm64</string>
+		<string>x86_64</string>
+	</array>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+</dict>
+</plist>

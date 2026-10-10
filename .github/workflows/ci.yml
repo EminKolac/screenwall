@@ -1,7 +1,10 @@
 # Tests on every push to main and every pull request.
 #
-#   backend   pytest on Linux and macOS (uv, Python 3.12, the locked dependencies)
-#   frontend  type check, unit tests (vitest) and the production build (Node 22)
+#   backend    pytest on Linux and macOS (uv, Python 3.12, the locked dependencies)
+#   frontend   type check, unit tests (vitest) and the production build (Node 22)
+#   packaging  quick checks of the release files: shell syntax of the scripts, the
+#              Screenwall.app Info.plist template, the icon file, Python syntax. The release
+#              workflow (release.yml) builds and smoke-tests the dmg and zip themselves.
 #
 # Screenwall ships for macOS only, so there is no Windows job. Ruff and the Playwright e2e suite
 # are not run yet (ruff is not clean on this tree).
@@ -80,3 +83,53 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  packaging:
+    name: packaging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Shell syntax
+        shell: bash
+        run: |
+          for script in packaging/build_release.sh packaging/smoke_release.sh \
+            packaging/macos/Screenwall.command packaging/macos/app/Screenwall; do
+            bash -n "$script"
+          done
+          # install-macos.sh is piped into sh on users' Macs: POSIX sh (dash here) must parse it.
+          sh -n packaging/install-macos.sh
+
+      - name: Info.plist template, icon, Python syntax
+        shell: bash
+        run: |
+          python3 - <<'EOF'
+          import plistlib
+          from pathlib import Path
+
+          raw = Path("packaging/macos/app/Info.plist").read_bytes()
+          assert b"@VERSION@" in raw, "Info.plist has no @VERSION@ placeholder"
+          info = plistlib.loads(raw.replace(b"@VERSION@", b"0.0.0"))
+          expected = {
+              "CFBundleIdentifier": "site.screenwall.Screenwall",
+              "CFBundleName": "Screenwall",
+              "CFBundleDisplayName": "Screenwall",
+              "CFBundleExecutable": "Screenwall",
+              "CFBundleIconFile": "AppIcon",
+              "CFBundlePackageType": "APPL",
+              "CFBundleShortVersionString": "0.0.0",
+              "LSMinimumSystemVersion": "14.0",
+              "NSHighResolutionCapable": True,
+          }
+          for key, value in expected.items():
+              assert info.get(key) == value, f"Info.plist {key} = {info.get(key)!r}, expected {value!r}"
+          # arm64 first, or LaunchServices runs the bash entry point under Rosetta.
+          assert info.get("LSArchitecturePriority", [None])[0] == "arm64", "LSArchitecturePriority"
+          icon = Path("packaging/macos/app/AppIcon.icns").read_bytes()
+          assert icon[:4] == b"icns", "AppIcon.icns is not an icns file"
+          print("Info.plist template and AppIcon.icns ok")
+          EOF
+          python3 -m py_compile packaging/smoke_test.py packaging/macos/app/make_icon.py

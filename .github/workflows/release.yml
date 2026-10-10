@@ -1,12 +1,17 @@
-# Release: build the macOS launcher zip, smoke-test it on an Apple Silicon and an Intel Mac,
-# then open a DRAFT GitHub release with the assets. A person publishes the draft (as a full
-# release, not a prerelease: only then do the .../releases/latest/download/<asset> links point
-# at it).
+# Release: build the macOS disk image (Screenwall.app) and launcher zip, smoke-test both on an
+# Apple Silicon and an Intel Mac, then open a DRAFT GitHub release with the assets. A person
+# publishes the draft (as a full release, not a prerelease: only then do the
+# .../releases/latest/download/<asset> links point at it).
 #
-#   build    (ubuntu)  UI build + packaging/build_release.sh -> 3 assets as one workflow artifact
-#   smoke    (macos-latest = Apple Silicon, macos-15-intel = Intel)  unzip the zip, start the
-#            launcher as a user would (no browser, no Ollama), wait for /health, run
-#            packaging/smoke_test.py against it
+#   build    (macos-latest: hdiutil makes the dmg)  UI build + packaging/build_release.sh ->
+#            Screenwall-macOS.dmg, Screenwall-macOS.zip, install-macos.sh, SHA256SUMS.txt as one
+#            workflow artifact
+#   smoke    (macos-latest = Apple Silicon, macos-15-intel = Intel)  packaging/smoke_release.sh:
+#            zip  unzip, start Screenwall.command as a user would (no browser, no Ollama), wait
+#                 for /health, run packaging/smoke_test.py, stop it
+#            dmg  mount the image read-only, check it, copy Screenwall.app out, start it the way
+#                 the app does (its Terminal starter, without Terminal) with an empty HOME, the
+#                 same checks, and no file in the app may change
 #   release  (tags v* only, after every smoke job passed)  gh release create --draft
 #
 # macOS only: there is no Windows build (the Windows launcher is kept in
@@ -32,7 +37,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version written into the zips (empty: the tag name, or 0.0.0-dev.<commit>)"
+        description: "Version written into the assets (empty: the tag name, or 0.0.0-dev.<commit>)"
         required: false
         default: ""
 
@@ -46,8 +51,9 @@ concurrency:
 jobs:
   build:
     name: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # macOS: hdiutil (the dmg) exists only there. The zip is the same on Linux and macOS.
+    runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -95,7 +101,7 @@ jobs:
             echo ''
             echo '| asset | bytes |'
             echo '|---|---:|'
-            for asset in Screenwall-macOS.zip install-macos.sh SHA256SUMS.txt; do
+            for asset in Screenwall-macOS.dmg Screenwall-macOS.zip install-macos.sh SHA256SUMS.txt; do
               echo "| $asset | $(wc -c <"dist/$asset" | tr -d ' ') |"
             done
             echo ''
@@ -104,11 +110,12 @@ jobs:
             echo '```'
           } >>"$GITHUB_STEP_SUMMARY"
 
-      # Only the three assets: dist/.work and dist/.previous (staging, earlier builds) stay out.
+      # Only the four assets: dist/.work and dist/.previous (staging, earlier builds) stay out.
       - uses: actions/upload-artifact@v7
         with:
           name: screenwall-release
           path: |
+            dist/Screenwall-macOS.dmg
             dist/Screenwall-macOS.zip
             dist/install-macos.sh
             dist/SHA256SUMS.txt
@@ -119,7 +126,7 @@ jobs:
     name: smoke (${{ matrix.os }})
     needs: build
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -127,11 +134,9 @@ jobs:
         os: [macos-latest, macos-15-intel]
     env:
       SCREENWALL_PORT: "8765"
-      SCREENWALL_NO_BROWSER: "1"
-      SCREENWALL_SKIP_OLLAMA: "1"
-      SW_URL: http://127.0.0.1:8765
     steps:
-      # Only for packaging/smoke_test.py; the app under test comes from the built zip.
+      # For packaging/smoke_release.sh and smoke_test.py; the app under test comes from the
+      # built assets.
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
@@ -141,8 +146,8 @@ jobs:
           name: screenwall-release
           path: dist
 
-      # Paths with a space on purpose: the default macOS home is ".../Application Support/...".
-      # No uv is set up here: the launcher finds or installs it, as on a user's machine.
+      # No uv is set up here: the launcher finds or installs it, as on a user's machine. Folder
+      # names with a space on purpose: the default data folder is ".../Application Support/...".
 
       - name: Show the machine
         shell: bash
@@ -152,121 +157,15 @@ jobs:
           echo "${{ matrix.os }}: $(sw_vers -productName) $(sw_vers -productVersion), $(uname -m)" \
             >>"$GITHUB_STEP_SUMMARY"
 
-      - name: Unpack Screenwall-macOS.zip
+      - name: Smoke test, Screenwall-macOS.zip
         shell: bash
-        run: |
-          app_dir="$RUNNER_TEMP/Screenwall app"
-          mkdir -p "$app_dir"
-          # ditto is what Finder's Archive Utility uses; it keeps the launcher's executable bit.
-          ditto -x -k dist/Screenwall-macOS.zip "$app_dir"
-          if [ ! -x "$app_dir/Screenwall/Screenwall.command" ]; then
-            echo "::error::Screenwall.command is missing or not executable after unzip"
-            exit 1
-          fi
-          {
-            echo "SW_APP=$app_dir/Screenwall"
-            echo "SCREENWALL_HOME=$RUNNER_TEMP/Screenwall home"
-          } >>"$GITHUB_ENV"
+        run: SMOKE_DIR="$RUNNER_TEMP/smoke-zip" bash packaging/smoke_release.sh zip
 
-      - name: Start the launcher and wait for /health
+      # Runs even when the zip test failed, so one run reports on both packages.
+      - name: Smoke test, Screenwall-macOS.dmg
+        if: ${{ !cancelled() }}
         shell: bash
-        run: |
-          launcher_pid=""
-          start_launcher() { # start_launcher <attempt>
-            "$SW_APP/Screenwall.command" >"$RUNNER_TEMP/launcher-$1.log" 2>&1 </dev/null &
-            launcher_pid=$!
-            echo "SW_LAUNCHER_PID=$launcher_pid" >>"$GITHUB_ENV"
-          }
-          # 0: /health answered; 1: the launcher exited first; 2: no answer in 300 s.
-          wait_health() {
-            local deadline=$((SECONDS + 300))
-            while [ "$SECONDS" -lt "$deadline" ]; do
-              curl -sf -o /dev/null --max-time 3 "$SW_URL/health" && return 0
-              kill -0 "$launcher_pid" 2>/dev/null || return 1
-              sleep 2
-            done
-            return 2
-          }
-          show_logs() {
-            for log in "$RUNNER_TEMP"/launcher-*.log "$SCREENWALL_HOME/logs/server.log"; do
-              [ -f "$log" ] || continue
-              echo "----- $log (last 60 lines)"
-              tail -n 60 "$log"
-            done
-          }
-
-          started=$SECONDS
-          start_launcher 1
-          result=0
-          wait_health || result=$?
-          if [ "$result" = 1 ]; then
-            # The launcher gives the server 90 s and tells the user to start it once more if the
-            # first start is slower. Do the same once, and say so on the run.
-            echo "::warning::First start: the launcher exited before /health answered (after $((SECONDS - started)) s). Starting it a second time, as its message tells users to."
-            show_logs
-            sleep 3
-            start_launcher 2
-            result=0
-            wait_health || result=$?
-          fi
-          if [ "$result" != 0 ]; then
-            show_logs
-            if [ "$result" = 1 ]; then
-              echo "::error::The launcher exited before /health answered"
-            else
-              echo "::error::/health did not answer within 300 s"
-            fi
-            exit 1
-          fi
-          message="/health answered $((SECONDS - started)) s after the first launcher start"
-          echo "$message"
-          echo "$(uname -m): $message" >>"$GITHUB_STEP_SUMMARY"
-
-      - name: Smoke test
-        shell: bash
-        run: |
-          # The uv the launcher used (it looks in the same places), and the venv it built.
-          uv_bin="$(command -v uv || true)"
-          if [ -z "$uv_bin" ]; then
-            for candidate in "$HOME/.local/bin/uv" "$HOME/.cargo/bin/uv"; do
-              if [ -x "$candidate" ]; then
-                uv_bin="$candidate"
-                break
-              fi
-            done
-          fi
-          if [ -z "$uv_bin" ]; then
-            echo "::error::uv not found after the launcher ran"
-            exit 1
-          fi
-          status=0
-          UV_PROJECT_ENVIRONMENT="$SCREENWALL_HOME/venv" \
-            "$uv_bin" run --no-sync --project "$SW_APP/app/backend" \
-            python packaging/smoke_test.py --base-url "$SW_URL" --wait 60 \
-            --expect-auditor unavailable --launch-token-file "$SCREENWALL_HOME/launch-token" \
-            >"$RUNNER_TEMP/smoke-summary.json" || status=$?
-          cat "$RUNNER_TEMP/smoke-summary.json"
-          {
-            echo "### Smoke test, ${{ matrix.os }} (exit $status)"
-            echo '```json'
-            cat "$RUNNER_TEMP/smoke-summary.json"
-            echo '```'
-          } >>"$GITHUB_STEP_SUMMARY"
-          exit "$status"
-
-      - name: Stop the launcher
-        if: always()
-        shell: bash
-        run: |
-          # TERM: the launcher's trap stops the server it started (uv passes it on to uvicorn).
-          if [ -n "${SW_LAUNCHER_PID:-}" ] && kill -0 "$SW_LAUNCHER_PID" 2>/dev/null; then
-            kill -TERM "$SW_LAUNCHER_PID" || true
-            for _ in $(seq 1 30); do
-              kill -0 "$SW_LAUNCHER_PID" 2>/dev/null || break
-              sleep 1
-            done
-          fi
-          exit 0
+        run: SMOKE_DIR="$RUNNER_TEMP/smoke-dmg" bash packaging/smoke_release.sh dmg
 
       - name: Upload logs
         if: failure()
@@ -274,9 +173,8 @@ jobs:
         with:
           name: smoke-logs-${{ matrix.os }}
           path: |
-            ${{ runner.temp }}/launcher-*.log
-            ${{ runner.temp }}/smoke-summary.json
-            ${{ env.SCREENWALL_HOME }}/logs/
+            ${{ runner.temp }}/smoke-*/*.log
+            ${{ runner.temp }}/smoke-*/*.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -300,16 +198,21 @@ jobs:
         working-directory: dist
         run: |
           ls -l
-          for asset in Screenwall-macOS.zip install-macos.sh SHA256SUMS.txt; do
+          for asset in Screenwall-macOS.dmg Screenwall-macOS.zip install-macos.sh SHA256SUMS.txt; do
             [ -f "$asset" ] || { echo "::error::missing asset $asset"; exit 1; }
           done
-          # Exactly these three files are attached to the release (dist/*).
-          expected='Screenwall-macOS\.zip|install-macos\.sh|SHA256SUMS\.txt'
+          # Exactly these four files are attached to the release (dist/*).
+          expected='Screenwall-macOS\.dmg|Screenwall-macOS\.zip|install-macos\.sh|SHA256SUMS\.txt'
           extra="$(ls -A | grep -vxE "$expected" || true)"
           if [ -n "$extra" ]; then
             echo "::error::unexpected files in the release assets: $extra"
             exit 1
           fi
+          # Every asset but the checksum file itself is in SHA256SUMS.txt.
+          [ "$(wc -l <SHA256SUMS.txt | tr -d ' ')" = 3 ] || {
+            echo "::error::SHA256SUMS.txt does not list the three other assets"
+            exit 1
+          }
           sha256sum -c SHA256SUMS.txt
 
       - name: Create the draft release
@@ -330,17 +233,18 @@ jobs:
 
           İndirme ve kurulum adımları README'nin "İndir" bölümünde: $repo_url#indir
 
-          - Screenwall-macOS.zip: uygulama. Zip'i açın, Screenwall klasöründeki Screenwall.command dosyasına çift tıklayın.
+          - Screenwall-macOS.dmg: uygulama (önerilen). DMG'yi açın, Screenwall'ı Applications (Uygulamalar) klasörüne sürükleyin ve oradan açın. Bir Terminal penceresi açılır ve ilerlemeyi gösterir; hazır olunca tarayıcıda http://127.0.0.1:8765 açılır. O pencereyi kapatmak (ya da Ctrl+C) Screenwall'ı durdurur. Belgeler, ayarlar ve Python ortamı ~/Library/Application Support/Screenwall klasöründe durur; uygulamanın kendisine bir şey yazılmaz.
+          - Screenwall-macOS.zip: aynı uygulama, klasör olarak. Zip'i açın, Screenwall klasöründeki Screenwall.command dosyasına çift tıklayın.
           - install-macos.sh: terminalden kurulum. Zip'i indirir, SHA256SUMS.txt ile doğrular, ~/Screenwall klasörüne kurar ve başlatır.
-          - SHA256SUMS.txt: dosyaların SHA-256 özetleri.
+          - SHA256SUMS.txt: dmg, zip ve install-macos.sh dosyalarının SHA-256 özetleri.
 
-          Ollama zorunlu. Belgeler yalnızca yerel denetçi (Ollama üzerinde qwen3.5:4b modeli, yaklaşık 3,4 GB) çalıştığında onaylanabilir; Ollama yoksa uygulama açılır ve belgeleri maskeler, ama hiçbir belge onaylanamaz ve indirilemez. Ollama'yı https://ollama.com/download adresinden kurun; model ilk açılışta kendiliğinden indirilir. İlk açılışta gerekli paketler de indirilir; internet bağlantısı gerekir.
+          Ollama zorunlu. Belgeler yalnızca yerel denetçi (Ollama üzerinde çalışan lokal LLM: qwen3.5:4b modeli, yaklaşık 3,4 GB) çalıştığında onaylanabilir; Ollama yoksa uygulama açılır ve belgeleri maskeler, ama hiçbir belge onaylanamaz ve indirilemez. Ollama'yı https://ollama.com/download adresinden kurun; model ilk açılışta kendiliğinden indirilir. İlk açılışta gerekli paketler de indirilir; internet bağlantısı gerekir.
 
           Intel Mac'lerde Ollama yalnız işlemciyle (CPU) çalışır, denetim daha yavaş olur. Denetçi bir belgeye en fazla 120 saniye ayırır; süre aşılırsa belge incelemede kalır, elle onay da denetimi yeniden çalıştırdığı için süreyi hep aşan bir belge onaylanamaz. Intel'de bu sürenin yetip yetmediği ölçülmedi: Intel için tek test aşağıdaki Ollama'sız duman testi; Intel'de Ollama ile onay hiç denenmedi.
 
-          İlk açılışta macOS uyarısı: uygulama imzasız olduğu için macOS "açılamadı" ya da "geliştirici doğrulanamadı" diyebilir. Screenwall.command dosyasına sağ tıklayın (ya da Control tuşuyla tıklayın) > Aç > Aç. macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı kapatın, Sistem Ayarları > Gizlilik ve Güvenlik bölümünde Screenwall.command satırındaki "Yine de Aç" düğmesine basın. Bu yalnızca ilk açılışta gerekir.
+          İlk açılışta macOS uyarısı: uygulama Apple tarafından imzalanmadığı için macOS "açılamadı" ya da "geliştirici doğrulanamadı" diyebilir. Screenwall uygulamasına (zip'te Screenwall.command dosyasına) sağ tıklayın (ya da Control tuşuyla tıklayın) > Aç > Aç. macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı kapatın, Sistem Ayarları > Gizlilik ve Güvenlik bölümünde Screenwall satırındaki "Yine de Aç" düğmesine basın. Bu yalnızca ilk açılışta gerekir.
 
-          Otomatik duman testi (zip açılır, başlatıcı çalıştırılır, sunucu ve örnek bir belge yüklemesi denenir; Ollama olmadan) GitHub'ın Apple Silicon (macos-latest) ve Intel (macos-15-intel) macOS sunucularında geçti. Bu taslağı oluşturan CI çalışması: $repo_url/actions/runs/$GITHUB_RUN_ID
+          Otomatik duman testi (zip açılır; DMG salt okunur bağlanır ve uygulama kopyalanır; başlatıcı çalıştırılır, sunucu ve örnek bir belge yüklemesi denenir, uygulamanın içinde hiçbir dosyanın değişmediğine bakılır; Ollama ve Terminal penceresi olmadan) GitHub'ın Apple Silicon (macos-latest) ve Intel (macos-15-intel) macOS sunucularında geçti. Bu taslağı oluşturan CI çalışması: $repo_url/actions/runs/$GITHUB_RUN_ID
           EOF
           gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "Screenwall $TAG" --notes-file "$RUNNER_TEMP/notes.md"

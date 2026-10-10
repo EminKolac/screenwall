@@ -28,6 +28,11 @@
 #   AUDITOR_MODEL             auditor model (default qwen3.5:4b); the backend reads it too
 #   OLLAMA_BASE_URL           Ollama API (default http://127.0.0.1:11434); the backend reads it too
 #
+# Inside Screenwall.app (Screenwall-macOS.dmg) this file is Contents/Resources/Screenwall/
+# Screenwall.command and the app's Contents/MacOS/Screenwall opens it in Terminal. The bundle stays
+# read-only there: everything written goes to $SCREENWALL_HOME as above, and Python's bytecode
+# cache too ($SCREENWALL_HOME/pycache, PYTHONPYCACHEPREFIX). From the zip nothing changes.
+#
 # Written for the bash 3.2 that ships with macOS. Every path is quoted: the default home contains
 # a space ("Application Support").
 set -u
@@ -51,6 +56,17 @@ LOG_DIR="$SCREENWALL_HOME/logs"
 TOKEN_FILE="$SCREENWALL_HOME/launch-token"
 SERVER_LOG="$LOG_DIR/server.log"
 SERVER_PID=""
+
+# Inside Screenwall.app: nothing may be written next to the code (see the header).
+case "$APP_ROOT" in
+  */Contents/Resources/Screenwall)
+    REINSTALL_HINT="Screenwall'ı Screenwall-macOS.dmg dosyasından yeniden kurun."
+    export PYTHONPYCACHEPREFIX="$SCREENWALL_HOME/pycache"
+    ;;
+  *)
+    REINSTALL_HINT="Zip'i yeniden açın."
+    ;;
+esac
 
 # Homebrew (Apple silicon and Intel) and uv's own folder: a Finder launch may not have them on
 # PATH. tesseract (optional OCR) is found through these too.
@@ -114,8 +130,8 @@ say ""
 
 mkdir -p "$DATA_DIR" "$VENV_DIR" "$LOG_DIR" || fail "Klasör oluşturulamadı: $SCREENWALL_HOME"
 chmod 700 "$SCREENWALL_HOME" "$DATA_DIR" "$LOG_DIR" 2>/dev/null || true
-[ -f "$BACKEND_DIR/uv.lock" ] || fail "Uygulama dosyaları eksik: $BACKEND_DIR. Zip'i yeniden açın."
-[ -f "$UI_DIST_DIR/index.html" ] || fail "Arayüz dosyaları eksik: $UI_DIST_DIR. Zip'i yeniden açın."
+[ -f "$BACKEND_DIR/uv.lock" ] || fail "Uygulama dosyaları eksik: $BACKEND_DIR. $REINSTALL_HINT"
+[ -f "$UI_DIST_DIR/index.html" ] || fail "Arayüz dosyaları eksik: $UI_DIST_DIR. $REINSTALL_HINT"
 
 # Already running (another window, or an earlier start): just show it.
 if up "$APP_URL/health"; then

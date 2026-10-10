@@ -1,5 +1,5 @@
-# Fable - common commands. Run from the repository root: make <target>
-.PHONY: test scorecard scorecard-full dev release
+# Screenwall - common commands. Run from the repository root: make <target>
+.PHONY: test scorecard scorecard-full dev release smoke-release
 
 TAG ?= fast
 FULL_TAG ?= full
@@ -18,5 +18,8 @@ scorecard-full: ## full scorecard: live Qwen auditor via Ollama + 30 real BIST-1
 dev: ## start Ollama + backend + frontend in the background (start.sh)
 	bash start.sh
 
-release: ## macOS release zip + installer + SHA256SUMS into dist/ (packaging/build_release.sh): make release VERSION=0.1.0
+release: ## macOS release into dist/: Screenwall-macOS.dmg (on a Mac), zip, installer, SHA256SUMS (packaging/build_release.sh): make release VERSION=0.1.0
 	bash packaging/build_release.sh $(VERSION)
+
+smoke-release: ## smoke-test dist/ as CI does: start the zip and the dmg's app, run smoke_test.py (packaging/smoke_release.sh; port 8765 must be free)
+	bash packaging/smoke_release.sh all

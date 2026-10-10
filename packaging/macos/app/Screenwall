@@ -1,0 +1,126 @@
+#!/bin/bash
+# Screenwall.app entry point (Contents/MacOS/Screenwall).
+#
+# macOS runs this script when the app is opened. It does not run Screenwall itself: it opens a
+# Terminal window on the launcher shipped inside the app, Contents/Resources/Screenwall/
+# Screenwall.command (the same launcher as in Screenwall-macOS.zip). That window shows the
+# progress; closing it, or Ctrl+C in it, stops Screenwall.
+#
+# Terminal gets a small starter file, <data folder>/launcher/Screenwall.command, written again on
+# every start. A Terminal window does not inherit this process's environment, so the starter
+# carries the settings listed below over, then runs the bundled launcher with /bin/bash. The
+# starter is written here, on this Mac, so Gatekeeper does not ask about it separately.
+#
+# The app bundle is never written to. The launcher keeps everything it writes (Python environment,
+# documents, settings, logs) in the data folder, by default
+# ~/Library/Application Support/Screenwall, and sends Python's bytecode cache there too.
+#
+# Opened straight from the disk image, or from the temporary randomised copy macOS makes of an
+# app that was not moved with Finder ("App Translocation"), the code would disappear under the
+# running server once the image is ejected or the copy is dropped. In that case the app only
+# asks the user to drag it to Applications first.
+#
+# Carried over to the launcher when set: SCREENWALL_HOME, SCREENWALL_PORT, AUDITOR_MODEL,
+# OLLAMA_BASE_URL. SCREENWALL_APP_DRY_RUN=1 writes the starter and prints it and the open command
+# instead of opening Terminal (packaging/smoke_release.sh uses it).
+#
+# bash 3.2 (the one macOS ships). Every path is quoted: the data folder contains a space.
+set -u
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+umask 077
+
+CONTENTS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+BUNDLE="$(dirname "$CONTENTS")"
+LAUNCHER="$CONTENTS/Resources/Screenwall/Screenwall.command"
+DATA_HOME="${SCREENWALL_HOME:-$HOME/Library/Application Support/Screenwall}"
+STARTER_DIR="$DATA_HOME/launcher"
+STARTER="$STARTER_DIR/Screenwall.command"
+CARRIED_OVER="SCREENWALL_HOME SCREENWALL_PORT AUDITOR_MODEL OLLAMA_BASE_URL"
+
+# A warning dialog from osascript itself (no permission to control another app is needed). The
+# text also goes to stderr, which ends up in the system log for an app; a dry run prints only.
+alert() { # alert <title> <message>
+  printf '%s\n%s\n' "$1" "$2" >&2
+  [ "${SCREENWALL_APP_DRY_RUN:-0}" = "1" ] && return 0
+  /usr/bin/osascript - "$1" "$2" >/dev/null 2>&1 <<'APPLESCRIPT' || true
+on run argv
+	activate
+	display alert (item 1 of argv) message (item 2 of argv) as warning buttons {"Tamam"} default button 1
+end run
+APPLESCRIPT
+}
+
+# ---------------------------------------------------------------- where the app runs from
+
+# True when the bundle sits on a file system mounted read-only, i.e. the mounted .dmg. (The sealed
+# system volume "/" is read-only too, but apps in /Applications are on the data volume; "/" is
+# never taken for an image.)
+on_read_only_mount() {
+  local mount_point
+  # The last column of "df -P" ("Mounted on"), after the capacity ("60%") and its padding.
+  mount_point="$(df -P "$BUNDLE" 2>/dev/null | tail -n 1 | sed -E 's/^.*[0-9]+%[[:space:]]+//')"
+  [ -n "$mount_point" ] && [ "$mount_point" != "/" ] || return 1
+  mount | grep -F " on $mount_point (" | grep -q 'read-only'
+}
+
+from_image=0
+case "$BUNDLE" in
+  */AppTranslocation/*) from_image=1 ;;
+  *) on_read_only_mount && from_image=1 ;;
+esac
+if [ "$from_image" = 1 ]; then
+  alert "Önce Screenwall'ı Uygulamalar klasörüne taşıyın" \
+    "Screenwall disk görüntüsünün (DMG) içinden açıldı. DMG penceresinde Screenwall'ı Applications (Uygulamalar) klasörüne sürükleyin, sonra Uygulamalar klasöründen açın."
+  exit 0
+fi
+
+if [ ! -f "$LAUNCHER" ]; then
+  alert "Screenwall açılamadı" \
+    "Uygulama dosyaları eksik ($LAUNCHER). Screenwall'ı Screenwall-macOS.dmg dosyasından yeniden kurun."
+  exit 1
+fi
+
+# ---------------------------------------------------------------- starter
+
+if ! mkdir -p "$STARTER_DIR"; then
+  alert "Screenwall açılamadı" "Veri klasörü oluşturulamadı: $DATA_HOME"
+  exit 1
+fi
+chmod 700 "$DATA_HOME" "$STARTER_DIR" 2>/dev/null || true
+
+# Written next to the starter and renamed over it, so a window still reading an older starter is
+# not disturbed.
+tmp="$STARTER_DIR/.Screenwall.command.$$"
+{
+  printf '#!/bin/bash\n'
+  printf '# Written by Screenwall.app on every start and opened in Terminal; edits do not last.\n'
+  printf '# It runs the launcher inside the app: %s\n' "$BUNDLE"
+  for var in $CARRIED_OVER; do
+    if value="$(printenv "$var")"; then
+      printf 'export %s=%q\n' "$var" "$value"
+    fi
+  done
+  printf 'exec /bin/bash %q\n' "$LAUNCHER"
+} >"$tmp" && chmod 700 "$tmp" && mv -f "$tmp" "$STARTER" || {
+  alert "Screenwall açılamadı" "Başlatma dosyası yazılamadı: $STARTER"
+  exit 1
+}
+# The starter is this script's own output, never a download: should macOS have flagged it as one,
+# the flag is taken off this one file, so Terminal runs it without a second Gatekeeper prompt.
+if xattr -p com.apple.quarantine "$STARTER" >/dev/null 2>&1; then
+  xattr -d com.apple.quarantine "$STARTER" 2>/dev/null || true
+fi
+
+# ---------------------------------------------------------------- Terminal
+
+if [ "${SCREENWALL_APP_DRY_RUN:-0}" = "1" ]; then
+  printf 'starter: %s\n' "$STARTER"
+  printf 'would run: open -b com.apple.Terminal %q\n' "$STARTER"
+  exit 0
+fi
+if ! open -b com.apple.Terminal "$STARTER"; then
+  alert "Screenwall açılamadı" \
+    "Terminal açılamadı. Screenwall'ı Terminal'de şu komutla başlatabilirsiniz: /bin/bash \"$LAUNCHER\""
+  exit 1
+fi
+exit 0
