@@ -4,7 +4,7 @@
 
 **Önce maskele. Sonra sor.**
 
-[![tests](https://img.shields.io/badge/tests-879%20backend%20%2B%2079%20frontend-2F6B4F)](docs/TESTING.md)
+[![tests](https://img.shields.io/badge/tests-877%20backend%20%2B%2079%20frontend-2F6B4F)](docs/TESTING.md)
 [![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#test-sonuclari)
 [![python](https://img.shields.io/badge/python-3.12-6B675C)](backend/pyproject.toml)
 [![platform](https://img.shields.io/badge/platform-macOS-6B675C)](#indir)
@@ -28,7 +28,7 @@ yalnızca etiketler gidiyor. Sunum: [Screenwall-Yatirimci-Sunum.pptx](Screenwall
 
 <div align="center">
 
-<img src="docs/media/demo.gif" alt="Tarama, kişisel verileri etikete dönüştürür" width="820">
+<img src="docs/media/demo.gif" alt="Tarama, hassas bilgileri etikete dönüştürür" width="820">
 
 </div>
 
@@ -63,12 +63,17 @@ Bütün sürümler ve notları: [github.com/EminKolac/screenwall/releases](https
    satırındaki **Yine de Aç** düğmesine basın. Bu yalnızca ilk açılışta gerekir.
 4. Bir Terminal penceresi açılır ve ne yapıldığını adım adım gösterir. İlk açılışta Python ortamı
    hazırlanır: yaklaşık 100 MB indirme, ardından 30 saniye kadar hazırlık. Ollama kuruluysa
-   denetçi modeli `qwen3.5:4b` (yaklaşık 3,4 GB) da bu sırada indirilir.
+   denetçi modeli `qwen3.5:4b` (yaklaşık 3,4 GB) da bu sırada indirilir. macOS ilk açılışta
+   "komut satırı geliştirici araçları"nı yüklemeyi önerirse **Vazgeç**'e basın; Screenwall'ın
+   bunlara ihtiyacı yok. Terminal'de `Failed to patch the install name` içeren bir uyarı
+   çıkarsa o da önemsiz; kurulum devam eder.
 5. Hazır olunca tarayıcıda `http://127.0.0.1:8765` kendiliğinden açılır.
 6. Durdurmak için Terminal penceresini kapatın ya da pencerede Ctrl+C'ye basın.
 
-Uygulama paketi salt okunur kalır. Screenwall'ın yazdığı her şey (Python ortamı, belgeler,
-ayarlar, kayıtlar) `~/Library/Application Support/Screenwall` klasöründe durur.
+Uygulama paketi salt okunur kalır. Belgeler, ayarlar, kayıtlar ve Python ortamı (`venv`)
+`~/Library/Application Support/Screenwall` klasöründe durur. uv (kurulu değilse), Python 3.12 ve
+indirme önbelleği bu klasörün dışına, `~/.local/bin`, `~/.local/share/uv` ve `~/.cache/uv`
+altına kurulur.
 
 ### Zip ile ya da terminalden
 
@@ -103,11 +108,24 @@ saniye bekler; ilk açılışta bu yetmezse Screenwall'ı bir kez daha açın.
 
 ### Ne denendi, ne denenmedi
 
-Zip, bir Apple Silicon Mac'te (macOS 26) açılıp başlatıcı terminalden çalıştırılarak uçtan uca
-denendi. Her sürüm ayrıca GitHub'ın Apple Silicon ve Intel macOS sunucularında otomatik açılış
-testinden geçer (zip açılır, başlatıcı çalışır, örnek bir belge yüklenip maskelenir; Ollama
-olmadan); bu test iki sunucuda da geçmezse sürüm oluşmaz. Henüz elle denenmeyenler: Finder'dan
-ilk açılış ve Gatekeeper uyarısı, internetten indirilmiş DMG ya da zip, macOS 14–15 ve gerçek bir
+Yayımlanan v0.1.0 DMG'sindeki uygulama 11 Ekim 2026'da bir Apple Silicon Mac'te (macOS 26)
+Ollama ile uçtan uca denendi. Uygulama `open` komutuyla açıldı; Terminal penceresini açtı, Python
+ortamını hazırladı, 65 saniyede çalışır hâle geldi ve Ollama'yı başlattı. Sentetik bir kurumsal
+Word belgesinde müşteri `<ORG_1>`, yetkili `<PERSON_1>`, e-posta `<EMAIL_1>`, IBAN `<IBAN_1>`,
+VKN `<VKN_1>`, onaylayan kişi `<PERSON_2>` oldu; tutar ve teslim süresi açık kaldı. Lokal LLM
+denetimi belgeyi onayladı (ilk denetim, model belleğe yüklenirken 68 saniye). Bir maskeyi geri
+alıp yeniden onaylamak denetimi yeniden çalıştırdı (yaklaşık 15 saniye). İndirilen PDF'te gerçek
+değerlerin hiçbiri yoktu. Bu denemede görülen iki kusur: ilk iki kelimesi büyük harfle başlayan
+"Tedarik Sözleşmesi (örnek, sentetik veri)" başlığı İngilizce ad tanıyıcısı tarafından kişi adı
+sanılıp maskelendi (ikinci kelimesi küçük harfle yazılan "Tedarik sözleşmesi" açık kaldı) ve
+indirilen PDF'in başlığı İngilizce ("Anonymized Document").
+
+Zip de aynı Mac'te başlatıcı terminalden çalıştırılarak uçtan uca denendi. Her sürüm ayrıca
+GitHub'ın Apple Silicon ve Intel macOS sunucularında otomatik açılış testinden geçer (zip açılır,
+başlatıcı çalışır, örnek bir belge yüklenip maskelenir; Ollama olmadan); bu test iki sunucuda da
+geçmezse sürüm oluşmaz. Henüz elle denenmeyenler: Finder'dan ilk açılış ve Gatekeeper uyarısı
+(tarayıcıyla indirilmiş, karantina işaretli DMG ya da zip; denenen DMG komut satırından
+indirilmişti), Xcode komut satırı araçları kurulu olmayan bir Mac, macOS 14–15 ve gerçek bir
 Intel Mac. Intel'de Ollama ile denetim ve onay hiç denenmedi.
 
 ### Verileriniz nerede, nasıl kaldırılır?
@@ -122,7 +140,7 @@ Intel Mac. Intel'de Ollama ile denetim ve onay hiç denenmedi.
   her zaman uygulamadan (ya da `Screenwall.command` ile) açın.
 - Kaldırmak için Screenwall'ı Uygulamalar klasöründen (zip ya da terminal kurulumunda
   `Screenwall` klasörünü) ve veri klasörünü çöp kutusuna taşıyın. Belgeleriniz veri klasöründe;
-  gerekirse önce yedekleyin. Ayrıntılar `OKU-BENI.txt` dosyasında.
+  gerekirse önce yedekleyin. uv ve Python klasörleri dahil ayrıntılar `OKU-BENI.txt` dosyasında.
 
 ## Nasıl çalışıyor?
 
@@ -239,8 +257,9 @@ planlanıyor; henüz yok.
 | Gereksiz karartma denemesi | Madalyonun öteki yüzü: içinde hiç kişisel veri olmayan 40 sıradan iş cümlesi verdik ("Faaliyet raporu bağımsız denetimden geçmiştir." gibi). İyi bir sistem bunlara dokunmamalı. Bizimki 40 cümlenin 11'inde gereksiz karartma yaptı; bu bilinen kusurumuz (aşağıda "Bilinen sınırlar"). | 11/40 hata |
 
 \* Bu reponun kendi puanlayıcısıyla 60 belgenin tamamında, listeler kapalı. ChatGPT sürümünün
-(Screenwall V2) daha katı puanlayıcısıyla aynı belgelerde 472/489 (%96,5). Bu puanlayıcı, değerin
-en az 3 harflik bir parçası açıkta kalsa bile kaçak sayıyor; 17 kaçağın 16'sı böyle kısmi kaçaklar.
+(Screenwall ChatGPT, V2) daha katı puanlayıcısıyla aynı belgelerde 472/489 (%96,5). Bu
+puanlayıcı, değerin en az 3 harflik bir parçası açıkta kalsa bile kaçak sayıyor; 17 kaçağın 16'sı
+böyle kısmi kaçaklar.
 
 \*\* İzin listesi, korunması gereken iş terimlerini içeriyor; aradaki 80 sorunun hepsini bu liste
 kurtarıyor. Bu yüzden %91,8'i iyimser sayıyoruz. Bu tabloda önceden yazan %98,9, Ağustos 2026'da
@@ -262,7 +281,7 @@ sürümünün puanlayıcısıyla ve onun kıyas korpusundaki aynı belgelerle ko
 | Sahte kimlik kaçağı (düşük iyi) | 0/32 | 7/32 |
 | Stres testi sızıntısı (canlı denetçi) | 0/72 | 0/72 |
 | Güvenli belgenin teslimi | 59/62 | 28/62 |
-| Korunması gereken iş terimleri (yüksek iyi) | 10/90 | 38/90 |
+| Korunması gereken iş terimleri (8 terim, 90 geçiş; yüksek iyi) | 10/90 | 38/90 |
 | Gereksiz karartma denemesi (düşük iyi) | 11/40 | 21/40 |
 
 Tablo, iki sürümün aynı puanlayıcıyla (ChatGPT sürümünün kendi puanlayıcısı) ve ikisi de
@@ -271,8 +290,9 @@ kartıyla üretildi, ama yeniden üretmek için V2 kıyas korpusu (`~/bist10-ben
 yer için `FABLE_BENCH_CORPUS`) gerekiyor ve bu korpus repoda yok (aşağıda "Ölçümleri kendiniz
 koşun"). ChatGPT sütunu o sürümün kendi ölçümünden alındı ve ham çıktısı bu repoda yok. Bu
 tablonun önceki hâlinde "Gereksiz karartma" satırında iki sürüm için de 0/90 yazıyordu. O sayı
-bizim tarafta ölçülen 90 terimin hepsini içeren bir izin listesinden geliyordu, yani bir test
-sızıntısıydı. Listesiz dürüst sayı yukarıdaki 10/90. Korunması gereken terimlerde iki sürüm de
+bizim tarafta ölçülen 8 terimin hepsini içeren bir izin listesinden geliyordu, yani bir test
+sızıntısıydı. Listesiz dürüst sayı yukarıdaki 10/90: 8 iş teriminin 90 geçişinden 10'u korunuyor
+ve bu 10 geçişin hepsi "Ödeme Planı". Korunması gereken terimlerde iki sürüm de
 zayıf; bu, şu anki çalışmanın ana hedefi. Deney günlüğünün tamamı (başarısız denemeler dahil)
 [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
 
@@ -285,9 +305,9 @@ make scorecard        # hızlı: denetçi LLM kapalı, gerçek belge yok
 make scorecard-full   # tam: canlı Qwen 3.5 4B + 30 gerçek BIST PDF'i (~1,5 saat)
 ```
 
-Canlı denetçiye bağlı sayılar (stres testinde 59/62 güvenli teslim gibi) yalnızca
-`make scorecard-full` ile üretilir; hızlı skor kartı bunları ölçmez. Tam skor kartının üç ön
-koşulu var:
+Canlı denetçiye bağlı sayılar (stres testinde 59/62 güvenli teslim gibi) çalışan bir lokal LLM
+ister: `make scorecard-full` ya da aşağıdaki `run_stress` komutu (`--llm on`, `TERM_LISTS=false`).
+Hızlı skor kartı bunları ölçmez. Tam skor kartının üç ön koşulu var:
 
 - Ollama çalışıyor ve `qwen3.5:4b` kurulu olmalı.
 - Katı puanlayıcı ve stres bölümleri V2 kıyas korpusunu ister: `~/bist10-benchmark` klasörü
@@ -303,8 +323,8 @@ Yani temiz bir klonda `make scorecard` da `make scorecard-full` da tamamlanmaz: 
 cd backend
 # bu reponun puanlayıcısı, 60 belge (1555/1555)
 uv run python -m evaluation.scorecard --sections gold --tag benim
-# stres testi; korpusu kendisi üretir. 59/62 için Ollama açıkken --llm on ekleyin
-uv run python -m evaluation.goldbench.run_stress --mode mapping --tag benim
+# stres testi; korpusu kendisi üretir. 59/62 için Ollama açık olmalı; skor kartı gibi listesiz
+TERM_LISTS=false uv run python -m evaluation.goldbench.run_stress --mode mapping --llm on --tag benim
 # fayda, 280 soru (TERM_LISTS=false ile listesiz)
 uv run python -m evaluation.goldbench.run_inference --mode mapping --tag benim
 # ayrı bir kanarya kataloğuyla hızlı ölçüm (skor kartındaki 0/32 ile aynı ölçüm değil)
@@ -321,7 +341,7 @@ Bunlar ölçülmüş ya da sentetik örneklerle gösterilmiş sorunlar. Belgeyi 
 | Cümle içinde büyük harfle yazılmış adlar | "Toplantıya genel müdürü DENEME ÖRNEKOĞLU katıldı." gibi bir cümlede ad maskelenmeyebiliyor. 6 Ekim değerlendirmesinde canlı denetçi, adlar açıkta kaldığı halde böyle bir paragrafı onayladı. "Adı Soyadı:" gibi etiketli alanlardaki adlar maskeleniyor. |
 | Resmî adres biçimleri | "MAH. … SK. NO: x / NO: y İLÇE / İL" ve "DIŞ KAPI NO … İÇ KAPI NO …" biçimleri 7 Ekim'den beri sentetik örneklerde bütün olarak maskeleniyor; gerçek bir e-Devlet PDF'inden çıkan metinle yeniden denenmedi. Bu kural mahalle/sokak kısaltması (MAH., SK., CAD., BLV. ya da açık yazılışı) ve kapı numarası olmayan adresleri görmüyor. |
 | Yarı-tanımlayıcılar | Meslek, eğitim, sendika üyeliği, hukuki durum ve maaş bilgisi otomatik onaydan sonra da metinde kalabiliyor; denetçi bu türlere bakmıyor. Katı ölçümde maskelenen: meslek 0/40, eğitim 0/20, sendika 0/10, hukuki durum 0/10, maaş 16/20. |
-| İş terimlerinin gereksiz maskelenmesi | "Vergi Usul Kanunu", "Dönem Karı" gibi terimler kişi ya da yer sanılıp maskeleniyor. Listesiz ölçümde korunması gereken 90 terimin yalnızca 10'u korunuyor; kişisel veri içermeyen 40 sıradan cümlenin 11'i değiştiriliyor. |
+| İş terimlerinin gereksiz maskelenmesi | "Vergi Usul Kanunu", "Dönem Karı" gibi terimler kişi ya da yer sanılıp maskeleniyor. Listesiz ölçümde korunması gereken 8 iş teriminin 90 geçişinden yalnızca 10'u korunuyor (hepsi "Ödeme Planı"); kişisel veri içermeyen 40 sıradan cümlenin 11'i değiştiriliyor. |
 | Henüz mühürlü test seti yok | %100 sonuçlar, kural ayarında da kullanılmış 60 belgelik geliştirme setinden geliyor. Sistemin hiç görmediği belgelerdeki başarı henüz ölçülmedi. |
 | Apple imzası yok | Uygulama Apple tarafından imzalanmadı ve onaylanmadı (notarization yok); ilk açılışta macOS uyarı verir (yukarıda "DMG ile kurulum", 3. adım). |
 | Windows desteklenmiyor (yalnız macOS) | Hazır paket yalnız macOS için (Apple Silicon ve Intel). Windows için paket yok ve Windows'ta test koşulmuyor. |
@@ -331,13 +351,14 @@ gereken adları Ayarlar'daki "Her zaman maskele" listesine yazabilirsiniz.
 
 ### Sıradaki işler
 
-- macOS'ta henüz elle denenmeyenleri denemek: Finder'dan ilk açılış uyarısı, internetten
-  indirilmiş DMG ve zip, macOS 14–15 ve gerçek bir Intel Mac (Ollama ile onay süresi dahil).
+- macOS'ta henüz elle denenmeyenleri denemek: Finder'dan ilk açılış uyarısı, tarayıcıyla
+  indirilmiş (karantina işaretli) DMG ve zip, Xcode komut satırı araçları olmayan bir Mac,
+  macOS 14–15 ve gerçek bir Intel Mac (Ollama ile onay süresi dahil).
   Windows sürümü şimdilik planda yok.
 - Büyük harfle yazılmış adlar, kısaltmasız resmî adresler ve yarı-tanımlayıcılar (yukarıdaki
   tablo)
 - Gereksiz karartmayı dürüst ölçümle indirmek: nötr cümlede 11/40'tan en fazla 2/40'a,
-  korunması gereken iş terimlerinde 10/90'dan en az 80/90'a (listesiz; bkz.
+  korunması gereken iş terimlerinde 10/90'dan en az 80/90'a (8 terimin 90 geçişi, listesiz; bkz.
   [`docs/SCORECARD.md`](docs/SCORECARD.md))
 - Bağımsız, mühürlü bir test seti
 - UYAP UDF desteği: avukatların gerçekte kullandığı format
@@ -346,7 +367,8 @@ gereken adları Ayarlar'daki "Her zaman maskele" listesine yazabilirsiniz.
 
 ## Geliştiriciler için
 
-Gerekenler: [uv](https://docs.astral.sh/uv/), Node.js 18 veya üstü, Ollama ve `qwen3.5:4b`.
+Gerekenler: [uv](https://docs.astral.sh/uv/), Node.js 20 veya üstü (Playwright testleri bunu
+ister), Ollama ve `qwen3.5:4b`.
 spaCy modelleri `uv sync` ile birlikte kuruluyor; ayrıca indirmeye gerek yok.
 
 ```bash

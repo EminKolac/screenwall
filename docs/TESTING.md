@@ -2,9 +2,11 @@
 
 > **Note (2026-10-07):** the coverage table below describes an earlier version (93 tests, v1
 > API). Two of the files it names (`integration/test_review_api.py`, `integration/test_chat_api.py`)
-> no longer exist. Current state: 879 backend tests pass, 2 skipped (`uv run pytest -q`), and 79
-> frontend tests pass in 11 files (`npx vitest run`), measured on 2026-10-07 and again on
-> 2026-10-10 with the same result. For what the
+> no longer exist. Current state: on a clean clone and in CI, 877 backend tests pass and 4 are
+> skipped (`uv run pytest -q`; CI run for the v0.1.0 release commit `4be7df0`, Ubuntu and macOS).
+> On a machine with Tesseract installed and the TAB data downloaded, 879 pass and 2 are skipped
+> (measured on 2026-10-07 and again on 2026-10-10 with the same result). 79 frontend tests pass
+> in 11 files (`npx vitest run`), locally and in CI. For what the
 > numbers in the README mean, see [SCORECARD.md](SCORECARD.md); for the code under test, read
 > `backend/tests/` and `frontend/src/**/*.test.ts(x)` directly.
 >
@@ -17,14 +19,18 @@
 > PARITY=1 uv run pytest tests/parity        # in backend/: detection parity (slow, see below)
 > ```
 >
-> Two tests are skipped by default: the parity test (needs `PARITY=1`; it also reads the local
-> benchmark corpus `FABLE_BENCH_CORPUS` and real documents that are not in the repository) and
-> RedactionBench (needs its downloaded data). Tests that depend on POSIX file modes or the fake
-> CLI are marked in `backend/tests/posix_only.py` and skip on Windows (kept, although Screenwall
-> is released for macOS only). CI (`.github/workflows/ci.yml`) runs the backend suite on Ubuntu
-> and macOS and the frontend typecheck, vitest and build. Ruff is not clean yet and is not part
-> of CI. The release zip is smoke-tested separately on Apple Silicon and Intel macOS runners
-> (`.github/workflows/release.yml`, `packaging/smoke_test.py`).
+> Four tests are skipped on a clean clone and in CI: the parity test (needs `PARITY=1`; it also
+> reads the local benchmark corpus `FABLE_BENCH_CORPUS` and real documents that are not in the
+> repository), RedactionBench and TAB (`tests/unit/test_goldbench_external.py`; each needs its
+> downloaded data under the git-ignored `backend/data/goldbench_external/`) and the OCR test in
+> `tests/unit/test_render_pdf.py` (needs `tesseract` on the PATH). With Tesseract installed and
+> the TAB data downloaded, only the parity and RedactionBench tests are skipped. Tests that
+> depend on POSIX file modes or the fake CLI are marked in `backend/tests/posix_only.py` and
+> skip on Windows (kept, although Screenwall is released for macOS only). CI
+> (`.github/workflows/ci.yml`) runs the backend suite on Ubuntu and macOS and the frontend
+> typecheck, vitest and build. Ruff is not clean yet and is not part of CI. The release zip is
+> smoke-tested separately on Apple Silicon and Intel macOS runners (`.github/workflows/release.yml`,
+> `packaging/smoke_test.py`).
 
 ## Run
 

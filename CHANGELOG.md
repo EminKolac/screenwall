@@ -2,18 +2,82 @@
 
 Screenwall'ın sürüm notları. En yeni sürüm en üstte.
 
+## v0.1.1 (2026-10-11)
+
+v0.1.0'ın gözden geçirilmesinde bulunan metin, kurulum ve belge sorunlarının düzeltmeleri. Yalnız
+macOS; kurulum adımları v0.1.0'daki gibi.
+
+### Uygulama
+
+- Arayüz ve mesajlar, belgeyi denetleyen ve sohbette kullanılan modeli "lokal LLM" diye anıyor
+  (örneğin sohbet sağlayıcısı "Lokal LLM (Ollama)").
+- Bulut sohbeti seçeneğinin adı "ChatGPT (Codex CLI)"; metnin gideceği yer OpenAI (ChatGPT)
+  olarak gösteriliyor.
+- Bu bilgisayardaki API'nin başlığı ve sürümü artık Screenwall'ınki (başlık "Screenwall", sürüm
+  uygulamanın sürüm numarası).
+
+### Kurulum
+
+- Başlatıcı yalnız uv'nin kendi yönettiği Python'u kullanıyor
+  (`UV_PYTHON_PREFERENCE=only-managed`). İlk açılış artık sistemdeki `/usr/bin/python3` yer
+  tutucusunu çalıştırmıyor; komut satırı geliştirici araçları kurulu olmayan Mac'lerde bu yer
+  tutucu, araçları yükleme önerisini açabiliyordu.
+- README ve `OKU-BENI.txt`: macOS ilk açılışta komut satırı geliştirici araçlarını yüklemeyi
+  yine de önerirse Vazgeç'e basın, Screenwall'ın bunlara ihtiyacı yok; Terminal'deki
+  "Failed to patch the install name" uyarısı önemsiz.
+
+### Belgeler
+
+- Test sayıları CI ile aynı: temiz klonda ve CI'da arka uçta 877 test geçiyor, 4'ü atlanıyor;
+  Tesseract kurulu ve TAB verisi indirilmiş bir makinede 879 geçiyor, 2'si atlanıyor; arayüzde
+  79 test geçiyor. README rozeti "877 backend + 79 frontend"; `docs/TESTING.md` dört koşullu
+  atlamanın hepsini yazıyor.
+- Korunması gereken iş terimleri doğru anlatıldı: 10/90, 8 iş teriminin 90 geçişini sayıyor ve
+  korunan 10 geçişin hepsi "Ödeme Planı". Eski izin listesi 90 terimi değil, bu 8 terimi
+  içeriyordu.
+- Veri klasörü cümlesi düzeltildi: belgeler, ayarlar, kayıtlar ve Python ortamı
+  `~/Library/Application Support/Screenwall` altında; uv, Python 3.12 ve indirme önbelleği
+  `~/.local` ve `~/.cache/uv` altında. `OKU-BENI.txt` kaldırma listesine `~/.local/bin/uvx` ve
+  `~/.config/uv` eklendi.
+- README'deki "Ne denendi, ne denenmedi" bölümüne 11 Ekim 2026'daki deneme eklendi: yayımlanan
+  DMG'deki uygulama Ollama ile uçtan uca çalıştı (maskeleme, lokal LLM denetimi, onay, maskeyi
+  geri alıp yeniden onay, PDF indirme). Finder'dan açılış ve Gatekeeper uyarısı (tarayıcıyla
+  indirilmiş DMG), geliştirici araçları olmayan bir Mac, macOS 14–15 ve Intel Mac hâlâ
+  denenmedi.
+- Stres testinin tek başına komutu, yayımlanan 59/62 ile aynı koşulda: `TERM_LISTS=false` ve
+  `--llm on`.
+- `docs/SCORECARD.md`: fayda sayılarının `make scorecard-full` ile değil ayrı bir komutla
+  ölçüldüğü yazıyor; ürünün eski iç adı kaldırıldı, katı skorlayıcının geldiği sürüm README'deki
+  karşılaştırmayla aynı adla, "Screenwall ChatGPT" diye geçiyor.
+- Geliştirme için Node.js 20 veya üstü gerekiyor (Playwright testleri bunu ister).
+- `OKU-BENI.txt`'nin "Screenwall nedir?" bölümü şirket dokümanlarındaki hassas bilgiler üzerinden
+  yeniden yazıldı.
+- `THIRD_PARTY_LICENSES.md`: derlenmiş arayüzdeki React, React Router ve TanStack Query'nin MIT
+  lisans metinleri, telif satırlarıyla birlikte eklendi; bu dosya sürüm paketleriyle gelir.
+- `SECURITY.md`: güvenlik açığı bildirimi bölümü; ayrıntılar herkese açık bir issue'ya yazılmaz,
+  gerçek belge ya da kişisel veri eklenmez.
+- `.gitattributes`: arşivdeki eski kod (Windows başlatıcısı dahil) GitHub'ın dil istatistiğinde
+  sayılmıyor.
+- `Screenwall-Yatirimci-Sunum.pptx` README ve filmle aynı dili konuşuyor. Tasarım ve yerleşim değişmedi.
+  - Kurumsal anlatım; lokal LLM; Claude ve ChatGPT adıyla anılıyor.
+  - Şüphede karar kullanıcının.
+  - Örnek slaytında uygulamanın 11 Ekim'deki gerçek kurumsal çıktısı var.
+  - Karşılaştırmadaki eski kod adları yerine "Screenwall Claude" ve "Screenwall ChatGPT" yazıyor.
+  - Test sayıları CI ile aynı, 1555/1555'in geliştirme setinden geldiği belirtiliyor.
+
 ## v0.1.0 (2026-10-10)
 
 İlk yayımlanan sürüm. Yalnız macOS: Apple Silicon ve Intel, macOS 14 (Sonoma) veya üstü. Haziran
 ile Eylül 2026 arasında `main` dalında yapılan çalışma (tespit motoru, Türkçe tanıyıcılar, beş
 katmanlı depolama, ilk arayüz, GoldBench korpusu) bu sürümün temelidir; aşağıdakiler onun
-üzerine `fable-v2` dalında yapılanlardır.
+üzerine ayrı bir geliştirme dalında yapılanlardır.
 
 ### İndirme ve kurulum
 
 - `Screenwall-macOS.dmg`: sürükle-bırak kurulum. İçinde `Screenwall.app`, `Applications`
   kısayolu ve `OKU-BENI.txt` var. Uygulama açılınca bir Terminal penceresi ilerlemeyi gösterir;
-  Screenwall'ın yazdığı her şey `~/Library/Application Support/Screenwall` altında durur.
+  belgeler, ayarlar, kayıtlar ve Python ortamı `~/Library/Application Support/Screenwall`
+  altında durur; uv ve Python 3.12 `~/.local` ve `~/.cache/uv` altına kurulur.
 - `Screenwall-macOS.zip`: aynı uygulama klasör olarak, başlatıcısı `Screenwall.command`.
 - `install-macos.sh`: zip'i indirip `SHA256SUMS.txt` ile doğrulayan, `~/Screenwall`
   klasörüne kurup başlatan tek komutluk kurulum. Eski sürümü silmez, yanına taşır.
@@ -52,7 +116,7 @@ katmanlı depolama, ilk arayüz, GoldBench korpusu) bu sürümün temelidir; aş
 - PDF açıklamaları (annotation) okunur; okunamayan görsel metni için uyarı verilir.
 - E-posta tanıyıcısı ağa çıkmaz; hiç tetiklenmeyen 6 hazır Presidio tanıyıcısı kayıttan çıkarıldı.
 - Tespit motoru küçük modüllere bölündü; çıktı eski motorla bayt bayt karşılaştırıldı.
-- Denetçi ve yerel sohbet modeli `qwen3.5:4b`; en fazla bir onarım turu.
+- Denetçi ve sohbet için lokal LLM `qwen3.5:4b`; en fazla bir onarım turu.
 - Privacy Filter aşaması (varsayılan kapalıydı, belge başına yaklaşık 38 kat yavaştı) arşive
   taşındı. Kullanılmayan presidio-anonymizer kaldırıldı; presidio-analyzer 2.2.362'ye sabitlendi.
 
@@ -69,14 +133,15 @@ katmanlı depolama, ilk arayüz, GoldBench korpusu) bu sürümün temelidir; aş
 
 ### Ölçüm
 
-- Tek komutla skor kartı: `make scorecard` (LLM kapalı) ve `make scorecard-full` (canlı yerel
+- Tek komutla skor kartı: `make scorecard` (LLM kapalı) ve `make scorecard-full` (canlı lokal
   LLM ve 30 gerçek belge). ChatGPT sürümünün katı puanlayıcısının birebir kopyası eklendi.
 - Skor kartı listeler kapalıyken ölçer, LLM'in her belgede gerçekten çalışıp çalışmadığını sayar,
   kısmi koşuları işaretler ve raporlarda ham değer taşımaz.
 - Dürüst taban ([`docs/SCORECARD.md`](docs/SCORECARD.md)): katı kritik yakalama 472/489, sahte
   kimlik kaçağı 0/32, stres testinde onaylı çıktıya sızıntı 0/72 ve güvenli teslim 59/62,
-  korunması gereken iş terimleri 10/90, nötr cümle değişimi 11/40. README'de daha önce yazan
-  0/90, bütün test terimlerini içeren bir izin listesinden geliyordu; düzeltildi.
+  korunması gereken iş terimleri 10/90 (8 iş teriminin 90 geçişi), nötr cümle değişimi 11/40.
+  README'de daha önce yazan 0/90, bütün test terimlerini içeren bir izin listesinden geliyordu;
+  düzeltildi.
 
 ### Belgeler
 
@@ -90,8 +155,9 @@ katmanlı depolama, ilk arayüz, GoldBench korpusu) bu sürümün temelidir; aş
 
 ### Testler
 
-- Arka uçta 879 test geçiyor, 2'si atlanıyor; arayüzde 79 test geçiyor (7 ve 10 Ekim 2026'da
-  koşuldu, ikisinde de aynı sonuç).
+- Arka uçta temiz klonda ve CI'da 877 test geçiyor, 4'ü atlanıyor. Tesseract kurulu ve TAB
+  verisi indirilmiş bir makinede 879 geçiyor, 2'si atlanıyor (7 ve 10 Ekim 2026'da koşuldu,
+  ikisinde de aynı sonuç). Arayüzde 79 test geçiyor.
 - Arayüz için Playwright testleri (sahte API ile) ve axe ile erişilebilirlik denetimi.
 - CI: arka uç testleri Ubuntu ve macOS'ta; arayüz için tip denetimi, birim testleri ve derleme.
 - Duman testi: her sürüm GitHub'ın Apple Silicon ve Intel macOS sunucularında açılır, sentetik

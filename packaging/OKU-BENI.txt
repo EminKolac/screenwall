@@ -3,11 +3,13 @@ SCREENWALL - OKU BENİ
 
 Screenwall nedir?
 -----------------
-Screenwall, belgelerdeki kişisel verileri (ad soyad, T.C. kimlik numarası, IBAN, telefon,
-e-posta, adres gibi) bulur ve maskeler. Tespit, maskeleme ve denetim bu bilgisayarda çalışır;
-belgelerinizin orijinali başka bir yere gönderilmez. İsteğe bağlı Claude ya da ChatGPT (Codex CLI) sohbetini
-seçerseniz, yalnız onayladığınız belgenin maskeli metni, önce size gösterilip onayınız alınarak
-dışarı gider. Arayüz tarayıcıda açılır, ama yalnızca bu bilgisayardaki adrese bağlanır:
+Screenwall, sözleşme, bordro ya da rapor gibi şirket dokümanlarındaki hassas bilgileri bulur ve
+maskeler: müşteri, yetkili ve kurum adları, banka (IBAN) ve vergi bilgileri, kimlik numaraları,
+telefon, e-posta ve adresler. Her değer <ORG_1>, <PERSON_1>, <IBAN_1> gibi bir etiketle
+değiştirilir. Tespit, maskeleme ve denetim bu bilgisayarda çalışır; belgelerinizin orijinali
+başka bir yere gönderilmez. İsteğe bağlı Claude ya da ChatGPT (Codex CLI) sohbetini seçerseniz,
+yalnız onayladığınız belgenin maskeli metni, önce size gösterilip onayınız alınarak dışarı
+gider. Arayüz tarayıcıda açılır, ama yalnızca bu bilgisayardaki adrese bağlanır:
 
     http://127.0.0.1:8765
 
@@ -16,7 +18,7 @@ Desteklenen dosyalar: PDF, Word (.docx) ve Excel (.xlsx).
 Screenwall yalnız macOS içindir: Apple Silicon ve Intel Mac'ler, macOS 14 (Sonoma) veya üstü.
 Windows desteklenmiyor.
 
-Maskelenen her belgeyi önce yerel denetçi kontrol eder: bu bilgisayarda Ollama ile çalışan bir
+Maskelenen her belgeyi önce denetçi kontrol eder: bu bilgisayarda Ollama ile çalışan bir
 lokal LLM (qwen3.5:4b modeli). Denetçinin temiz bulduğu belge onaylanır; şüpheli bir şey kalırsa
 belge sizin incelemenize düşer. Yalnızca onaylanmış belgeler indirilebilir.
 
@@ -62,6 +64,10 @@ Kurulum ve başlatma
 4. Bir Terminal penceresi açılır ve ne yapıldığını gösterir. İlk açılışta Python ortamı
    hazırlanır (yaklaşık 100 MB indirme); Ollama kuruluysa qwen3.5:4b modeli de (yaklaşık
    3,4 GB) indirilir.
+   - macOS bu sırada "komut satırı geliştirici araçları"nı yüklemeyi önerirse "Vazgeç"e
+     basın; Screenwall'ın bunlara ihtiyacı yok.
+   - Terminal'de "Failed to patch the install name" içeren bir uyarı çıkarsa o da
+     önemsizdir; kurulum devam eder.
 5. Hazır olunca tarayıcıda http://127.0.0.1:8765 kendiliğinden açılır. DMG'yi artık
    çıkarabilirsiniz (Finder'da Screenwall diskinin yanındaki çıkar simgesi).
 
@@ -85,8 +91,8 @@ başlatır):
   sürebilir. İlerleme pencerede görünür.
 - Sonraki açılışlar: birkaç saniye. Ollama o sırada kapalıysa onun açılması 15 saniye kadar
   ekleyebilir.
-- Belge işleme: denetçi modeli ilk belgede belleğe yüklendiği için ilk belge bir dakikaya kadar
-  sürebilir; sonraki belgeler daha hızlıdır.
+- Belge işleme: denetçi modeli ilk belgede belleğe yüklendiği için ilk belge bir dakikadan biraz
+  uzun sürebilir (11 Ekim 2026 denemesinde denetim 68 saniye); sonraki belgeler daha hızlıdır.
 
 
 Durdurmak
@@ -114,6 +120,8 @@ Bu klasörde:
 - pycache : Python'un derlenmiş dosyaları (yalnız uygulama sürümünde)
 
 Screenwall uygulamasının kendisine (Uygulamalar klasöründeki Screenwall) hiçbir şey yazılmaz.
+uv, indirdiği Python 3.12 ve indirme önbelleği bu klasörün dışında, ~/.local ve ~/.cache/uv
+altında durur (aşağıda "Kaldırmak").
 
 Başka bir klasör kullanmak için SCREENWALL_HOME, başka bir port için SCREENWALL_PORT ortam
 değişkenini ayarlayıp başlatıcıyı Terminal'den çalıştırın. Örnekler (macOS Terminal):
@@ -151,5 +159,6 @@ kutusuna taşıyın:
 2. Veri klasörü (yukarıda). Dikkat: belgeleriniz buradadır; gerekirse önce yedekleyin.
 
 İsterseniz şunları da kaldırabilirsiniz; başka programlar da kullanıyor olabilir:
-- uv: ~/.local/bin/uv, ~/.cache/uv ve ~/.local/share/uv
+- uv ve indirdiği Python 3.12: ~/.local/bin/uv, ~/.local/bin/uvx, ~/.cache/uv,
+  ~/.local/share/uv ve ~/.config/uv
 - Ollama ve indirdiği modeller.

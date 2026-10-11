@@ -1,9 +1,11 @@
 # Skor kartı
 
-Bu belge Fable'ın ölçülmüş durumunu tutar. Sayıların hepsi `make scorecard-full` ile üretilir;
-ham rapor `backend/evaluation/results/<tarih-etiket>/scorecard.{md,json}` altındadır. Yeni koşu
-klasörleri git'te yok sayılır ve bilerek eklenir (`git add -f`); bugün repoda yalnızca
-`2026-09-24-faz0-taban` var. Aşağıda adı geçen diğer koşular yerel klasörlerdir.
+Bu belge Screenwall'ın ölçülmüş durumunu tutar. Fayda dışındaki sayılar `make scorecard-full`
+ile üretilir; fayda ayrı bir komutla, `evaluation.goldbench.run_inference` ile ölçülür (aşağıda
+"Hızlı yeniden ölçüm"). Skor kartının ham raporu
+`backend/evaluation/results/<tarih-etiket>/scorecard.{md,json}` altındadır. Yeni koşu klasörleri
+git'te yok sayılır ve bilerek eklenir (`git add -f`); bugün repoda yalnızca `2026-09-24-faz0-taban`
+var. Aşağıda adı geçen diğer koşular yerel klasörlerdir.
 
 ## Son durum (7 Ekim 2026)
 
@@ -14,15 +16,21 @@ klasörleri git'te yok sayılır ve bilerek eklenir (`git add -f`); bugün repod
 | Gold kritik recall (60 belge, geliştirme seti) | 1555/1555 | 2026-10-06; 2026-10-07 (V2 korpusu olmadan, yalnız gold) |
 | Stres: onaylı çıktıya sızıntı (canlı LLM) | 0/72 | 2026-09-25 |
 | Stres: güvenli teslim (canlı LLM) | 59/62 | 2026-09-25 |
-| must_keep korunan, liste yok | 10/90 | 2026-10-06 |
+| must_keep korunan, liste yok (8 terim, 90 geçiş) | 10/90 | 2026-10-06 |
 | Nötr cümle değişimi | 11/40 | 2026-10-06 |
 | Gerçek belgede yoğunluk (yer tutucu / 1000 karakter) | 12,03 | 2026-10-06 |
 | Karakter precision (yaklaşık, detect, 60 belge) | 0,836 | 2026-10-06 |
 | Fayda: cevaplanabilir soru, liste yok / varsayılan listeyle | %63,2 (177/280) / %91,8 (257/280) | 2026-10-06 ve 2026-10-07, LLM kapalı |
 
-Bu sayıların hiçbiri mühürlü (görülmemiş) bir test setinden gelmiyor; 60 belgelik set geliştirme
-setidir. README'de eskiden yazan %98,9 fayda değeri Ağustos'ta, izin listesi açıkken ve eski
-kodla ölçülmüştü; geçerli sayılmaz.
+must_keep paneli 8 iş teriminin 90 geçişidir (Teslim Tarihi 20; Fatura Dönemi, Gider Pusulası,
+Sözleşme Bedeli, Ödeme Planı, Kalite Kontrol, Risk Değerlendirmesi ve Yönetim Kurulu 10'ar).
+10/90 geçişleri sayar; korunan 10 geçişin hepsi "Ödeme Planı"dır, yani 8 terimden yalnız biri
+korunuyor.
+
+Bu sayıların hiçbiri mühürlü (görülmemiş) bir test setinden gelmiyor; 60 belgelik set kural
+ayarında da kullanılmış geliştirme setidir. 1555/1555 ve öteki %100 sonuçlar bu setten gelir;
+katı skorlayıcı aynı 60 belgede 472/489 verir. README'de eskiden yazan %98,9 fayda değeri
+Ağustos'ta, izin listesi açıkken ve eski kodla ölçülmüştü; geçerli sayılmaz.
 
 ## Nasıl ölçülür
 
@@ -50,7 +58,8 @@ korpus olmadan denendi: 1555/1555, çıkış kodu 0).
 4. **Ham değer yok.** Rapor değerleri yalnız hash olarak taşır ve yazılmadan önce bilinen bütün
    sentetik değerlere karşı taranır.
 
-Katı skorlayıcı, Screenwall V2'nin `benchmark/scorer.py` dosyasının birebir kopyasıdır
+Katı skorlayıcı, ChatGPT ile geliştirilen sürümün (Screenwall ChatGPT, V2)
+`benchmark/scorer.py` dosyasının birebir kopyasıdır
 (`backend/evaluation/strict/scorer.py`, sha256 `bd4a6816…` testle sabit). Motor listesiz çağrılır;
 yani must_keep ve nötr cümle satırları motorun kendi aşırı maskelemesini ölçer.
 
@@ -85,7 +94,7 @@ skorlayıcı) önceki bağımsız ölçümle birebir aynı çıktı. Faz 2 deney
 Gerçek belgelerdeki yer tutucuların %67'si PERSON, %27'si LOCATION. Bunlar Akbank ve BİM'in
 kamuya açık raporları; içlerindeki kişi adları yönetim kurulu üyeleri gibi az sayıda gerçek kişi.
 
-### Gold (Fable'ın kendi skorlayıcısı, pipeline, canlı LLM)
+### Gold (bu reponun kendi skorlayıcısı, pipeline, canlı LLM)
 
 | Ölçüm | 60 belge | v5 alt kümesi (20) |
 |---|---|---|

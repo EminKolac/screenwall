@@ -44,7 +44,8 @@ The two modes use different data folders; nothing is copied between them.
 - **uv** and Python 3.11–3.12 (`backend/pyproject.toml`; the launcher installs 3.12 through uv).
   The spaCy models are pinned as URL dependencies, so `uv sync` installs them; there is no
   separate `spacy download` step.
-- **Node.js 18 or later**, only for development and for building the UI (CI uses Node 22).
+- **Node.js 20 or later**, only for development and for building the UI (the Playwright e2e
+  tests need Node 20; CI uses Node 22).
 - **Tesseract, optional**, for scanned PDF pages. `GET /api/health` reports `ocr.available`.
 
 ## 1. Packaged app
@@ -56,8 +57,9 @@ The two modes use different data folders; nothing is copied between them.
 (Control-click) > Open, and on macOS 15 or later, if that is refused, System Settings > Privacy &
 Security > "Open Anyway". Launching the app opens a Terminal window that runs the same launcher
 as the zip (`Screenwall.command`, below) and shows its progress; closing that window or Ctrl+C
-stops Screenwall. The bundle stays read-only: everything the launcher writes (Python
-environment, documents, settings, logs) goes under `SCREENWALL_HOME`. The zip and
+stops Screenwall. The bundle stays read-only: the venv, documents, settings and logs go under
+`SCREENWALL_HOME`; uv (if missing), its CPython 3.12 and its download cache go to `~/.local/bin`,
+`~/.local/share/uv` and `~/.cache/uv` (step 3 below). The zip and
 `install-macos.sh` remain as alternatives and run the same launcher.
 
 ### What the launcher does
@@ -69,7 +71,13 @@ environment, documents, settings, logs) goes under `SCREENWALL_HOME`. The zip an
    with owner-only permissions.
 2. Finds `uv` on `PATH` or in `~/.local/bin`, otherwise installs it with the official installer
    and `UV_NO_MODIFY_PATH=1`.
-3. Runs `uv sync --frozen --no-dev --python 3.12` in `app/backend`.
+3. Runs `uv sync --frozen --no-dev --python 3.12` in `app/backend` with
+   `UV_PYTHON_PREFERENCE=only-managed`, so uv uses (or downloads) its own CPython and never runs
+   `/usr/bin/python3`, an Xcode stub on Macs without the command line tools. uv keeps that Python
+   and its download cache in its default folders (`~/.local/share/uv`, `~/.cache/uv`), outside
+   `SCREENWALL_HOME`. uv may still call `install_name_tool` on a freshly downloaded Python; on such
+   a Mac that can bring up the offer to install the developer tools (Cancel is fine) and a
+   harmless "Failed to patch the install name" warning.
 4. Unless `SCREENWALL_SKIP_OLLAMA=1`: starts Ollama if it is installed but not running; if it is
    missing, prints Turkish guidance, opens https://ollama.com/download and continues (the app
    runs, but nothing can be approved); pulls `AUDITOR_MODEL` (default `qwen3.5:4b`) with visible
@@ -116,16 +124,27 @@ Measured on an Apple Silicon Mac with a warm uv cache (no downloads): first star
 `/health`, later starts about 4 s. A clean machine also downloads uv, CPython 3.12 and about
 70 MB of wheels (the spaCy models come from GitHub).
 
-What has been checked: the zip was unpacked and the launcher run from a terminal, end to end,
-on an Apple Silicon Mac (macOS 26); every release is also smoke-tested on GitHub's Apple
-Silicon (`macos-latest`) and Intel (`macos-15-intel`) runners (below). Not yet checked by hand:
-a Finder launch with the Gatekeeper prompt, a DMG or zip downloaded from the internet
-(quarantine attribute), macOS 14–15 and a real Intel Mac. On Intel the only test is that smoke
-test, which runs without Ollama (`SCREENWALL_SKIP_OLLAMA=1`, `--expect-auditor unavailable`):
-approval, PDF download and chat with Ollama have never run on an Intel Mac, and CI runs the
-backend tests only on Ubuntu and Apple Silicon. Whether a CPU-only Intel Mac finishes an audit
-within the 120 s timeout (see Requirements) is not measured; measure one approval on a real
-Intel Mac before claiming that approval works there.
+What has been checked: on 2026-10-11 the app from the published v0.1.0 DMG was started with
+`open` (LaunchServices) on an Apple Silicon Mac (macOS 26) and run end to end with Ollama. It
+wrote its starter, opened Terminal, prepared Python and was serving in 65 s, and started Ollama.
+A synthetic corporate DOCX was masked (customer `<ORG_1>`, signatory `<PERSON_1>`, e-mail
+`<EMAIL_1>`, IBAN `<IBAN_1>`, VKN `<VKN_1>`, approver `<PERSON_2>`; amount and delivery term
+kept), the local LLM audit approved it (68 s, cold model), unmasking a span and approving again
+re-ran the audit (about 15 s), and the exported PDF contained none of the real values. Gaps seen
+in that run: the heading "Tedarik Sözleşmesi (örnek, sentetik veri)" (first two words
+capitalised) was masked as PERSON by the English NER (the lowercase "Tedarik sözleşmesi" stays),
+and the exported PDF header reads "Anonymized Document" in English. The zip was also unpacked
+and the launcher run from a terminal, end to end, on the same Mac; every release is also
+smoke-tested on GitHub's Apple Silicon (`macos-latest`) and Intel (`macos-15-intel`) runners
+(below). Not yet checked by hand: a Finder launch with the Gatekeeper prompt, a DMG or zip
+downloaded from the internet with a browser (quarantine attribute; the tested DMG was downloaded
+from the command line and carried none), a Mac without the Xcode Command Line Tools, macOS 14–15
+and a real Intel Mac. On Intel the only test
+is that smoke test, which runs without Ollama (`SCREENWALL_SKIP_OLLAMA=1`,
+`--expect-auditor unavailable`): approval, PDF download and chat with Ollama have never run on
+an Intel Mac, and CI runs the backend tests only on Ubuntu and Apple Silicon. Whether a CPU-only
+Intel Mac finishes an audit within the 120 s timeout (see Requirements) is not measured; measure one
+approval on a real Intel Mac before claiming that approval works there.
 
 **Windows is not supported.** The backend still keeps its Windows guards (the Claude and Codex
 chat providers report `unsupported_os` there, and POSIX-only tests skip), but nothing is built
@@ -134,8 +153,11 @@ or tested for Windows.
 ### Building a release
 
 ```bash
-make release VERSION=0.1.0      # = bash packaging/build_release.sh 0.1.0
+make release VERSION=0.1.1      # = bash packaging/build_release.sh 0.1.1
 ```
+
+Before tagging `vX.Y.Z`, set `__version__` in `backend/app/__init__.py` to `X.Y.Z` (it is the version
+`/openapi.json` reports); `build_release.sh` refuses a plain `x.y.z` version that differs from it.
 
 Output in `dist/` (git-ignored): `Screenwall-macOS.dmg`, `Screenwall-macOS.zip`,
 `install-macos.sh` and `SHA256SUMS.txt`, which covers the other three. The asset names carry no

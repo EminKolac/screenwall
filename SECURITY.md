@@ -1,5 +1,23 @@
 # Security Model
 
+## Güvenlik açığı bildirimi
+
+Screenwall'da bir güvenlik açığı ya da maskelemeyi aşan bir sızıntı bulursanız ayrıntıları
+herkese açık bir issue'ya yazmayın.
+
+- Bu deponun **Security** sekmesinde **Report a vulnerability** düğmesi görünüyorsa bildirimi
+  oradan, gizli olarak yapın.
+- Düğme görünmüyorsa ayrıntı vermeden bir issue açın ve gizli bir iletişim yolu isteyin.
+- Bildirime hiçbir zaman gerçek bir belge, kişisel veri ya da şirket bilgisi eklemeyin; sorunu
+  sentetik bir örnekle gösterin.
+
+*Reporting a vulnerability:* do not post details in a public issue. If this repository's
+Security tab shows a "Report a vulnerability" button, report privately there; if it does not,
+open an issue without details and ask for a private contact. Never attach real documents or
+personal data; reproduce the problem with synthetic data.
+
+## Current state
+
 > **Note (2026-10-07):** most of this document was written for v1 and is kept as a record. The
 > guarantees in §2 still hold, but several details changed; where this file and the code
 > disagree, the code wins. Current state:
