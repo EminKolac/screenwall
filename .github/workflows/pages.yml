@@ -1,5 +1,5 @@
-# Publishes the promo site (site/) to GitHub Pages: https://eminkolac.github.io/screenwall/
-# github.io is reachable from Turkey (screenwall.pages.dev is not). Runs when site/ changes on main,
+# Publishes the promo site (site/) to GitHub Pages, served as https://screenwall.site (site/CNAME;
+# Cloudflare DNS CNAME @ -> eminkolac.github.io, proxied). Reachable from Turkey (screenwall.pages.dev is not). Runs when site/ changes on main,
 # or by hand. The site is static: no build step, no third-party scripts.
 name: Pages
 

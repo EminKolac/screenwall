@@ -27,7 +27,8 @@ belgeyle denendi: başlık açık kaldı, öteki alanlar maskelendi, lokal LLM o
 
 ### Site
 
-- Tanıtım sitesi repoda (`site/`) ve GitHub Pages'te: https://eminkolac.github.io/screenwall/ .
+- Tanıtım sitesi repoda (`site/`) ve GitHub Pages'te, https://screenwall.site adresiyle (Cloudflare
+  üzerinden).
   Önceki adres (screenwall.pages.dev) Türkiye'den açılmıyordu; github.io açılıyor. Metin kurumsal
   anlatıma, lokal LLM ve Claude/ChatGPT adlarına göre güncellendi; v11 filmi (50 sn) eklendi.
 

@@ -25,7 +25,7 @@ sohbetini seçip her soruyu ayrıca onayladığınızda.
 tedarik sözleşmesi bilgisayarda maskeleniyor, iki adımlı denetimden geçiyor (kurallar ve Ollama
 üzerinde çalışan lokal LLM, Qwen 3.5 4B), son kararı kullanıcı veriyor ve Claude ya da ChatGPT'ye
 yalnızca etiketler gidiyor. Sunum: [Screenwall-Yatirimci-Sunum.pptx](Screenwall-Yatirimci-Sunum.pptx).
-Site: [eminkolac.github.io/screenwall](https://eminkolac.github.io/screenwall/) (kaynağı repodaki `site/` klasörü).
+Site: [screenwall.site](https://screenwall.site) (kaynağı repodaki `site/` klasörü).
 
 <div align="center">
 
