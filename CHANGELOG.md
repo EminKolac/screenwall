@@ -54,7 +54,7 @@ Değişiklikten önceki ve sonraki kod aynı makinede, aynı gün koşuldu (`doc
   30 gerçek BIST PDF'inde düşürdüğü 198 PERSON span'inin hepsi belge adı ("Faaliyet Raporu",
   "Ana Sözleşme", "Yönetim Kurulu Kararı" gibi); aralarında kişi adı yok.
 - Arka uçta 55 yeni test: Tesseract kurulu bu makinede 934 geçiyor, 2'si atlanıyor (önce
-  879 + 2). Temiz klonda 932 + 4 bekleniyor; CI'da henüz koşulmadı. README rozeti
+  879 + 2). Temiz klonda ve CI'da (Ubuntu, macOS) 932 geçiyor, 4'ü atlanıyor. README rozeti
   "932 backend + 79 frontend". Arayüz değişmedi.
 
 ## v0.1.1 (2026-10-11)
