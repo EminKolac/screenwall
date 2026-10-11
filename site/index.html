@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Screenwall — Önce maskele. Sonra sor.</title>
+<meta name="description" content="Screenwall, şirket dokümanlarındaki (PDF, Word, Excel) müşteri, yetkili, banka ve vergi bilgilerini bilgisayarınızda maskeler. Claude ya da ChatGPT'ye yalnız etiketli metin gider.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0e1210">
+<!-- Yayın: GitHub Pages (repo site/ klasörü). Alan adı screenwall.site bağlanınca canonical ona çevrilir. -->
+<link rel="canonical" href="https://eminkolac.github.io/screenwall/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Screenwall — Önce maskele. Sonra sor.">
+<meta property="og:description" content="Şirket dokümanlarını bilgisayarınızda maskeleyin. Claude ya da ChatGPT'ye yalnız etiketli metin gider; gerçek değerler sizde kalır.">
+<meta property="og:image" content="https://eminkolac.github.io/screenwall/assets/poster.jpg">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css?v=6bf8b655487b">
+<script src="assets/site.js?v=d8ea36f13a3c" defer></script>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">İçeriğe geç</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Screenwall"><img src="assets/mark.svg" alt=""><span>Screenwall</span></a>
+    <nav class="nav" aria-label="Sayfa">
+      <a class="opt" href="#nasil" data-i18n="nav.how">Nasıl çalışır</a>
+      <a class="opt" href="#testler" data-i18n="nav.tests">Testler</a>
+      <a href="#indir" data-i18n="nav.dl">İndir</a>
+      <button class="lang" type="button" id="lang" aria-label="Switch to English">EN</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="eyebrow" data-i18n="eyebrow">macOS için · Türkçe ve İngilizce</div>
+      <h1 data-i18n="h1">Önce maskele. Sonra sor.</h1>
+      <p class="lead" data-i18n="lead">Şirket dokümanlarınızı Claude'a ya da ChatGPT'ye sormadan önce hassas bilgileri bilgisayarınızda maskeleyin. Müşteri ve yetkili adları, e-posta, IBAN ve vergi numaraları etiketlere dönüşür; gerçek değerler bilgisayarınızda kalır, gidecek metni önce siz onaylarsınız.</p>
+      <div class="cta">
+        <a class="btn primary" href="#tanitim">
+          <svg width="20" height="22" viewBox="0 0 24 26" aria-hidden="true"><path d="M7 5l13 8-13 8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span data-i18n="cta.dl">Tanıtımı izle</span></a>
+        <a class="btn ghost" href="https://github.com/EminKolac/screenwall" data-i18n="cta.gh">Kaynak kodu GitHub'da</a>
+      </div>
+      <p class="meta" data-i18n="meta">macOS 14 veya üstü · Apple Silicon ve Intel · Ollama gerekir</p>
+      <p class="note" data-i18n="release.pending">v0.1.1 yayımlandı. DMG ve ZIP paketleri, kurulum notlarıyla birlikte aşağıda.</p>
+    </div>
+
+    <figure class="film" id="tanitim">
+      <video controls preload="metadata" playsinline poster="assets/poster.jpg">
+        <source src="assets/screenwall-tanitim.mp4" type="video/mp4">
+      </video>
+      <figcaption data-i18n="film">50 saniyelik tanıtım filmi (Türkçe). Şirket ve kişiler kurgusaldır.</figcaption>
+    </figure>
+
+    <section class="problem" aria-labelledby="p-h">
+      <div class="kicker" data-i18n="p.k">Sorun</div>
+      <h2 id="p-h" data-i18n-html="p.h">Şirket dokümanlarını Claude'a ya da ChatGPT'ye sormak istiyorsunuz. <span class="coral">Ama içinde müşteri, yetkili ve banka bilgileri var.</span></h2>
+      <p class="sub" data-i18n="p.sub">Bu metni olduğu gibi buluta göndermek KVKK ve ticari gizlilik açısından risk. Screenwall önce maskeler; Claude ya da ChatGPT'ye yalnız etiketli metin gider, o da sizin onayınızla.</p>
+    </section>
+
+    <section id="nasil" aria-labelledby="h-how">
+      <div class="kicker" data-i18n="how.k">Nasıl çalışır</div>
+      <h2 id="h-how" data-i18n="how.h">Beş adım. Tespit ve denetim bu bilgisayarda.</h2>
+      <ol class="steps">
+        <li><span class="num">1</span><div><h3 data-i18n="s1.h">Belgeyi yükleyin.</h3>
+          <p data-i18n="s1.p">PDF, Word ya da Excel. Belge bu bilgisayarda işlenir; hiçbir yere gönderilmez.</p></div></li>
+        <li><span class="num">2</span><div><h3 data-i18n="s2.h">Hassas bilgiler bulunur ve etiketlenir.</h3>
+          <p data-i18n-html="s2.p">Şirket unvanı, yetkili adı, e-posta, IBAN ve vergi numarası <span class="tag">&lt;ORG_1&gt;</span>, <span class="tag">&lt;PERSON_1&gt;</span> gibi etiketlere dönüşür. Tutarlar ve metin okunur kalır.</p></div></li>
+        <li><span class="num">3</span><div><h3 data-i18n="s3.h">Lokal LLM denetler.</h3>
+          <p data-i18n="s3.p">Maskeli kopya, kural kontrolleri ve Ollama üzerinde çalışan lokal LLM (Qwen 3.5 4B) ile denetlenir. İkisinin de temiz demesi gerekir.</p></div></li>
+        <li class="key"><span class="num">4</span><div><h3 data-i18n="s4.h">Şüphede karar kullanıcının.</h3>
+          <p data-i18n="s4.p">Denetçi emin değilse belge kendiliğinden onaylanmaz. İnceleyip maskeleyin ya da açık bırakın; son kopyanın yine lokal LLM denetiminden geçmesi gerekir.</p></div></li>
+        <li><span class="num">5</span><div><h3 data-i18n="s5.h">Maskeli belgeyi kullanın.</h3>
+          <p data-i18n="s5.p">Onaydan sonra maskeli metinden üretilen PDF'yi indirin ya da lokal LLM'e sorun. İsteğe bağlı olarak Claude (Claude Code) ya da ChatGPT (Codex CLI) ile sohbet edin; gidecek metni her soruda inceleyip onaylarsınız.</p></div></li>
+      </ol>
+      <figure class="shot">
+        <img src="assets/karar.jpg" width="1200" height="507" loading="lazy" alt="Screenwall inceleme ekranı: denetçi 'A. Yılmaz' için emin değil; Maskele ve Açık bırak düğmeleri görünüyor." data-i18n-alt="shot.alt">
+        <figcaption data-i18n="shot.cap">4. adım: denetçi emin olmadığında karar ekranı. Örnek veri.</figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="h-pr">
+      <div class="kicker" data-i18n="pr.k">Gizlilik tasarımı</div>
+      <h2 id="h-pr" data-i18n="pr.h">Sizin belgeniz, sizin bilgisayarınız, sizin kararınız.</h2>
+      <div class="grid">
+        <div class="card"><h3 data-i18n="c1.h">Bu bilgisayarda çalışır</h3><p data-i18n="c1.p">Tespit, maskeleme ve denetim bu bilgisayarda yapılır. Orijinal belge dışarı çıkmaz.</p></div>
+        <div class="card"><h3 data-i18n="c2.h">Şüphede durur</h3><p data-i18n="c2.p">Emin olmadığında belgeyi onaylamaz; size sorar.</p></div>
+        <div class="card"><h3 data-i18n="c3.h">Gideni önce gösterir</h3><p data-i18n="c3.p">Buluta bir şey gidecekse, gidecek metnin tamamını önce gösterir ve açık onay ister.</p></div>
+        <div class="card"><h3 data-i18n="c4.h">API anahtarı saklamaz</h3><p data-i18n="c4.p">İsteğe bağlı bulut sohbeti kendi Claude Code ya da Codex (ChatGPT) oturumunuzla çalışır; Screenwall API anahtarı saklamaz.</p></div>
+      </div>
+    </section>
+
+    <section id="testler" aria-labelledby="h-t">
+      <div class="kicker" data-i18n="t.k">Testler</div>
+      <h2 id="h-t" data-i18n="t.h">Örnek belgelerle test ettik.</h2>
+      <div class="stats">
+        <div class="stat"><div class="n">472/489</div><div class="l" data-i18n="t1.l">katı sayımda kritik veri</div>
+          <p data-i18n="t1.p">60 belgelik geliştirme setindeki 489 kritik değerin 472'si yakalandı. Kural ve tespit ölçümü; bu koşuda lokal LLM kapalıydı.</p></div>
+        <div class="stat"><div class="n">0/72</div><div class="l" data-i18n="t2.l">belgede veri sızıntısı</div>
+          <p data-i18n="t2.p">Lokal LLM denetimi açıkken yapılan 72 stres belgesinde onaylanan çıktıya hassas bilgi sızmadı.</p></div>
+        <div class="stat"><div class="n warn">11/40</div><div class="l" data-i18n="t3.l">gereksiz maskeleme</div>
+          <p data-i18n="t3.p">Hassas bilgi içermeyen 40 iş cümlesinin 11'inde gereksiz maskeleme yaptı. Bilinen kusurumuz; üzerinde çalışıyoruz.</p></div>
+      </div>
+      <p class="note" data-i18n-html="t.note">Kendi ölçümlerimiz; kuralların ayarlandığı geliştirme setini kullanıyoruz. Aynı setin kendi puanlayıcımızdaki sonucu 1555/1555. Lokal LLM'li stres testinde 62 güvenli belgenin 59'u onaylandı; üçü incelemede kaldı. Bağımsız, hiç görülmemiş bir test seti henüz yok. Tüm sayılar ve yöntem: <a href="https://github.com/EminKolac/screenwall/blob/main/docs/SCORECARD.md">SCORECARD</a>.</p>
+      <p class="note" data-i18n="t.limits">Maskeleme kusursuz değildir. Cümle içindeki büyük harfli adlar, bazı adresler ve meslek, eğitim veya maaş gibi bilgiler açıkta kalabilir. Paylaşmadan önce maskeli kopyayı kontrol edin.</p>
+    </section>
+
+    <section id="indir" aria-labelledby="h-dl">
+      <div class="kicker" data-i18n="dl.k">macOS paketi</div>
+      <h2 id="h-dl" data-i18n="dl.h">Screenwall'ı indirin.</h2>
+      <p class="sub" data-i18n="dl.pending">Önerilen kurulum: DMG dosyasını açın ve Screenwall'u Uygulamalar klasörüne sürükleyin. İlk açılışta çalışma ortamı hazırlanır; arayüz tarayıcınızda açılır.</p>
+      <div class="dl">
+        <div>
+          <ul class="req">
+            <li data-i18n="r1">macOS 14 (Sonoma) veya üstü; Apple Silicon ve Intel.</li>
+            <li data-i18n-html="r2"><a href="https://ollama.com/download">Ollama</a> ve qwen3.5:4b modeli gerekir (yaklaşık 3,4 GB). Ollama kuruluysa model ilk açılışta indirilir. Ollama olmadan belgeler maskelenebilir; ancak onaylanamaz, indirilemez ve üzerlerinde sohbet edilemez.</li>
+            <li data-i18n="r3">Uygulama Apple tarafından imzalanmadı; ilk açılışta macOS uyarı verir. Uygulamaya sağ tıklayıp Aç'ı seçin; macOS 15 ve sonrasında Sistem Ayarları › Gizlilik ve Güvenlik › Yine de Aç. macOS geliştirici araçlarını yüklemeyi önerirse Vazgeç'e basın; gerekmez.</li>
+            <li data-i18n="r4">İlk kurulum ve yeni sürüm hazırlığı internet gerektirebilir. Taranmış PDF sayfalarını okumak için isteğe bağlı Tesseract gerekir.</li>
+            <li data-i18n="r5">Intel Mac'te Ollama ile belge onayı henüz denenmedi; lokal LLM denetimi işlemciyle çalışır ve daha yavaş olabilir.</li>
+          </ul>
+          <div class="cta" style="justify-content:flex-start">
+            <a class="btn primary" href="https://github.com/EminKolac/screenwall/releases/latest/download/Screenwall-macOS.dmg" data-i18n="cta.dmg">macOS için indir · DMG</a>
+          </div>
+        </div>
+        <div>
+          <p data-i18n="term.h">Alternatif indirmeler ve kurulum notları.</p>
+          <p class="small" data-i18n-html="term.n"><a href="https://github.com/EminKolac/screenwall/releases/latest/download/Screenwall-macOS.zip">ZIP paketi</a> · <a href="https://github.com/EminKolac/screenwall/releases/latest/download/SHA256SUMS.txt">SHA256 doğrulama dosyası</a></p>
+          <p class="small" data-i18n-html="term.docs"><a href="https://github.com/EminKolac/screenwall#indir">Kurulum rehberi</a> · <a href="https://github.com/EminKolac/screenwall/releases/latest">Sürüm notları</a></p>
+        </div>
+      </div>
+      <div class="made">
+        <img src="assets/mark.svg" alt="" width="40" height="40">
+        <p data-i18n="made">Bugün Claude sohbeti kendi Claude Code oturumunuzla, ChatGPT sohbeti Codex CLI oturumunuzla çalışır. Screenwall doğrudan Claude API'yi çağırmaz. Kullanıcı onayını koruyan bir API bağlantısı geliştirmeyi planlıyoruz; bu henüz mevcut bir özellik değildir.</p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><strong>Screenwall</strong> · <a href="privacy.html" data-i18n="f.priv">Gizlilik</a> · <span data-i18n="f.nocookie">Bu site çerez ve takip aracı kullanmaz.</span></div>
+    <div><span data-i18n="f.owner">Screenwall bir</span> <span>NUVE GLOBAL COMMERCE LTD</span> <span data-i18n="f.owner2">ürünüdür.</span> <span data-i18n="f.incorporated">Kuruluş: 5 Ağustos 2026.</span></div>
+    <div>Company No. <span>17382735</span> · Registered office: <span>71-75 Shelton Street, Covent Garden, London, United Kingdom, WC2H 9JQ</span> · Registered in <span>England and Wales</span>.</div>
+    <div><span data-i18n="f.contact">İletişim:</span> <a href="mailto:hello@screenwall.site">hello@screenwall.site</a> <span data-i18n="f.emailstate"></span></div>
+  </div>
+</footer>
+</body>
+</html>
