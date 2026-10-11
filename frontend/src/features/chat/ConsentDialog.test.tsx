@@ -46,9 +46,9 @@ describe("ConsentDialog", () => {
 const providers: ProvidersResponse = {
   default: "ollama",
   providers: [
-    { id: "ollama", label: "Yerel (Ollama)", local: true, available: true, installed: null, compatible: null, authenticated: null, version: null, model: "qwen3.5:4b", login_command: null, problem: null },
+    { id: "ollama", label: "Lokal LLM (Ollama)", local: true, available: true, installed: null, compatible: null, authenticated: null, version: null, model: "qwen3.5:4b", login_command: null, problem: null },
     { id: "claude_cli", label: "Claude", local: false, available: true, installed: true, compatible: true, authenticated: true, version: "2.1", model: null, login_command: null, problem: null },
-    { id: "codex_cli", label: "Codex", local: false, available: false, installed: true, compatible: true, authenticated: false, version: "0.44", model: null, login_command: "codex login", problem: "cli_login_required" },
+    { id: "codex_cli", label: "ChatGPT (Codex CLI)", local: false, available: false, installed: true, compatible: true, authenticated: false, version: "0.44", model: null, login_command: "codex login", problem: "cli_login_required" },
   ],
 };
 
@@ -142,7 +142,7 @@ describe("cloud chat", () => {
     await screen.findByRole("dialog", { name: "Gönderimi onaylayın" });
 
     // jsdom does not make the page inert behind a modal, which lets the test change the provider.
-    await userEvent.click(screen.getByRole("radio", { name: /Yerel/ }));
+    await userEvent.click(screen.getByRole("radio", { name: /Lokal LLM/ }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(calls.some((c) => c.url === "/api/chat")).toBe(false);
   });

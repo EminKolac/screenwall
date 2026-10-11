@@ -38,7 +38,7 @@ def test_ollama_status_available(monkeypatch):
     assert set(status) == STATUS_KEYS
     assert status["available"] is True and status["problem"] is None
     assert status["id"] == "ollama" and status["local"] is True
-    assert status["label"] == "Yerel (Ollama)" and status["model"] == "qwen3.5:4b"
+    assert status["label"] == "Lokal LLM (Ollama)" and status["model"] == "qwen3.5:4b"
     assert status["installed"] is None and status["login_command"] is None
 
 
@@ -125,7 +125,7 @@ def fakes(tmp_path, monkeypatch):
     "cls,label,login",
     [
         (ClaudeCliProvider, "Claude", "claude auth login"),
-        (CodexCliProvider, "Codex", "codex login"),
+        (CodexCliProvider, "ChatGPT (Codex CLI)", "codex login"),
     ],
 )
 @posix_only.FAKE_CLI
@@ -208,7 +208,7 @@ def test_factory_builds_each_provider_from_settings(monkeypatch):
     assert isinstance(built["codex_cli"], CodexCliProvider)
     assert built["codex_cli"].model == "gpt-5.1-codex"
     assert {p.destination for p in built.values()} == {
-        "Bu bilgisayar", "Anthropic (Claude)", "OpenAI (Codex)"
+        "Bu bilgisayar", "Anthropic (Claude)", "OpenAI (ChatGPT)"
     }
     with pytest.raises(ChatError) as err:
         build_provider("openai", settings)

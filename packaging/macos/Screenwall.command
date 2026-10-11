@@ -169,6 +169,8 @@ fi
 # ---------------------------------------------------------------- 2) Python environment
 
 export UV_PROJECT_ENVIRONMENT="$VENV_DIR"
+# uv's own Python only: /usr/bin/python3 is an Xcode stub on Macs without the command line tools.
+export UV_PYTHON_PREFERENCE=only-managed
 say "Python ortamı hazırlanıyor (ilk açılışta paketler indirilir, birkaç dakika sürebilir)..."
 (cd "$BACKEND_DIR" && "$UV" sync --frozen --no-dev --python 3.12) ||
   fail "Python paketleri kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."

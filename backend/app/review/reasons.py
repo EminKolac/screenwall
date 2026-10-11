@@ -100,7 +100,7 @@ FINDING_REASON = "Denetim burada kişisel veri kalmış olabileceğini söylüyo
 # Extraction reasons (no_text, ocr_unavailable, ...) live with their detection in services/ingest.
 REVIEW_REASONS = {
     "audit_residual": "Denetim maskeli metinde kişisel veri kalmış olabileceğini buldu.",
-    "auditor_unavailable": "Yerel denetim modeli çalışmıyordu; belge otomatik onaylanmadı.",
+    "auditor_unavailable": "Lokal LLM denetimi çalışmıyordu; belge otomatik onaylanmadı.",
     "processing_failed": "Belge işlenirken bir hata oluştu.",
     "processing_interrupted": "İşlem yarıda kaldı; belgeyi yeniden yükleyin.",
     "changed_after_approval": "Onaydan sonra değişiklik yapıldı; yeniden onay gerekiyor.",

@@ -16,16 +16,16 @@ import type { MockDoc } from "./types";
 export const PROVIDERS: ProvidersResponse = {
   default: "ollama",
   providers: [
-    { id: "ollama", label: "Yerel (Ollama)", local: true, available: true, installed: null, compatible: null, authenticated: null, version: "0.12.3", model: "qwen3.5:4b", login_command: null, problem: null },
+    { id: "ollama", label: "Lokal LLM (Ollama)", local: true, available: true, installed: null, compatible: null, authenticated: null, version: "0.12.3", model: "qwen3.5:4b", login_command: null, problem: null },
     { id: "claude_cli", label: "Claude", local: false, available: true, installed: true, compatible: true, authenticated: true, version: "2.1.14", model: null, login_command: "claude auth login", problem: null },
-    { id: "codex_cli", label: "Codex", local: false, available: false, installed: true, compatible: true, authenticated: false, version: "0.44.0", model: null, login_command: "codex login", problem: "cli_login_required" },
+    { id: "codex_cli", label: "ChatGPT (Codex CLI)", local: false, available: false, installed: true, compatible: true, authenticated: false, version: "0.44.0", model: null, login_command: "codex login", problem: "cli_login_required" },
   ],
 };
 
 const DESTINATION: Record<ProviderId, string> = {
   ollama: "Bu bilgisayar",
   claude_cli: "Anthropic (Claude)",
-  codex_cli: "OpenAI (Codex)",
+  codex_cli: "OpenAI (ChatGPT)",
 };
 
 type Outcome<T> = { ok: true; value: T } | { ok: false; error: ErrorCode };

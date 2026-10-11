@@ -55,7 +55,7 @@ class OllamaChatProvider:
     so the consent preview applies and names the host. Ollama cloud models are unavailable."""
     id = "ollama"
     name = "ollama"
-    label = "Yerel (Ollama)"
+    label = "Lokal LLM (Ollama)"
     local = True
     destination = ollama.LOCAL_DESTINATION
     # Tests inject an httpx.MockTransport here; None = the real Ollama.
@@ -203,6 +203,6 @@ class ClaudeCliProvider(_CliChatProvider):
 
 class CodexCliProvider(_CliChatProvider):
     id = "codex_cli"
-    label = "Codex"
-    destination = "OpenAI (Codex)"
+    label = "ChatGPT (Codex CLI)"
+    destination = "OpenAI (ChatGPT)"
     login_command = "codex login"

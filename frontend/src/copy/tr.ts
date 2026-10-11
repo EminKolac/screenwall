@@ -29,7 +29,7 @@ export const errorText = {
   preview_mismatch: "Belge değişti. Gönderilecek metni yeniden onaylayın.",
   provider_unavailable: "Seçilen sohbet sağlayıcısı şu anda kullanılamıyor.",
   ollama_unreachable: "Ollama'ya ulaşılamadı. Ollama'nın çalıştığından emin olun.",
-  model_missing: "Yerel model yüklü değil. Modeli Ollama ile indirin.",
+  model_missing: "Lokal LLM yüklü değil. Modeli Ollama ile indirin.",
   cli_not_found: "Komut satırı aracı bulunamadı. Önce kurulumu yapın.",
   cli_upgrade_required: "Komut satırı aracının sürümü eski. Güncelleyip tekrar deneyin.",
   cli_login_required: "Komut satırı aracında oturum açılmamış. Giriş komutunu terminalde çalıştırın.",
@@ -54,7 +54,7 @@ export const clientErrorText: Record<ClientErrorCode, string> = {
 export type ProviderProblemCode = "unsupported_os";
 
 export const providerProblemText: Record<ProviderProblemCode, string> = {
-  unsupported_os: "Bu sağlayıcı Windows'ta henüz desteklenmiyor. Yerel (Ollama) sohbeti kullanabilirsiniz.",
+  unsupported_os: "Bu sağlayıcı Windows'ta henüz desteklenmiyor. Lokal LLM (Ollama) sohbetini kullanabilirsiniz.",
 };
 
 export function isErrorCode(code: string): code is ErrorCode {
@@ -89,7 +89,7 @@ export const statusDetail: Record<"queued" | "extracting" | "masking" | "auditin
   queued: "Belge sırada. Birazdan işlenmeye başlayacak.",
   extracting: "Sayfalardaki metin ve tablolar okunuyor.",
   masking: "Kişisel veriler bulunuyor ve maskeleniyor.",
-  auditing: "Yerel model maskeli metni kalıntılara karşı denetliyor.",
+  auditing: "Lokal LLM maskeli metni kalıntılara karşı denetliyor.",
 };
 
 export const modeText: Record<Mode, { label: string; consequence: string }> = {
@@ -147,13 +147,13 @@ export function familyLabel(family: string | null): string {
 export const providerDestination: Record<ProviderId, string> = {
   ollama: "Bu bilgisayar",
   claude_cli: "Anthropic (Claude)",
-  codex_cli: "OpenAI (Codex)",
+  codex_cli: "OpenAI (ChatGPT)",
 };
 
 export const providerWhere: Record<ProviderId, string> = {
   ollama: "Bu bilgisayarda çalışır. Metin dışarı çıkmaz.",
   claude_cli: "Maskeli metin Anthropic'e gider.",
-  codex_cli: "Maskeli metin OpenAI'ye gider.",
+  codex_cli: "Maskeli metin ChatGPT'ye (OpenAI) gider.",
 };
 
 // ---------------------------------------------------------------- screens
@@ -252,7 +252,7 @@ export const tr = {
     approveDialog: {
       title: "Belgeyi onayla",
       body: "Onaylanan belge indirilebilir ve sohbette kullanılabilir. Onaydan sonra bir maskeyi değiştirirseniz belge yeniden onay bekler.",
-      checking: "Yerel denetçi belgenin son hâlini kontrol ediyor. Bu birkaç saniye sürebilir.",
+      checking: "Lokal LLM belgenin son hâlini kontrol ediyor. Bu birkaç saniye sürebilir.",
       confirm: "Onayla",
     },
     rejectDialog: {
@@ -357,7 +357,7 @@ export const tr = {
     remask: "Yeniden maskele",
     addedByYou: "Sizin eklediğiniz",
     groupCount: (n: number) => `${n}`,
-    auditFooter: (model: string) => `Denetim: ${model} · yerel`,
+    auditFooter: (model: string) => `Denetim: ${model} · lokal LLM`,
     auditOffline: "Denetim modeline şu anda ulaşılamıyor",
     destructiveNoUnmask: "Geri döndürülemez modda maske kaldırılamaz.",
   },
@@ -447,7 +447,7 @@ export const tr = {
     provider: {
       ready: "Hazır",
       notReady: "Kullanılamıyor",
-      local: "Yerel",
+      local: "Lokal",
       cloud: "Bulut",
       installed: "Kurulu",
       notInstalled: "Kurulu değil",

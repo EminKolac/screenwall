@@ -181,7 +181,7 @@ def test_preview_shape(client, ollama):
 
 @pytest.mark.parametrize(
     "provider,destination",
-    [("claude_cli", "Anthropic (Claude)"), ("codex_cli", "OpenAI (Codex)")],
+    [("claude_cli", "Anthropic (Claude)"), ("codex_cli", "OpenAI (ChatGPT)")],
 )
 @posix_only.FAKE_CLI
 def test_cloud_sends_exactly_the_previewed_text(client, fakes, provider, destination):

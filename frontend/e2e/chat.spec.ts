@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 test("local Ollama answers directly, with citations", async ({ page }) => {
   const panel = sidePanel(page);
-  await expect(panel.getByRole("radio", { name: /Yerel \(Ollama\)/ })).toBeChecked();
+  await expect(panel.getByRole("radio", { name: /Lokal LLM \(Ollama\)/ })).toBeChecked();
   await panel.getByLabel("Soru").fill("Kira bedeli ne kadar?");
   await panel.getByRole("button", { name: "Gönder", exact: true }).click();
 

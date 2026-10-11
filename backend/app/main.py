@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.types import Receive, Scope, Send
 
+from app import __version__
 from app.api import chat, documents, system
 from app.config import get_settings
 from app.security import web
@@ -129,7 +130,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="Fable", version="2.0.0", lifespan=lifespan)
+    app = FastAPI(title="Screenwall", version=__version__, lifespan=lifespan)
     app.state.sessions = web.SessionStore()
     app.state.worker = None
     web.install(app, app.state.sessions)

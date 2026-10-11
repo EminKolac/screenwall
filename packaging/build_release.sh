@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the Screenwall release assets into dist/ at the repository root.
 #
-#   bash packaging/build_release.sh [VERSION]        e.g. 0.1.0   (make release VERSION=0.1.0)
+#   bash packaging/build_release.sh [VERSION]        e.g. 0.1.1   (make release VERSION=0.1.1)
 #
 # Assets (no version in the names, so .../releases/latest/download/<asset> links stay stable):
 #   Screenwall-macOS.dmg     disk image (volume "Screenwall"): Screenwall.app, an Applications
@@ -63,6 +63,13 @@ VERSION="${VERSION#v}"
 case "$VERSION" in
   '' | *[!0-9A-Za-z.+_-]*) fail "invalid version '$VERSION' (letters, digits and . + _ - only)" ;;
 esac
+# /openapi.json shows __version__ from backend/app/__init__.py, which is kept by hand: a release
+# version (plain x.y.z) must match it. Dev versions such as 0.0.0-dev.<sha> are not checked.
+if printf '%s\n' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  APP_VERSION="$(sed -n 's/^__version__ = "\([^"]*\)"$/\1/p' "$REPO/backend/app/__init__.py")"
+  [ "$VERSION" = "$APP_VERSION" ] ||
+    fail "version $VERSION does not match __version__ \"$APP_VERSION\" in backend/app/__init__.py"
+fi
 
 for tool in zip perl; do
   command -v "$tool" >/dev/null 2>&1 || fail "$tool is required"

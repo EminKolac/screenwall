@@ -175,7 +175,7 @@ export type ProviderId = "ollama" | "claude_cli" | "codex_cli";
 
 export interface ProviderStatus {
   id: ProviderId;
-  label: string; // "Yerel (Ollama)", "Claude", "Codex"
+  label: string; // "Lokal LLM (Ollama)", "Claude", "ChatGPT (Codex CLI)"
   local: boolean; // true only for ollama
   available: boolean; // ready to use right now
   installed: boolean | null; // CLI providers
@@ -211,7 +211,7 @@ export interface ChatPreviewRequest {
 export interface ChatPreviewResponse {
   provider: ProviderId;
   preview_hash: string;
-  destination: string; // "Bu bilgisayar" | "Anthropic (Claude)" | "OpenAI (Codex)"
+  destination: string; // "Bu bilgisayar" | "Anthropic (Claude)" | "OpenAI (ChatGPT)"
   sources: ChatSource[];
   sent_text: string; // exactly what will be sent (masked), for the consent dialog
   context_chars: number;

@@ -45,7 +45,7 @@ class SelectableProvider(ChatProvider, Protocol):
     id: str  # contract ProviderId
     label: str
     local: bool  # True only for ollama; False means the consent gate (preview_hash) applies
-    destination: str  # "Bu bilgisayar" | "Anthropic (Claude)" | "OpenAI (Codex)"
+    destination: str  # "Bu bilgisayar" | "Anthropic (Claude)" | "OpenAI (ChatGPT)"
     model: str
 
     def render(self, system_prompt: str, messages: list[dict], model: str = "") -> str:

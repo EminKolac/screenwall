@@ -227,24 +227,24 @@ jobs:
             exit 1
           fi
           cat >"$RUNNER_TEMP/notes.md" <<EOF
-          Screenwall $TAG: belgelerdeki kişisel verileri kendi bilgisayarınızda maskeleyen uygulama.
+          Screenwall $TAG: şirket dokümanlarındaki hassas bilgileri (müşteri ve kişi adları, vergi ve kimlik numaraları, IBAN'lar) kendi bilgisayarınızda maskeleyen uygulama. Gerçek değerler bilgisayarınızda kalır; Claude ya da ChatGPT'ye yalnızca etiketli metin gider.
 
           Bu sürüm yalnız macOS içindir: Apple Silicon ve Intel Mac'ler, macOS 14 (Sonoma) veya üstü. Windows desteklenmiyor.
 
           İndirme ve kurulum adımları README'nin "İndir" bölümünde: $repo_url#indir
 
-          - Screenwall-macOS.dmg: uygulama (önerilen). DMG'yi açın, Screenwall'ı Applications (Uygulamalar) klasörüne sürükleyin ve oradan açın. Bir Terminal penceresi açılır ve ilerlemeyi gösterir; hazır olunca tarayıcıda http://127.0.0.1:8765 açılır. O pencereyi kapatmak (ya da Ctrl+C) Screenwall'ı durdurur. Belgeler, ayarlar ve Python ortamı ~/Library/Application Support/Screenwall klasöründe durur; uygulamanın kendisine bir şey yazılmaz.
+          - Screenwall-macOS.dmg: uygulama (önerilen). DMG'yi açın, Screenwall'ı Applications (Uygulamalar) klasörüne sürükleyin ve oradan açın. Bir Terminal penceresi açılır ve ilerlemeyi gösterir; hazır olunca tarayıcıda http://127.0.0.1:8765 açılır. O pencereyi kapatmak (ya da Ctrl+C) Screenwall'ı durdurur. Belgeler, ayarlar, kayıtlar ve Python ortamı (venv) ~/Library/Application Support/Screenwall klasöründe durur; uv (yoksa), Python 3.12 ve indirme önbelleği ~/.local ve ~/.cache/uv altına kurulur. Uygulamanın kendisine bir şey yazılmaz.
           - Screenwall-macOS.zip: aynı uygulama, klasör olarak. Zip'i açın, Screenwall klasöründeki Screenwall.command dosyasına çift tıklayın.
           - install-macos.sh: terminalden kurulum. Zip'i indirir, SHA256SUMS.txt ile doğrular, ~/Screenwall klasörüne kurar ve başlatır.
           - SHA256SUMS.txt: dmg, zip ve install-macos.sh dosyalarının SHA-256 özetleri.
 
-          Ollama zorunlu. Belgeler yalnızca yerel denetçi (Ollama üzerinde çalışan lokal LLM: qwen3.5:4b modeli, yaklaşık 3,4 GB) çalıştığında onaylanabilir; Ollama yoksa uygulama açılır ve belgeleri maskeler, ama hiçbir belge onaylanamaz ve indirilemez. Ollama'yı https://ollama.com/download adresinden kurun; model ilk açılışta kendiliğinden indirilir. İlk açılışta gerekli paketler de indirilir; internet bağlantısı gerekir.
+          Ollama zorunlu. Belgeler yalnızca lokal LLM denetçisi (Ollama üzerinde çalışan qwen3.5:4b modeli, yaklaşık 3,4 GB) çalıştığında onaylanabilir; Ollama yoksa uygulama açılır ve belgeleri maskeler, ama hiçbir belge onaylanamaz ve indirilemez. Ollama'yı https://ollama.com/download adresinden kurun; model ilk açılışta kendiliğinden indirilir. İlk açılışta gerekli paketler de indirilir; internet bağlantısı gerekir.
 
           Intel Mac'lerde Ollama yalnız işlemciyle (CPU) çalışır, denetim daha yavaş olur. Denetçi bir belgeye en fazla 120 saniye ayırır; süre aşılırsa belge incelemede kalır, elle onay da denetimi yeniden çalıştırdığı için süreyi hep aşan bir belge onaylanamaz. Intel'de bu sürenin yetip yetmediği ölçülmedi: Intel için tek test aşağıdaki Ollama'sız duman testi; Intel'de Ollama ile onay hiç denenmedi.
 
-          İlk açılışta macOS uyarısı: uygulama Apple tarafından imzalanmadığı için macOS "açılamadı" ya da "geliştirici doğrulanamadı" diyebilir. Screenwall uygulamasına (zip'te Screenwall.command dosyasına) sağ tıklayın (ya da Control tuşuyla tıklayın) > Aç > Aç. macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı kapatın, Sistem Ayarları > Gizlilik ve Güvenlik bölümünde Screenwall satırındaki "Yine de Aç" düğmesine basın. Bu yalnızca ilk açılışta gerekir.
+          İlk açılışta macOS uyarısı: uygulama Apple tarafından imzalanmadığı için macOS "açılamadı" ya da "geliştirici doğrulanamadı" diyebilir. Screenwall uygulamasına (zip'te Screenwall.command dosyasına) sağ tıklayın (ya da Control tuşuyla tıklayın) > Aç > Aç. macOS 15 (Sequoia) ve sonrasında bu yol çalışmazsa uyarıyı kapatın, Sistem Ayarları > Gizlilik ve Güvenlik bölümünde Screenwall satırındaki "Yine de Aç" düğmesine basın. Bu yalnızca ilk açılışta gerekir. macOS ilk açılışta "komut satırı geliştirici araçları"nı yüklemeyi önerirse Vazgeç'e basın; Screenwall'ın bunlara ihtiyacı yok.
 
-          Otomatik duman testi (zip açılır; DMG salt okunur bağlanır ve uygulama kopyalanır; başlatıcı çalıştırılır, sunucu ve örnek bir belge yüklemesi denenir, uygulamanın içinde hiçbir dosyanın değişmediğine bakılır; Ollama ve Terminal penceresi olmadan) GitHub'ın Apple Silicon (macos-latest) ve Intel (macos-15-intel) macOS sunucularında geçti. Bu taslağı oluşturan CI çalışması: $repo_url/actions/runs/$GITHUB_RUN_ID
+          Otomatik duman testi (zip açılır; DMG salt okunur bağlanır ve uygulama kopyalanır; başlatıcı çalıştırılır, sunucu ve örnek bir belge yüklemesi denenir, uygulamanın içinde hiçbir dosyanın değişmediğine bakılır; Ollama ve Terminal penceresi olmadan) GitHub'ın Apple Silicon (macos-latest) ve Intel (macos-15-intel) macOS sunucularında geçti. Bu sürümü oluşturan CI çalışması: $repo_url/actions/runs/$GITHUB_RUN_ID
           EOF
           gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "Screenwall $TAG" --notes-file "$RUNNER_TEMP/notes.md"
