@@ -10,7 +10,7 @@
     "lead": "Mask sensitive data in your company documents on your own computer before asking Claude or ChatGPT about them. Customer and signatory names, emails, IBANs and tax numbers become labels; the real values stay on your computer and you approve the outgoing text first.",
     "cta.dl": "Watch the film", "cta.gh": "Source on GitHub",
     "meta": "macOS 14 or later · Apple Silicon and Intel · requires Ollama",
-    "release.pending": "v0.1.1 is available. Find the DMG and ZIP packages with installation notes below.",
+    "release.pending": "v0.1.2 is available. Find the DMG and ZIP packages with installation notes below.",
     "cta.dmg": "Download for macOS · DMG",
     "film": "50-second film (in Turkish). All companies and people are fictional.",
     "p.k": "The problem",
