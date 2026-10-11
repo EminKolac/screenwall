@@ -2,10 +2,11 @@
 
 > **Note (2026-10-07):** the coverage table below describes an earlier version (93 tests, v1
 > API). Two of the files it names (`integration/test_review_api.py`, `integration/test_chat_api.py`)
-> no longer exist. Current state: on a clean clone and in CI, 877 backend tests pass and 4 are
-> skipped (`uv run pytest -q`; CI run for the v0.1.0 release commit `4be7df0`, Ubuntu and macOS).
-> On a machine with Tesseract installed and the TAB data downloaded, 879 pass and 2 are skipped
-> (measured on 2026-10-07 and again on 2026-10-10 with the same result). 79 frontend tests pass
+> no longer exist. Current state (v0.1.2, 55 tests added): on a clean clone and in CI, 932 backend
+> tests are expected to pass and 4 to be skipped (`uv run pytest -q`; v0.1.1 measured 877 + 4 in
+> CI for the v0.1.0 release commit `4be7df0`, Ubuntu and macOS; the v0.1.2 figure has not run in
+> CI yet). On a machine with Tesseract installed and the TAB data downloaded, 934 pass and 2 are
+> skipped (measured on 2026-10-11; 879 + 2 before the 55 new tests). 79 frontend tests pass
 > in 11 files (`npx vitest run`), locally and in CI. For what the
 > numbers in the README mean, see [SCORECARD.md](SCORECARD.md); for the code under test, read
 > `backend/tests/` and `frontend/src/**/*.test.ts(x)` directly.

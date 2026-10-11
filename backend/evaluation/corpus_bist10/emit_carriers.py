@@ -6,7 +6,10 @@ attributed to format HANDLING, not to different content. Canary injection happen
 these carrier bytes (`evaluation/corpus_bist10/inject.py` already handles pdf/docx/xlsx).
 
 PDF reuses `app.export.render_pdf.render_content_pdf` directly — it already renders any
-`ExtractedContent`, not just anonymized ones. The DOCX/XLSX emitters here are new and live in
+`ExtractedContent`, not just anonymized ones. It passes `title=EVALUATION_TITLE` ("Anonymized
+Document") explicitly, so the carriers stay byte-identical to the ones the parity snapshots were
+built from although the app's own export header is Turkish since v0.1.2. The DOCX/XLSX emitters
+here are new and live in
 `evaluation/`, not `app/export/`, on purpose: the product's real export path is deliberately
 PDF-only for security reasons (see `render_pdf.py`'s docstring — "what was audited is exactly what
 is shipped"); these are benchmark-corpus construction tooling, not a user-facing export feature.
@@ -17,7 +20,7 @@ import io
 import re
 import zipfile
 
-from app.export.render_pdf import render_content_pdf
+from app.export.render_pdf import EVALUATION_TITLE, render_content_pdf
 from app.extraction.base import BlockType, ExtractedContent
 
 # Sabit zaman damgası: benchmark taşıyıcıları BYTE-BYTE yeniden üretilebilir olmalı, yoksa
@@ -127,7 +130,7 @@ def _deterministic_pdf(data: bytes) -> bytes:
 
 
 def _render_pdf_deterministic(content: ExtractedContent) -> bytes:
-    return _deterministic_pdf(render_content_pdf(content))
+    return _deterministic_pdf(render_content_pdf(content, title=EVALUATION_TITLE))
 
 
 _EMITTERS = {"pdf": _render_pdf_deterministic, "docx": render_content_docx,

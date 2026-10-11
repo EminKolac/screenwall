@@ -2,6 +2,61 @@
 
 Screenwall'ın sürüm notları. En yeni sürüm en üstte.
 
+## v0.1.2 (2026-10-11)
+
+11 Ekim 2026'daki canlı denemede (v0.1.0 DMG'si, Ollama ile) görülen iki kusurun düzeltmesi.
+Kurulum değişmedi. Düzeltilmiş sürüm, v0.1.2 DMG'sindeki uygulama `open` ile açılarak aynı
+belgeyle denendi: başlık açık kaldı, öteki alanlar maskelendi, lokal LLM onayladı, PDF
+"Maskelenmiş belge" başlığıyla ve gerçek değer içermeden indi.
+
+### Uygulama
+
+- İndirilen PDF'in başlığı artık "Maskelenmiş belge" (önce İngilizce "Anonymized Document"
+  yazıyordu). Başlık `render_content_pdf` fonksiyonuna parametre oldu; ölçüm araçları
+  (`emit_carriers`, `run_stress`, `run_gold`, `run_bench`, `bist30`) eski başlığı açıkça
+  istiyor, böylece ölçüm taşıyıcıları ve parite kayıtları byte byte aynı kalıyor.
+- İçinde belge türü adı geçen bir öbek artık kişi adı sayılmıyor. İngilizce ad tanıyıcısı büyük
+  harfle başlayan iki kelimeyi kişi sanıyordu; "Tedarik Sözleşmesi (örnek, sentetik veri)"
+  başlığı bu yüzden `<PERSON_1>` oluyordu. Yeni kural, istatistiksel ad tanıyıcısının bulduğu
+  ve sözleşme, protokol, rapor, fatura, teklif, tutanak, şartname, dilekçe, yönetmelik, karar,
+  ek gibi (İngilizcede agreement, contract, report, invoice gibi) bir belge türü adı içeren
+  öbeği eliyor. Kelime listesi kapalı ve genel bilgiyle yazıldı, ölçüm dosyalarından alınmadı;
+  ad olarak da kullanılan kelimeler ("Bill", "Will") bilerek yok. Yanındaki gerçek adlar
+  etkilenmiyor ("Yetkili: Ahmet Yılmaz", "Sözleşmeyi imzalayan Ayşe Demir" yine maskeleniyor).
+- API'nin gösterdiği sürüm 0.1.2.
+
+### Site
+
+- Tanıtım sitesi repoda (`site/`) ve GitHub Pages'te: https://eminkolac.github.io/screenwall/ .
+  Önceki adres (screenwall.pages.dev) Türkiye'den açılmıyordu; github.io açılıyor. Metin kurumsal
+  anlatıma, lokal LLM ve Claude/ChatGPT adlarına göre güncellendi; v11 filmi (50 sn) eklendi.
+
+### Ölçümler
+
+Değişiklikten önceki ve sonraki kod aynı makinede, aynı gün koşuldu (`docs/SCORECARD.md`,
+"v0.1.2 yeniden ölçümü").
+
+- Katı kritik recall 472/489 → 472/489, kanarya kaçağı 0/32 → 0/32, nötr cümle değişimi
+  11/40 → 11/40 (aynı 11 cümle), gold kritik recall 1555/1555 → 1555/1555.
+- Korunması gereken iş terimleri 10/90 → 30/90. Artışın tamamı "Fatura Dönemi" ve "Sözleşme
+  Bedeli" terimlerinden geliyor: ikisi de kuralın genel listesindeki "fatura" ve "sözleşme"
+  kelimelerini içeriyor. Terimler hiçbir listeye eklenmedi, ama bu artışı kuralın başka iş
+  terimlerine genellendiğinin kanıtı saymıyoruz; öteki 5 terim hâlâ hiç korunmuyor.
+- Stres testi canlı lokal LLM ile (Qwen 3.5 4B, listeler kapalı) mevcut kodda ilk kez yeniden
+  ölçüldü: onaylı çıktıya sızıntı 0/72, güvenli teslim 59/62, LLM hatası 0; değişiklikten önce de
+  aynı. README'deki tek başına komut (`TERM_LISTS=false … run_stress --mode mapping --llm on`)
+  da önce ve sonra 72/72 geçti, kritik yanlış onay 0. LLM'in çalıştığı belgelerde medyan süre
+  önce 8,7 sn, sonra 17,0 sn; fark makinedeki başka işlerin yükünden.
+- İsteğe bağlı parite kontrolü (`PARITY=1 uv run pytest tests/parity`) beklendiği gibi 32 kayıtta
+  farklı: gold'da "Fatura Dönemi", "Sözleşme Bedeli" ve "HİZMET SÖZLEŞMESİ" artık açık (ve yer
+  tutucu numaraları kaydı), 4 gerçek BIST belgesinde belge adları. Kayıtlar bu değişikliğe göre yenilendi (`tests/parity/snapshots`); eskileri
+  `archive/parity-snapshots-v0.1.1/` altında. Kaldırılan maskeler yalnız bu üç terim, kişi adı değil. Kuralın
+  30 gerçek BIST PDF'inde düşürdüğü 198 PERSON span'inin hepsi belge adı ("Faaliyet Raporu",
+  "Ana Sözleşme", "Yönetim Kurulu Kararı" gibi); aralarında kişi adı yok.
+- Arka uçta 55 yeni test: Tesseract kurulu bu makinede 934 geçiyor, 2'si atlanıyor (önce
+  879 + 2). Temiz klonda 932 + 4 bekleniyor; CI'da henüz koşulmadı. README rozeti
+  "932 backend + 79 frontend". Arayüz değişmedi.
+
 ## v0.1.1 (2026-10-11)
 
 v0.1.0'ın gözden geçirilmesinde bulunan metin, kurulum ve belge sorunlarının düzeltmeleri. Yalnız

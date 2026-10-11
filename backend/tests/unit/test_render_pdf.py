@@ -16,7 +16,13 @@ import pytest
 from docx import Document as Docx
 from openpyxl.comments import Comment
 
-from app.export.render_pdf import _FONTS_DIR, render_content_pdf
+from app.export.render_pdf import (
+    _FONTS_DIR,
+    DEFAULT_TITLE,
+    EVALUATION_TITLE,
+    _content_html,
+    render_content_pdf,
+)
 from app.extraction.base import Block, BlockType, ExtractedContent, TableCell
 from app.extraction.docx import DocxExtractor
 from app.extraction.xlsx import XlsxExtractor
@@ -54,6 +60,42 @@ def test_render_preserves_tokens_turkish_and_structure():
         assert label in txt
 
 
+def test_default_header_is_turkish():
+    """v0.1.2: the app's download says "Maskelenmiş belge", not the old English header."""
+    txt = _pdf_text(render_content_pdf(ExtractedContent(
+        kind=FileKind.docx, blocks=[Block(block_id="p", text="Sorumlu <PERSON_1>.")])))
+    assert DEFAULT_TITLE == "Maskelenmiş belge"
+    assert txt.splitlines()[0].strip() == "Maskelenmiş belge"
+    assert "Anonymized Document" not in txt
+
+
+def test_evaluation_title_keeps_the_old_header_byte_for_byte():
+    """Evaluation carriers and parity snapshots (gold.json) start with "Anonymized Document";
+    evaluation callers pass EVALUATION_TITLE so their HTML (and so their PDF) is unchanged."""
+    anon = ExtractedContent(kind=FileKind.pdf, blocks=[
+        Block(block_id="h", type=BlockType.heading, text="MÜŞTERİ YAZIŞMASI"),
+        Block(block_id="p", text="<PERSON_1> & <ORG_1>")])
+    assert EVALUATION_TITLE == "Anonymized Document"
+    assert _content_html(anon, EVALUATION_TITLE) == (
+        "<html><body><h1>Anonymized Document</h1><h2>MÜŞTERİ YAZIŞMASI</h2>"
+        "<p>&lt;PERSON_1&gt; &amp; &lt;ORG_1&gt;</p></body></html>")
+    txt = _pdf_text(render_content_pdf(anon, title=EVALUATION_TITLE))
+    assert txt.splitlines()[0].strip() == "Anonymized Document"
+
+
+def test_evaluation_carrier_pdf_keeps_english_header():
+    from evaluation.corpus_bist10.emit_carriers import emit
+
+    pdf = emit(ExtractedContent(kind=FileKind.pdf, blocks=[Block(block_id="p", text="x")]), "pdf")
+    assert _pdf_text(pdf).splitlines()[0].strip() == "Anonymized Document"
+
+
+def test_title_is_html_escaped():
+    txt = _pdf_text(render_content_pdf(ExtractedContent(kind=FileKind.pdf, blocks=[]),
+                                       title="<b>A & B</b>"))
+    assert "<b>A & B</b>" in txt
+
+
 def test_anonymize_filename_masks_pii():
     from app.export.filename import anonymize_filename
     from app.models.document import Language
@@ -72,6 +114,7 @@ def test_render_empty_content_is_valid_pdf():
     pdf = render_content_pdf(ExtractedContent(kind=FileKind.pdf, blocks=[]))
     assert pdf[:4] == b"%PDF"
     assert "no extractable content" in _pdf_text(pdf)
+    assert "Maskelenmiş belge" in _pdf_text(pdf)
 
 
 def test_render_output_is_subset_and_small():

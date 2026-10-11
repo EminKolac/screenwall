@@ -7,25 +7,26 @@ ile üretilir; fayda ayrı bir komutla, `evaluation.goldbench.run_inference` ile
 git'te yok sayılır ve bilerek eklenir (`git add -f`); bugün repoda yalnızca `2026-09-24-faz0-taban`
 var. Aşağıda adı geçen diğer koşular yerel klasörlerdir.
 
-## Son durum (7 Ekim 2026)
+## Son durum (11 Ekim 2026)
 
 | Ölçüm | Değer | Kaynak koşu |
 |---|---|---|
-| Katı kritik recall (60 belge) | 472/489 | 2026-10-06, LLM kapalı |
-| Canary kaçağı | 0/32 (yalın 0/16, etiketli 0/16) | 2026-10-06 |
-| Gold kritik recall (60 belge, geliştirme seti) | 1555/1555 | 2026-10-06; 2026-10-07 (V2 korpusu olmadan, yalnız gold) |
-| Stres: onaylı çıktıya sızıntı (canlı LLM) | 0/72 | 2026-09-25 |
-| Stres: güvenli teslim (canlı LLM) | 59/62 | 2026-09-25 |
-| must_keep korunan, liste yok (8 terim, 90 geçiş) | 10/90 | 2026-10-06 |
-| Nötr cümle değişimi | 11/40 | 2026-10-06 |
+| Katı kritik recall (60 belge) | 472/489 | 2026-10-11 (v0.1.2), LLM kapalı |
+| Canary kaçağı | 0/32 (yalın 0/16, etiketli 0/16) | 2026-10-11 (v0.1.2) |
+| Gold kritik recall (60 belge, geliştirme seti) | 1555/1555 | 2026-10-06; 2026-10-07 (V2 korpusu olmadan, yalnız gold); 2026-10-11 (v0.1.2, LLM kapalı) |
+| Stres: onaylı çıktıya sızıntı (canlı LLM) | 0/72 | 2026-09-25; 2026-10-11 (v0.1.2) |
+| Stres: güvenli teslim (canlı LLM) | 59/62 | 2026-09-25; 2026-10-11 (v0.1.2) |
+| must_keep korunan, liste yok (8 terim, 90 geçiş) | 30/90 | 2026-10-11 (v0.1.2; v0.1.1: 10/90) |
+| Nötr cümle değişimi | 11/40 | 2026-10-11 (v0.1.2) |
 | Gerçek belgede yoğunluk (yer tutucu / 1000 karakter) | 12,03 | 2026-10-06 |
 | Karakter precision (yaklaşık, detect, 60 belge) | 0,836 | 2026-10-06 |
 | Fayda: cevaplanabilir soru, liste yok / varsayılan listeyle | %63,2 (177/280) / %91,8 (257/280) | 2026-10-06 ve 2026-10-07, LLM kapalı |
 
 must_keep paneli 8 iş teriminin 90 geçişidir (Teslim Tarihi 20; Fatura Dönemi, Gider Pusulası,
 Sözleşme Bedeli, Ödeme Planı, Kalite Kontrol, Risk Değerlendirmesi ve Yönetim Kurulu 10'ar).
-10/90 geçişleri sayar; korunan 10 geçişin hepsi "Ödeme Planı"dır, yani 8 terimden yalnız biri
-korunuyor.
+v0.1.1'de 10/90'dı ve korunan 10 geçişin hepsi "Ödeme Planı"ydı. v0.1.2'de 30/90: "Ödeme Planı",
+"Fatura Dönemi" ve "Sözleşme Bedeli" 10/10, öteki 5 terim 0. Artışın nedeni ve neden
+iyimser okunmaması gerektiği aşağıda, "v0.1.2 yeniden ölçümü" bölümünde.
 
 Bu sayıların hiçbiri mühürlü (görülmemiş) bir test setinden gelmiyor; 60 belgelik set kural
 ayarında da kullanılmış geliştirme setidir. 1555/1555 ve öteki %100 sonuçlar bu setten gelir;
@@ -62,6 +63,55 @@ Katı skorlayıcı, ChatGPT ile geliştirilen sürümün (Screenwall ChatGPT, V2
 `benchmark/scorer.py` dosyasının birebir kopyasıdır
 (`backend/evaluation/strict/scorer.py`, sha256 `bd4a6816…` testle sabit). Motor listesiz çağrılır;
 yani must_keep ve nötr cümle satırları motorun kendi aşırı maskelemesini ölçer.
+
+## v0.1.2 yeniden ölçümü (11 Ekim 2026)
+
+v0.1.2'nin iki değişikliği: (1) indirilen PDF'in başlığı "Maskelenmiş belge" (ölçüm araçları
+eski "Anonymized Document" başlığını açıkça istiyor, taşıyıcılar byte byte aynı); (2) içinde belge
+türü adı geçen istatistiksel PERSON span'i kişi sayılmıyor (`app/anonymization/gates.py`, kural 4;
+sözleşme, protokol, rapor, fatura, teklif, tutanak, şartname, dilekçe, yönetmelik, karar, ek ve
+benzerleri, İngilizcede agreement, contract, report, invoice ve benzerleri). Kelime listesi genel
+bilgiyle yazıldı, ölçüm dosyalarından alınmadı; hiçbir terim izin listesine eklenmedi.
+
+"Önce" değişiklikten önceki ağacın (commit `83130cd`) bir kopyasında, "sonra" değişiklikle aynı
+makinede ve aynı gün koşuldu. Koşular (yerel klasörler): `2026-10-11-before-strict`,
+`2026-10-11-after-strict` (gold + strict, LLM kapalı), `2026-10-11-before-stress`,
+`2026-10-11-after-stress` (stres, canlı Qwen 3.5 4B), ayrıca README'deki tek başına stres komutu
+(`TERM_LISTS=false … run_stress --mode mapping --llm on`).
+
+| Ölçüm | Önce | Sonra |
+|---|---|---|
+| Katı kritik recall (60 belge) | 472/489 | 472/489 |
+| Canary kaçağı | 0/32 | 0/32 |
+| Nötr cümle değişimi (düşük iyi) | 11/40 | 11/40 (aynı 11 cümle) |
+| must_keep korunan, liste yok (yüksek iyi) | 10/90 | 30/90 |
+| Gold kritik recall (60 belge) / v5 alt kümesi | 1555/1555 / 596/596 | 1555/1555 / 596/596 |
+| Stres: onaylı çıktıya sızıntı (canlı LLM, skor kartı) | 0/72 | 0/72 |
+| Stres: güvenli teslim (canlı LLM, skor kartı) | 59/62 | 59/62 |
+| Stres, README komutu: geçen / kritik yanlış onay / sızıntı | 72/72 / 0 / 0 | 72/72 / 0 / 0 |
+| LLM kararı / LLM hatası (skor kartı stresi) | 59 / 0 | 59 / 0 |
+| Medyan sn/dosya, LLM'in çalıştığı 59 belge (skor kartı stresi) | 8,66 | 17,04 |
+
+Her iki stres koşusunda 72 belgenin durumu önce ve sonra birebir aynı (approved 59,
+rejected:invalid 10, needs_human_review 3; incelemeye gidenler üç taranmış PDF). Süreler LLM'in
+gerçekten çalıştığını gösteriyor (LLM'siz koşuda medyan 0,1 sn/dosya); "sonra" koşusundaki uzun
+süre makinedeki başka işlerin yükünden (yük ortalaması 26–30), değişiklikten değil: Ollama
+günlüğünde tek bir `/api/chat` çağrısı bu sırada 16–20 sn sürdü.
+
+must_keep artışı dürüst okunmalı: 20 geçişin hepsi "Fatura Dönemi" ve "Sözleşme Bedeli"
+terimlerinden geliyor. İkisi de kuralın genel listesindeki "fatura" ve "sözleşme" kelimelerini
+içeriyor; terimler listeye eklenmedi, ama artış bu örtüşmeden geliyor ve kuralın benzer başka iş
+terimlerine ne kadar genellendiğini göstermiyor. Öteki 5 terim (Teslim Tarihi, Gider Pusulası,
+Kalite Kontrol, Risk Değerlendirmesi, Yönetim Kurulu) hâlâ 0. "Pusula" ve "plan" gibi kelimeler
+bilerek listeye alınmadı. Gerçek belge yoğunluğu ve fayda (`run_inference`) bu sürümde yeniden
+ölçülmedi.
+
+Kuralın 30 gerçek BIST PDF'inde (`backend/data/corpus_bist10/raw`) düşürdüğü PERSON span'leri
+tek tek döküldü: 198 span, hepsi belge adı ("Entegre Faaliyet Raporu" 29, "Faaliyet Raporu" 19,
+"Ana Sözleşme" 16, "Yönetim Kurulu Kararı" 4 …); aralarında kişi adı yok. Parite kayıtları
+(`tests/parity/snapshots`) bu değişiklikle 32 kayıtta farklıydı; yeni kayıtlar alındı, eskileri
+`archive/parity-snapshots-v0.1.1/` altında. Açılan maskeler yalnız "Fatura Dönemi", "Sözleşme Bedeli" ve
+"HİZMET SÖZLEŞMESİ".
 
 ## Faz 0 tabanı (24 Eylül 2026)
 

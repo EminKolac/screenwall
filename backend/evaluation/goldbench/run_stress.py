@@ -33,7 +33,7 @@ import time
 from pathlib import Path
 
 from app.config import Settings
-from app.export.render_pdf import render_content_pdf
+from app.export.render_pdf import EVALUATION_TITLE, render_content_pdf
 from app.extraction.base import ExtractionFailed, UploadRejected
 from app.extraction.dispatcher import extract
 from app.models.document import DocumentStatus
@@ -119,7 +119,7 @@ def _export_text(anon, max_bytes: int) -> str | None:
     if anon is None:
         return None
     try:
-        pdf = render_content_pdf(anon)
+        pdf = render_content_pdf(anon, title=EVALUATION_TITLE)
         _, extracted = extract(pdf, "export.pdf", max_bytes)
         return extracted.plain_text
     except Exception:  # noqa: BLE001 — export edilemiyorsa sızıntı da olamaz

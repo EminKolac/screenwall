@@ -34,8 +34,60 @@ def lowercase_initial_ner(span: EntitySpan, text: str) -> bool:
     return first.isalpha() and first.islower()
 
 
+# Document-type and business-document head nouns, nominative / 3rd-person possessive / plural
+# (the plural possessive is derived). A closed list written from general knowledge of Turkish and
+# English office documents — deliberately NOT taken from any benchmark or evaluation file. No
+# personal name contains one of these words, so a statistical PERSON span that does is a heading
+# or a phrase ("Tedarik Sözleşmesi", "Faaliyet Raporu", "Supply Agreement"), not a person.
+# Words that are also given names or surnames ("Bill", "Will") are left out on purpose.
+_TR_DOC_NOUNS = (
+    ("sözleşme", "sözleşmesi", "sözleşmeler"), ("protokol", "protokolü", "protokoller"),
+    ("rapor", "raporu", "raporlar"), ("fatura", "faturası", "faturalar"),
+    ("teklif", "teklifi", "teklifler"), ("tutanak", "tutanağı", "tutanaklar"),
+    ("şartname", "şartnamesi", "şartnameler"), ("dilekçe", "dilekçesi", "dilekçeler"),
+    ("yönetmelik", "yönetmeliği", "yönetmelikler"), ("yönerge", "yönergesi", "yönergeler"),
+    ("genelge", "genelgesi", "genelgeler"), ("karar", "kararı", "kararlar"),
+    ("ek", "eki", "ekler"), ("beyanname", "beyannamesi", "beyannameler"),
+    ("makbuz", "makbuzu", "makbuzlar"), ("irsaliye", "irsaliyesi", "irsaliyeler"),
+    ("taahhütname", "taahhütnamesi", "taahhütnameler"),
+    ("vekaletname", "vekaletnamesi", "vekaletnameler"),
+    ("vekâletname", "vekâletnamesi", "vekâletnameler"),
+    ("ihtarname", "ihtarnamesi", "ihtarnameler"), ("belge", "belgesi", "belgeler"),
+    ("mutabakat", "mutabakatı", "mutabakatlar"), ("talimat", "talimatı", "talimatlar"),
+)
+_EN_DOC_NOUNS = (
+    "agreement", "agreements", "contract", "contracts", "report", "reports", "invoice",
+    "invoices", "memorandum", "minutes", "proposal", "proposals", "certificate", "certificates",
+    "protocol", "protocols", "receipt", "receipts", "regulation", "regulations", "addendum",
+    "annex", "appendix", "amendment", "amendments",
+)
+
+
+def _plural_possessive(plural: str) -> str:
+    return plural + ("ı" if plural.endswith("lar") else "i")
+
+
+_DOC_NOUN_KEYS = frozenset(term_key(w) for w in (
+    *(form for forms in _TR_DOC_NOUNS for form in (*forms, _plural_possessive(forms[2]))),
+    *_EN_DOC_NOUNS,
+))
+_WORD_EDGE = ",;:()[]\"'’.!?«»“”"
+
+
+def _word_key(word: str) -> str:
+    """'Sözleşmesi'nin' -> 'sözleşmesi': edge punctuation and an apostrophe suffix removed."""
+    word = word.strip(_WORD_EDGE)
+    for apostrophe in ("'", "’"):
+        word = word.split(apostrophe, 1)[0]
+    return term_key(word)
+
+
+def contains_document_noun(surface: str) -> bool:
+    return any(_word_key(w) in _DOC_NOUN_KEYS for w in surface.split())
+
+
 def implausible_person_ner(span: EntitySpan, text: str) -> bool:
-    """PERSON-only rules for Presidio NER spans (EXPERIMENTS v5).
+    """PERSON-only rules for Presidio NER spans (EXPERIMENTS v5; rule 4 added in v0.1.2).
 
     3) A span of 3+ words that crosses a line break joins separate visual items
        ('Abone Kazanımı\\nMobilde'). A real name wrapped at a line end is two words and survives.
@@ -43,6 +95,10 @@ def implausible_person_ner(span: EntitySpan, text: str) -> bool:
     1) A single-word statistical PERSON is noise ("Konsolide", "Tahakkuk"); single surnames are
        covered by surname propagation and labelled names by TR_PERSON_CTX.
     2) A multi-word PERSON containing a lowercase word of 3+ letters is a sentence fragment.
+    4) A PERSON containing a document-type noun ("Tedarik Sözleşmesi", "Faaliyet Raporu",
+       "Supply Agreement") is a heading, not a name. Seen in the app on 2026-10-11: the English
+       model took a title-case DOCX heading for a person. Names next to such a word are separate
+       spans ("Sözleşmeyi imzalayan Ayşe Demir") and are not affected.
     """
     if span.source not in _NER_SOURCES:
         return False
@@ -53,6 +109,8 @@ def implausible_person_ner(span: EntitySpan, text: str) -> bool:
     if "\n" in surface and len(words) >= 3:
         return True
     if len(words) == 1:
+        return True
+    if contains_document_noun(surface):
         return True
     return any(w[0].isalpha() and w[0].islower() for w in words if len(w) >= 3)
 

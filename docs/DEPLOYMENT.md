@@ -131,9 +131,14 @@ A synthetic corporate DOCX was masked (customer `<ORG_1>`, signatory `<PERSON_1>
 `<EMAIL_1>`, IBAN `<IBAN_1>`, VKN `<VKN_1>`, approver `<PERSON_2>`; amount and delivery term
 kept), the local LLM audit approved it (68 s, cold model), unmasking a span and approving again
 re-ran the audit (about 15 s), and the exported PDF contained none of the real values. Gaps seen
-in that run: the heading "Tedarik Sözleşmesi (örnek, sentetik veri)" (first two words
-capitalised) was masked as PERSON by the English NER (the lowercase "Tedarik sözleşmesi" stays),
-and the exported PDF header reads "Anonymized Document" in English. The zip was also unpacked
+in that run, both fixed in v0.1.2: the heading "Tedarik Sözleşmesi (örnek, sentetik veri)" (first
+two words capitalised) was masked as PERSON by the English NER (the lowercase "Tedarik
+sözleşmesi" stayed); a statistical PERSON span that contains a document-type noun (sözleşme,
+rapor, fatura, agreement, report, …) is now rejected. The exported PDF header read "Anonymized
+Document" in English; it now reads "Maskelenmiş belge" (evaluation tooling still passes the
+English title so its carriers stay byte-identical). The fixed build was then run the same way:
+the app from the v0.1.2 DMG, opened with `open`, kept the heading, masked the other fields, was
+approved by the local LLM and exported a "Maskelenmiş belge" PDF with no real values. The zip was also unpacked
 and the launcher run from a terminal, end to end, on the same Mac; every release is also
 smoke-tested on GitHub's Apple Silicon (`macos-latest`) and Intel (`macos-15-intel`) runners
 (below). Not yet checked by hand: a Finder launch with the Gatekeeper prompt, a DMG or zip

@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 from app.config import Settings
-from app.export.render_pdf import render_content_pdf
+from app.export.render_pdf import EVALUATION_TITLE, render_content_pdf
 from app.extraction.base import ExtractionFailed, UploadRejected
 from app.extraction.dispatcher import extract
 from app.pipeline.runner import run_pipeline
@@ -141,7 +141,7 @@ def run_operational(
                 export_ok = False
                 if anon is not None:
                     try:
-                        export_ok = len(render_content_pdf(anon)) > 0
+                        export_ok = len(render_content_pdf(anon, title=EVALUATION_TITLE)) > 0
                     except Exception:  # noqa: BLE001
                         export_ok = False
                 last = doc.iterations[-1] if doc.iterations else None
@@ -219,7 +219,7 @@ def run_canary(
                 export_text = None
                 if anon is not None:
                     try:
-                        pdf = render_content_pdf(anon)
+                        pdf = render_content_pdf(anon, title=EVALUATION_TITLE)
                         _, ex = extract(pdf, "export.pdf", max_bytes)
                         export_text = ex.plain_text
                     except Exception:  # noqa: BLE001

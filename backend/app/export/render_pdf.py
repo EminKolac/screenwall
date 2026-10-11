@@ -65,8 +65,15 @@ def _table_html(b: Block) -> str:
     return "".join(f'<p class="row">{html.escape(line)}</p>' for line in b.table_lines())
 
 
-def _content_html(anon: ExtractedContent) -> str:
-    body: list[str] = ["<h1>Anonymized Document</h1>"]
+# The app is Turkish, so the downloaded file says so. Evaluation tooling passes
+# EVALUATION_TITLE explicitly: its carriers and parity snapshots were built with that header and
+# must stay byte-identical.
+DEFAULT_TITLE = "Maskelenmiş belge"
+EVALUATION_TITLE = "Anonymized Document"
+
+
+def _content_html(anon: ExtractedContent, title: str = DEFAULT_TITLE) -> str:
+    body: list[str] = [f"<h1>{html.escape(title)}</h1>"]
     rendered = False
     for b in anon.blocks:
         if b.type == BlockType.table and b.cells:
@@ -83,10 +90,12 @@ def _content_html(anon: ExtractedContent) -> str:
     return "<html><body>" + "".join(body) + "</body></html>"
 
 
-def render_content_pdf(anon: ExtractedContent) -> bytes:
-    """Render approved anonymized content (layer 3) into a fresh PDF. Returns bytes only."""
+def render_content_pdf(anon: ExtractedContent, *, title: str = DEFAULT_TITLE) -> bytes:
+    """Render approved anonymized content (layer 3) into a fresh PDF. Returns bytes only.
+
+    `title` is the first line of the PDF; evaluation callers pass EVALUATION_TITLE."""
     story = fitz.Story(
-        html=_content_html(anon), user_css=_CSS, archive=fitz.Archive(str(_FONTS_DIR))
+        html=_content_html(anon, title), user_css=_CSS, archive=fitz.Archive(str(_FONTS_DIR))
     )
     mediabox = fitz.paper_rect("a4")
     where = fitz.Rect(

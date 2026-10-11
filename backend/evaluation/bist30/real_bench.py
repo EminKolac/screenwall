@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from app.config import Settings
-from app.export.render_pdf import render_content_pdf
+from app.export.render_pdf import EVALUATION_TITLE, render_content_pdf
 from app.extraction.base import ExtractionFailed, UploadRejected
 from app.pipeline.runner import run_pipeline
 from app.services.storage_repository import StorageDocumentRepository
@@ -86,7 +86,7 @@ def _process(data: bytes, filename: str, settings, repo) -> dict:
     export_ok = False
     if anon is not None:
         try:
-            export_ok = len(render_content_pdf(anon)) > 0
+            export_ok = len(render_content_pdf(anon, title=EVALUATION_TITLE)) > 0
         except Exception:  # noqa: BLE001
             export_ok = False
     warnings = []

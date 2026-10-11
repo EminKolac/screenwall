@@ -4,7 +4,7 @@
 
 **Önce maskele. Sonra sor.**
 
-[![tests](https://img.shields.io/badge/tests-877%20backend%20%2B%2079%20frontend-2F6B4F)](docs/TESTING.md)
+[![tests](https://img.shields.io/badge/tests-932%20backend%20%2B%2079%20frontend-2F6B4F)](docs/TESTING.md)
 [![stres](https://img.shields.io/badge/stres%20testi-0%2F72%20s%C4%B1z%C4%B1nt%C4%B1-2F6B4F)](#test-sonuclari)
 [![python](https://img.shields.io/badge/python-3.12-6B675C)](backend/pyproject.toml)
 [![platform](https://img.shields.io/badge/platform-macOS-6B675C)](#indir)
@@ -25,6 +25,7 @@ sohbetini seçip her soruyu ayrıca onayladığınızda.
 tedarik sözleşmesi bilgisayarda maskeleniyor, iki adımlı denetimden geçiyor (kurallar ve Ollama
 üzerinde çalışan lokal LLM, Qwen 3.5 4B), son kararı kullanıcı veriyor ve Claude ya da ChatGPT'ye
 yalnızca etiketler gidiyor. Sunum: [Screenwall-Yatirimci-Sunum.pptx](Screenwall-Yatirimci-Sunum.pptx).
+Site: [eminkolac.github.io/screenwall](https://eminkolac.github.io/screenwall/) (kaynağı repodaki `site/` klasörü).
 
 <div align="center">
 
@@ -115,10 +116,13 @@ Word belgesinde müşteri `<ORG_1>`, yetkili `<PERSON_1>`, e-posta `<EMAIL_1>`, 
 VKN `<VKN_1>`, onaylayan kişi `<PERSON_2>` oldu; tutar ve teslim süresi açık kaldı. Lokal LLM
 denetimi belgeyi onayladı (ilk denetim, model belleğe yüklenirken 68 saniye). Bir maskeyi geri
 alıp yeniden onaylamak denetimi yeniden çalıştırdı (yaklaşık 15 saniye). İndirilen PDF'te gerçek
-değerlerin hiçbiri yoktu. Bu denemede görülen iki kusur: ilk iki kelimesi büyük harfle başlayan
-"Tedarik Sözleşmesi (örnek, sentetik veri)" başlığı İngilizce ad tanıyıcısı tarafından kişi adı
-sanılıp maskelendi (ikinci kelimesi küçük harfle yazılan "Tedarik sözleşmesi" açık kaldı) ve
-indirilen PDF'in başlığı İngilizce ("Anonymized Document").
+değerlerin hiçbiri yoktu. Bu denemede görülen iki kusur v0.1.2'de düzeltildi: ilk iki kelimesi
+büyük harfle başlayan "Tedarik Sözleşmesi (örnek, sentetik veri)" başlığı İngilizce ad tanıyıcısı
+tarafından kişi adı sanılıp maskeleniyordu (artık sözleşme, rapor, fatura gibi bir belge türü adı
+içeren bir öbek kişi adı sayılmıyor) ve indirilen PDF'in başlığı İngilizceydi ("Anonymized
+Document"; artık "Maskelenmiş belge"). Düzeltilmiş sürüm de aynı yoldan denendi: v0.1.2 DMG'sindeki uygulama `open` ile
+açıldı, aynı belgede başlık açık kaldı, öteki alanlar yine maskelendi, lokal LLM belgeyi onayladı
+ve indirilen PDF "Maskelenmiş belge" başlığıyla, gerçek değer içermeden geldi.
 
 Zip de aynı Mac'te başlatıcı terminalden çalıştırılarak uçtan uca denendi. Her sürüm ayrıca
 GitHub'ın Apple Silicon ve Intel macOS sunucularında otomatik açılış testinden geçer (zip açılır,
@@ -281,7 +285,7 @@ sürümünün puanlayıcısıyla ve onun kıyas korpusundaki aynı belgelerle ko
 | Sahte kimlik kaçağı (düşük iyi) | 0/32 | 7/32 |
 | Stres testi sızıntısı (canlı denetçi) | 0/72 | 0/72 |
 | Güvenli belgenin teslimi | 59/62 | 28/62 |
-| Korunması gereken iş terimleri (8 terim, 90 geçiş; yüksek iyi) | 10/90 | 38/90 |
+| Korunması gereken iş terimleri (8 terim, 90 geçiş; yüksek iyi) | 30/90 | 38/90 |
 | Gereksiz karartma denemesi (düşük iyi) | 11/40 | 21/40 |
 
 Tablo, iki sürümün aynı puanlayıcıyla (ChatGPT sürümünün kendi puanlayıcısı) ve ikisi de
@@ -291,9 +295,15 @@ yer için `FABLE_BENCH_CORPUS`) gerekiyor ve bu korpus repoda yok (aşağıda "�
 koşun"). ChatGPT sütunu o sürümün kendi ölçümünden alındı ve ham çıktısı bu repoda yok. Bu
 tablonun önceki hâlinde "Gereksiz karartma" satırında iki sürüm için de 0/90 yazıyordu. O sayı
 bizim tarafta ölçülen 8 terimin hepsini içeren bir izin listesinden geliyordu, yani bir test
-sızıntısıydı. Listesiz dürüst sayı yukarıdaki 10/90: 8 iş teriminin 90 geçişinden 10'u korunuyor
-ve bu 10 geçişin hepsi "Ödeme Planı". Korunması gereken terimlerde iki sürüm de
-zayıf; bu, şu anki çalışmanın ana hedefi. Deney günlüğünün tamamı (başarısız denemeler dahil)
+sızıntısıydı. Listesiz dürüst sayı v0.1.1'de 10/90'dı: 8 iş teriminin 90 geçişinden yalnız "Ödeme
+Planı"nın 10 geçişi korunuyordu. v0.1.2'de bu sayı 30/90'a çıktı; artışın tamamı "Fatura Dönemi" ve
+"Sözleşme Bedeli" terimlerinden geliyor (ikisi de 10/10). Bu iki terim, belge türü adı içeren
+öbekleri kişi adı saymayan yeni kuralın genel kelime listesindeki "fatura" ve "sözleşme"
+kelimelerini içeriyor. Liste ölçüm dosyalarından alınmadı ve terimlerin kendisi hiçbir listeye
+eklenmedi, ama artış bu örtüşmeden geliyor; öteki 6 terim (Teslim Tarihi, Gider Pusulası, Kalite
+Kontrol, Risk Değerlendirmesi, Yönetim Kurulu ve zaten korunan Ödeme Planı) değişmedi. Korunması
+gereken terimlerde iki sürüm de zayıf; bu, şu anki çalışmanın ana hedefi. Deney günlüğünün tamamı
+(başarısız denemeler dahil)
 [`thoughts/EXPERIMENTS.md`](thoughts/EXPERIMENTS.md) dosyasında.
 
 ### Ölçümleri kendiniz koşun
@@ -316,7 +326,7 @@ Hızlı skor kartı bunları ölçmez. Tam skor kartının üç ön koşulu var:
   repoda yok.
 
 Yani temiz bir klonda `make scorecard` da `make scorecard-full` da tamamlanmaz: katı puanlayıcı
-(472/489, 0/32 kanarya, 10/90, 11/40) ve skor kartının stres bölümü bu repodan yeniden
+(472/489, 0/32 kanarya, 30/90, 11/40) ve skor kartının stres bölümü bu repodan yeniden
 üretilemez. Temiz bir klonda çalışanlar:
 
 ```bash
@@ -341,7 +351,7 @@ Bunlar ölçülmüş ya da sentetik örneklerle gösterilmiş sorunlar. Belgeyi 
 | Cümle içinde büyük harfle yazılmış adlar | "Toplantıya genel müdürü DENEME ÖRNEKOĞLU katıldı." gibi bir cümlede ad maskelenmeyebiliyor. 6 Ekim değerlendirmesinde canlı denetçi, adlar açıkta kaldığı halde böyle bir paragrafı onayladı. "Adı Soyadı:" gibi etiketli alanlardaki adlar maskeleniyor. |
 | Resmî adres biçimleri | "MAH. … SK. NO: x / NO: y İLÇE / İL" ve "DIŞ KAPI NO … İÇ KAPI NO …" biçimleri 7 Ekim'den beri sentetik örneklerde bütün olarak maskeleniyor; gerçek bir e-Devlet PDF'inden çıkan metinle yeniden denenmedi. Bu kural mahalle/sokak kısaltması (MAH., SK., CAD., BLV. ya da açık yazılışı) ve kapı numarası olmayan adresleri görmüyor. |
 | Yarı-tanımlayıcılar | Meslek, eğitim, sendika üyeliği, hukuki durum ve maaş bilgisi otomatik onaydan sonra da metinde kalabiliyor; denetçi bu türlere bakmıyor. Katı ölçümde maskelenen: meslek 0/40, eğitim 0/20, sendika 0/10, hukuki durum 0/10, maaş 16/20. |
-| İş terimlerinin gereksiz maskelenmesi | "Vergi Usul Kanunu", "Dönem Karı" gibi terimler kişi ya da yer sanılıp maskeleniyor. Listesiz ölçümde korunması gereken 8 iş teriminin 90 geçişinden yalnızca 10'u korunuyor (hepsi "Ödeme Planı"); kişisel veri içermeyen 40 sıradan cümlenin 11'i değiştiriliyor. |
+| İş terimlerinin gereksiz maskelenmesi | "Vergi Usul Kanunu", "Dönem Karı" gibi terimler kişi ya da yer sanılıp maskeleniyor. Listesiz ölçümde korunması gereken 8 iş teriminin 90 geçişinden 30'u korunuyor ("Ödeme Planı", "Fatura Dönemi" ve "Sözleşme Bedeli"; öteki 5 terim hiç korunmuyor); kişisel veri içermeyen 40 sıradan cümlenin 11'i değiştiriliyor. |
 | Henüz mühürlü test seti yok | %100 sonuçlar, kural ayarında da kullanılmış 60 belgelik geliştirme setinden geliyor. Sistemin hiç görmediği belgelerdeki başarı henüz ölçülmedi. |
 | Apple imzası yok | Uygulama Apple tarafından imzalanmadı ve onaylanmadı (notarization yok); ilk açılışta macOS uyarı verir (yukarıda "DMG ile kurulum", 3. adım). |
 | Windows desteklenmiyor (yalnız macOS) | Hazır paket yalnız macOS için (Apple Silicon ve Intel). Windows için paket yok ve Windows'ta test koşulmuyor. |
@@ -358,7 +368,7 @@ gereken adları Ayarlar'daki "Her zaman maskele" listesine yazabilirsiniz.
 - Büyük harfle yazılmış adlar, kısaltmasız resmî adresler ve yarı-tanımlayıcılar (yukarıdaki
   tablo)
 - Gereksiz karartmayı dürüst ölçümle indirmek: nötr cümlede 11/40'tan en fazla 2/40'a,
-  korunması gereken iş terimlerinde 10/90'dan en az 80/90'a (8 terimin 90 geçişi, listesiz; bkz.
+  korunması gereken iş terimlerinde 30/90'dan en az 80/90'a (8 terimin 90 geçişi, listesiz; bkz.
   [`docs/SCORECARD.md`](docs/SCORECARD.md))
 - Bağımsız, mühürlü bir test seti
 - UYAP UDF desteği: avukatların gerçekte kullandığı format

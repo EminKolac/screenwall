@@ -15,7 +15,7 @@ from pathlib import Path
 from app.anonymization.presidio_engine import PresidioEngine
 from app.config import Settings
 from app.export.filename import anonymize_filename
-from app.export.render_pdf import render_content_pdf
+from app.export.render_pdf import EVALUATION_TITLE, render_content_pdf
 from app.extraction.dispatcher import extract
 from app.pipeline.runner import run_pipeline
 from app.services.storage_repository import StorageDocumentRepository
@@ -69,7 +69,7 @@ def process_carrier(
     export_text = None
     if anon is not None:
         try:
-            pdf = render_content_pdf(anon)
+            pdf = render_content_pdf(anon, title=EVALUATION_TITLE)
             _, ex = extract(pdf, "export.pdf", max_bytes)
             export_text = ex.plain_text
         except Exception:  # noqa: BLE001 — export failure is captured as no export_text
