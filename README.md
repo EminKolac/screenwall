@@ -24,7 +24,8 @@ sohbetini seçip her soruyu ayrıca onayladığınızda.
 **Tanıtım filmi (50 saniye):** [screenwall-promo.mp4](screenwall-promo.mp4). Filmde kurumsal bir
 tedarik sözleşmesi bilgisayarda maskeleniyor, iki adımlı denetimden geçiyor (kurallar ve Ollama
 üzerinde çalışan lokal LLM, Qwen 3.5 4B), son kararı kullanıcı veriyor ve Claude ya da ChatGPT'ye
-yalnızca etiketler gidiyor. Sunum: [Screenwall-Yatirimci-Sunum.pptx](Screenwall-Yatirimci-Sunum.pptx).
+yalnızca etiketler gidiyor. Sunumlar: [proje sunumu](Screenwall-Proje-Sunumu.pptx) (film içinde,
+internetsiz oynar) ve [yatırımcı sunumu](Screenwall-Yatirimci-Sunum.pptx).
 Site: [screenwall.site](https://screenwall.site) (kaynağı repodaki `site/` klasörü).
 
 <div align="center">

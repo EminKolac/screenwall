@@ -13,6 +13,7 @@
     "release.pending": "v0.1.2 is available. Find the DMG and ZIP packages with installation notes below.",
     "cta.dmg": "Download for macOS · DMG",
     "film": "50-second film (in Turkish). All companies and people are fictional.",
+    "deck": "Download the project deck (PPTX)",
     "p.k": "The problem",
     "p.h": 'You want to ask Claude or ChatGPT about company documents. <span class="coral">But they contain customer, signatory and bank details.</span>',
     "p.sub": "Sending that text to the cloud as it is is a data-protection and confidentiality risk. Screenwall masks it first; only labelled text goes to Claude or ChatGPT, and only with your approval.",

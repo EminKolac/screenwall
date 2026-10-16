@@ -27,6 +27,7 @@ belgeyle denendi: başlık açık kaldı, öteki alanlar maskelendi, lokal LLM o
 
 ### Site
 
+- Proje sunumu (`Screenwall-Proje-Sunumu.pptx`, v11 filmi gömülü) repoda; README ve site bağlantı veriyor.
 - Tanıtım sitesi repoda (`site/`) ve GitHub Pages'te, https://screenwall.site adresiyle (Cloudflare
   üzerinden).
   Önceki adres (screenwall.pages.dev) Türkiye'den açılmıyordu; github.io açılıyor. Metin kurumsal
